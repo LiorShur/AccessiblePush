@@ -1085,10 +1085,10 @@
           <div class="count">—</div>
           <div class="label">Settings</div>
         </div>
-        <div class="stat-card" data-section="notifications" onclick="switchSection('notifications')">
-          <div class="icon">🔔</div>
-          <div class="count" id="notifSubscriberCount">-</div>
-          <div class="label">Push Notifications</div>
+        <div class="stat-card" data-section="announcements" onclick="switchSection('announcements')">
+          <div class="icon">📢</div>
+          <div class="count" id="announcementsCount">-</div>
+          <div class="label">Announcements</div>
         </div>
         <div class="stat-card" data-section="feedback" onclick="switchSection('feedback')">
           <div class="icon">💬</div>
@@ -1283,16 +1283,16 @@
         </div>
       </div>
       
-      <!-- Notifications Section -->
-      <div class="section" id="notificationsSection">
+      <!-- Announcements Section -->
+      <div class="section" id="announcementsSection">
         <div class="data-card">
           <div class="data-header">
-            <h3>🔔 Push Notifications</h3>
+            <h3>📢 Announcements</h3>
           </div>
-          <div id="notificationsContent">
+          <div id="announcementsContent">
             <div style="padding: 40px; text-align: center; color: #6b7280;">
               <div style="font-size: 32px; margin-bottom: 12px;">⏳</div>
-              Loading notifications module...
+              Loading announcements module...
             </div>
           </div>
         </div>
@@ -1992,39 +1992,39 @@
       document.querySelectorAll('.section').forEach(sec => {
         sec.classList.toggle('active', sec.id === `${section}Section`);
       });
-      // Only render for data sections, not settings/feedback/notifications
+      // Only render for data sections, not settings/feedback/announcements
       if (['routes', 'guides', 'conditions', 'reports'].includes(section)) {
         renderCurrentSection();
       }
-      // Load notifications module when switching to that section
-      if (section === 'notifications') {
-        loadNotificationsModule();
+      // Load announcements module when switching to that section
+      if (section === 'announcements') {
+        loadAnnouncementsModule();
       }
     };
 
-    // Load notifications admin module
-    let notificationsModuleLoaded = false;
-    async function loadNotificationsModule() {
-      if (notificationsModuleLoaded) return;
+    // Load announcements admin module
+    let announcementsModuleLoaded = false;
+    async function loadAnnouncementsModule() {
+      if (announcementsModuleLoaded) return;
       
       try {
-        const { notificationAdmin } = await import('./src/admin/notificationAdmin.js');
-        const container = document.getElementById('notificationsContent');
-        await notificationAdmin.renderSection(container);
-        notificationsModuleLoaded = true;
+        const { announcementsAdmin } = await import('./src/admin/announcementsAdmin.js');
+        const container = document.getElementById('announcementsContent');
+        await announcementsAdmin.renderSection(container);
+        announcementsModuleLoaded = true;
         
-        // Update subscriber count in header
-        const totalEl = document.getElementById('notifSubscriberCount');
-        const activeEl = document.getElementById('activeSubscribers');
-        if (activeEl && totalEl) {
-          totalEl.textContent = activeEl.textContent;
+        // Update count in header
+        const activeEl = document.getElementById('activeCount');
+        const countEl = document.getElementById('announcementsCount');
+        if (activeEl && countEl) {
+          countEl.textContent = activeEl.textContent;
         }
       } catch (error) {
-        console.error('Failed to load notifications module:', error);
-        document.getElementById('notificationsContent').innerHTML = `
+        console.error('Failed to load announcements module:', error);
+        document.getElementById('announcementsContent').innerHTML = `
           <div style="padding: 40px; text-align: center; color: #dc2626;">
             <div style="font-size: 32px; margin-bottom: 12px;">❌</div>
-            <div>Failed to load notifications module</div>
+            <div>Failed to load announcements module</div>
             <div style="font-size: 0.85em; margin-top: 8px; color: #6b7280;">${error.message}</div>
           </div>
         `;

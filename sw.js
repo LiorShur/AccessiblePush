@@ -9,7 +9,7 @@
  * - Images: Cache First
  */
 
-const CACHE_VERSION = 'v2.7.1-notif-toggle';
+const CACHE_VERSION = 'v2.8.0-announcements';
 const APP_CACHE = `access-nature-app-${CACHE_VERSION}`;
 const DATA_CACHE = `access-nature-data-${CACHE_VERSION}`;
 const MAP_CACHE = `access-nature-maps-${CACHE_VERSION}`;
@@ -74,11 +74,11 @@ const APP_SHELL = [
   // Services & Config
   './src/services/userService.js',
   './src/services/storageService.js',
-  './src/services/pushNotificationService.js',
+  './src/services/announcementsService.js',
   './src/config/featureFlags.js',
   
-  // UI - Notifications
-  './src/ui/notificationSettingsUI.js',
+  // UI - Announcements
+  './src/ui/announcementsUI.js',
   
   // External Libraries (CDN - will be cached on first use)
   'https://unpkg.com/leaflet@1.9.3/dist/leaflet.css',
