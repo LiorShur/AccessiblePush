@@ -10,6 +10,21 @@ import { toast } from '../utils/toast.js';
 class NotificationSettingsUI {
   constructor() {
     this.isOpen = false;
+    
+    // Check status on load to update toggle button
+    setTimeout(() => this.checkAndUpdateToggle(), 2000);
+  }
+
+  /**
+   * Check notification status and update toggle button
+   */
+  async checkAndUpdateToggle() {
+    try {
+      const status = await pushNotificationService.getSubscriptionStatus();
+      this.updateToggleButton(status.subscribed);
+    } catch (e) {
+      // Ignore errors
+    }
   }
 
   /**
@@ -161,6 +176,17 @@ class NotificationSettingsUI {
     const result = await pushNotificationService.subscribe();
     if (result) {
       localStorage.removeItem('notif_prompt_dismissed');
+      this.updateToggleButton(true);
+    }
+  }
+
+  /**
+   * Update the toggle button in nav to show current status
+   */
+  updateToggleButton(enabled) {
+    const btn = document.getElementById('notificationToggleBtn');
+    if (btn) {
+      btn.innerHTML = enabled ? '🔔 Notifications ✓' : '🔔 Notifications';
     }
   }
 
@@ -505,8 +531,12 @@ class NotificationSettingsUI {
       if (!confirmed) return;
       
       await pushNotificationService.unsubscribe();
+      this.updateToggleButton(false);
     } else {
-      await pushNotificationService.subscribe();
+      const result = await pushNotificationService.subscribe();
+      if (result) {
+        this.updateToggleButton(true);
+      }
     }
     
     // Refresh modal
