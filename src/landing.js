@@ -6,6 +6,7 @@ import { offlineIndicator } from './ui/offlineIndicator.js';
 import { loadingStates } from './ui/loadingStates.js';
 import { gamificationUI } from './ui/gamificationUI.js';
 import { mobilityProfileUI } from './ui/mobilityProfileUI.js';
+import { announcementsUI } from './ui/announcementsUI.js';
 import { communityChallenges } from './features/communityChallenges.js';
 import { accessibilityRating } from './features/accessibilityRating.js';
 import { trailSearch } from './features/trailSearch.js';
@@ -1560,6 +1561,12 @@ Happy trail mapping! 🥾`);
         profileNavLink.style.display = 'block';
         console.log('📍 Profile nav link shown');
       }
+      
+      // Initialize announcements UI
+      setTimeout(() => {
+        announcementsUI?.initialize();
+      }, 1000);
+      
       if (navAuthBtn) navAuthBtn.textContent = 'Sign Out';
       
       // Show My Trails section
@@ -1599,6 +1606,7 @@ Happy trail mapping! 🥾`);
       if (profileNavLink) {
         profileNavLink.style.display = 'none';
       }
+      
       if (navAuthBtn) navAuthBtn.textContent = 'Sign In';
       
       // Hide My Trails section

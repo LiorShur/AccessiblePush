@@ -9,6 +9,7 @@ import { offlineIndicator } from './ui/offlineIndicator.js';
 import { loadingStates } from './ui/loadingStates.js';
 import { gamificationUI } from './ui/gamificationUI.js';
 import { mobilityProfileUI } from './ui/mobilityProfileUI.js';
+import { announcementsUI } from './ui/announcementsUI.js';
 import { accessibilityRating } from './features/accessibilityRating.js';
 import { trailSearch } from './features/trailSearch.js';
 import { AccessibilityFormV2Quick } from './features/accessibilityFormV2Quick.js';
