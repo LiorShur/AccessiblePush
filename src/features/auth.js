@@ -190,6 +190,10 @@ setupCloudButtonsWithRetry() {
       if (user) {
         console.log('✅ User signed in:', user.email);
         
+        // Show notification toggle in nav menu
+        const notifBtn = document.getElementById('notificationToggleBtn');
+        if (notifBtn) notifBtn.style.display = 'block';
+        
         // Dispatch auth state changed event for other modules (e.g., offlineSync)
         window.dispatchEvent(new CustomEvent('authStateChanged', { 
           detail: { user, authenticated: true } 
@@ -231,10 +235,24 @@ setupCloudButtonsWithRetry() {
           console.warn('⚠️ UserService initialization failed:', error.message);
         }
         
+        // Show notification prompt after sign-in (with delay)
+        setTimeout(async () => {
+          try {
+            const { notificationSettingsUI } = await import('../ui/notificationSettingsUI.js');
+            notificationSettingsUI.showPromptBanner();
+          } catch (e) {
+            console.log('Notification prompt not available:', e.message);
+          }
+        }, 3000); // 3 second delay
+        
         this.executeCallbacks('onLogin', user);
         this.showCloudSyncIndicator('Connected to cloud');
       } else {
         console.log('👋 User signed out');
+        
+        // Hide notification toggle in nav menu
+        const notifBtn = document.getElementById('notificationToggleBtn');
+        if (notifBtn) notifBtn.style.display = 'none';
         
         // Dispatch auth state changed event
         window.dispatchEvent(new CustomEvent('authStateChanged', { 
