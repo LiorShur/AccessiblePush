@@ -39,17 +39,130 @@ class AnnouncementsUI {
     // Update badge with initial count
     this.updateBadge(announcementsService.getUnreadCount());
     
-    // Show any unread announcements on first load
+    // Show centered banner if there are unread announcements on first load
     const unread = announcementsService.getUnread();
     if (unread.length > 0) {
-      // Show the most recent unread announcement after a delay
+      // Show centered banner after a short delay
       setTimeout(() => {
-        this.showNewAnnouncementBanner(unread[0]);
-      }, 2000);
+        this.showCenteredBanner(unread.length);
+      }, 1500);
     }
     
     this.initialized = true;
     console.log('📢 Announcements UI initialized');
+  }
+
+  /**
+   * Show centered banner on sign-in with unread count
+   */
+  showCenteredBanner(unreadCount) {
+    // Remove any existing banner
+    document.getElementById('announcement-center-banner')?.remove();
+    document.getElementById('announcement-center-banner-overlay')?.remove();
+    
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'announcement-center-banner-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 10002;
+      animation: fadeIn 0.2s ease-out;
+    `;
+    overlay.onclick = () => this.dismissCenteredBanner();
+    
+    // Create banner
+    const banner = document.createElement('div');
+    banner.id = 'announcement-center-banner';
+    banner.innerHTML = `
+      <style>
+        #announcement-center-banner {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: linear-gradient(135deg, #1e3a2f, #2c5530);
+          color: white;
+          padding: 24px 32px;
+          border-radius: 20px;
+          box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+          z-index: 10003;
+          text-align: center;
+          cursor: pointer;
+          animation: popIn 0.3s ease-out;
+          min-width: 280px;
+        }
+        @keyframes popIn {
+          from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+          to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        #announcement-center-banner:hover {
+          transform: translate(-50%, -50%) scale(1.02);
+        }
+        #announcement-center-banner .icon {
+          font-size: 40px;
+          margin-bottom: 12px;
+          display: block;
+        }
+        #announcement-center-banner .title {
+          font-size: 18px;
+          font-weight: 700;
+          margin-bottom: 6px;
+        }
+        #announcement-center-banner .subtitle {
+          font-size: 14px;
+          opacity: 0.9;
+        }
+        #announcement-center-banner .tap-hint {
+          font-size: 12px;
+          opacity: 0.7;
+          margin-top: 12px;
+        }
+      </style>
+      <div class="icon">📢</div>
+      <div class="title">${unreadCount} New Announcement${unreadCount > 1 ? 's' : ''}</div>
+      <div class="subtitle">You have unread messages</div>
+      <div class="tap-hint">Tap to view</div>
+    `;
+    
+    // Click banner to open modal
+    banner.addEventListener('click', () => {
+      this.dismissCenteredBanner();
+      this.openModal();
+    });
+    
+    document.body.appendChild(overlay);
+    document.body.appendChild(banner);
+    
+    // Auto-dismiss after 3 seconds and start wiggle
+    setTimeout(() => {
+      this.dismissCenteredBanner();
+      this.startWiggle();
+    }, 3000);
+  }
+
+  /**
+   * Dismiss the centered banner
+   */
+  dismissCenteredBanner() {
+    const banner = document.getElementById('announcement-center-banner');
+    const overlay = document.getElementById('announcement-center-banner-overlay');
+    
+    if (overlay) {
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity 0.2s';
+      setTimeout(() => overlay.remove(), 200);
+    }
+    
+    if (banner) {
+      banner.style.animation = 'popIn 0.2s ease-out reverse forwards';
+      setTimeout(() => banner.remove(), 200);
+    }
   }
 
   /**
@@ -70,7 +183,7 @@ class AnnouncementsUI {
           position: fixed;
           top: 12px;
           right: 60px;
-          z-index: 1000;
+          z-index: 10000;
         }
         #announcementsBell .bell-btn {
           background: rgba(255, 255, 255, 0.95);
@@ -93,6 +206,17 @@ class AnnouncementsUI {
         }
         #announcementsBell .bell-btn:active {
           transform: scale(0.95);
+        }
+        #announcementsBell .bell-btn.wiggle {
+          animation: bellWiggle 3s ease-in-out infinite;
+        }
+        @keyframes bellWiggle {
+          0%, 20%, 100% { transform: rotate(0deg); }
+          2%, 6%, 10% { transform: rotate(15deg); }
+          4%, 8% { transform: rotate(-15deg); }
+          12% { transform: rotate(10deg); }
+          14% { transform: rotate(-5deg); }
+          16% { transform: rotate(0deg); }
         }
         #announcementsBell .badge {
           position: absolute;
@@ -142,10 +266,11 @@ class AnnouncementsUI {
   }
 
   /**
-   * Update the badge count
+   * Update the badge count and control wiggle animation
    */
   updateBadge(count) {
     const badge = document.getElementById('announcementsBadge');
+    const bellBtn = document.querySelector('#announcementsBell .bell-btn');
     if (!badge) return;
     
     if (count > 0) {
@@ -157,6 +282,28 @@ class AnnouncementsUI {
       setTimeout(() => badge.classList.remove('pulse'), 3000);
     } else {
       badge.classList.add('hidden');
+      // Stop wiggle when no unread
+      if (bellBtn) bellBtn.classList.remove('wiggle');
+    }
+  }
+
+  /**
+   * Start wiggle animation on bell
+   */
+  startWiggle() {
+    const bellBtn = document.querySelector('#announcementsBell .bell-btn');
+    if (bellBtn && announcementsService.getUnreadCount() > 0) {
+      bellBtn.classList.add('wiggle');
+    }
+  }
+
+  /**
+   * Stop wiggle animation on bell
+   */
+  stopWiggle() {
+    const bellBtn = document.querySelector('#announcementsBell .bell-btn');
+    if (bellBtn) {
+      bellBtn.classList.remove('wiggle');
     }
   }
 
@@ -274,9 +421,10 @@ class AnnouncementsUI {
     
     document.body.appendChild(banner);
     
-    // Auto-dismiss after 15 seconds
+    // Auto-dismiss after 15 seconds, then start wiggle
     setTimeout(() => {
       this.dismissBanner(announcement.id, true);
+      this.startWiggle();
     }, 15000);
   }
 
@@ -301,6 +449,9 @@ class AnnouncementsUI {
   openModal() {
     if (this.isModalOpen) return;
     this.isModalOpen = true;
+    
+    // Stop wiggle when opening modal
+    this.stopWiggle();
     
     const announcements = announcementsService.getAll();
     
