@@ -46,9 +46,10 @@ class ModalManager {
         }
         
         .modal-dialog {
-          background: #ffffff;
+          background: linear-gradient(145deg, #1a1a2e 0%, #252540 100%);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 16px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
           max-width: min(420px, calc(100vw - 32px));
           width: 100%;
           max-height: 90vh;
@@ -67,7 +68,7 @@ class ModalManager {
           align-items: center;
           gap: 12px;
           padding: 20px 24px 16px;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         
         .modal-icon {
@@ -80,7 +81,7 @@ class ModalManager {
           margin: 0;
           font-size: 18px;
           font-weight: 600;
-          color: #111827;
+          color: #fff;
         }
         
         .modal-close {
@@ -93,14 +94,14 @@ class ModalManager {
           background: transparent;
           border-radius: 8px;
           cursor: pointer;
-          color: #9ca3af;
+          color: rgba(255, 255, 255, 0.5);
           font-size: 24px;
           transition: all 0.2s;
         }
         
         .modal-close:hover {
-          background: #f3f4f6;
-          color: #6b7280;
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
         }
         
         .modal-body {
@@ -110,7 +111,7 @@ class ModalManager {
         }
         
         .modal-message {
-          color: #4b5563;
+          color: rgba(255, 255, 255, 0.7);
           font-size: 15px;
           line-height: 1.6;
           margin: 0 0 16px;
@@ -124,25 +125,31 @@ class ModalManager {
         .modal-input {
           width: 100%;
           padding: 12px 16px;
-          border: 2px solid #e5e7eb;
+          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 10px;
           font-size: 15px;
           font-family: inherit;
           transition: border-color 0.2s, box-shadow 0.2s;
           box-sizing: border-box;
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+        }
+        
+        .modal-input::placeholder {
+          color: rgba(255, 255, 255, 0.4);
         }
         
         .modal-input:focus {
           outline: none;
           border-color: #667eea;
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
         
         .modal-footer {
           display: flex;
           gap: 12px;
           padding: 16px 24px 20px;
-          border-top: 1px solid #e5e7eb;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
           flex-wrap: wrap;
           max-height: 50vh;
           overflow-y: auto;
@@ -189,12 +196,13 @@ class ModalManager {
         }
         
         .modal-btn-secondary {
-          background: #f3f4f6;
-          color: #374151;
+          background: rgba(255, 255, 255, 0.08);
+          color: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .modal-btn-secondary:hover {
-          background: #e5e7eb;
+          background: rgba(255, 255, 255, 0.12);
         }
         
         .modal-btn-primary {
@@ -479,6 +487,32 @@ class ModalManager {
     }, 200);
   }
 
+  /**
+   * Close all active modals immediately
+   */
+  closeAll() {
+    console.log('🔒 Closing all modals, count:', this.activeModals.size);
+    
+    // Iterate through all active modals and close them
+    for (const [modalId, modalData] of this.activeModals) {
+      const { backdrop, resolve } = modalData;
+      
+      // Remove animation for immediate close
+      backdrop.classList.remove('active');
+      backdrop.remove();
+      
+      // Resolve with 'close' action
+      if (resolve) resolve('close');
+    }
+    
+    // Clear all modals
+    this.activeModals.clear();
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    document.body.classList.remove('modal-open');
+  }
+
   escapeHtml(text) {
     if (typeof text !== 'string') return text;
     const div = document.createElement('div');
@@ -560,7 +594,8 @@ export const modal = {
   success: (message, title) => modalManager.success(message, title),
   error: (message, title) => modalManager.error(message, title),
   warning: (message, title) => modalManager.warning(message, title),
-  choice: (message, title, choices) => modalManager.choice(message, title, choices)
+  choice: (message, title, choices) => modalManager.choice(message, title, choices),
+  closeAll: () => modalManager.closeAll()
 };
 
 // Make globally available
