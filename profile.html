@@ -1182,6 +1182,30 @@
       console.log('👤 Profile page: Auth state changed:', user ? user.email : 'signed out');
       document.getElementById('loadingOverlay').style.display = 'none';
       
+      // Update global nav profile button
+      const updateGlobalNavProfile = () => {
+        const profileItem = document.getElementById('globalNavProfile');
+        const profileLabel = document.getElementById('profileLabel');
+        if (profileItem && profileLabel) {
+          if (user) {
+            const displayName = user.displayName || user.email?.split('@')[0] || 'You';
+            const truncatedName = displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
+            profileItem.classList.add('signed-in');
+            profileLabel.textContent = truncatedName;
+          } else {
+            profileItem.classList.remove('signed-in');
+            profileLabel.textContent = 'Sign In';
+          }
+          return true;
+        }
+        return false;
+      };
+      
+      // Update global nav immediately and with retries
+      if (!updateGlobalNavProfile()) {
+        [100, 300, 500, 1000].forEach(delay => setTimeout(updateGlobalNavProfile, delay));
+      }
+      
       if (user) {
         currentUser = user;
         console.log('👤 Profile page: Showing main content for:', user.email);

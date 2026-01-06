@@ -956,6 +956,25 @@ async function makeGuidesPublic() {
     const text = document.getElementById('navAuthStatusText');
     const btn = document.getElementById('navAuthBtn');
     
+    // Update global nav profile button
+    const updateGlobalNavProfile = () => {
+      const profileItem = document.getElementById('globalNavProfile');
+      const profileLabel = document.getElementById('profileLabel');
+      if (profileItem && profileLabel) {
+        if (user) {
+          const displayName = user.displayName || user.email?.split('@')[0] || 'You';
+          const truncatedName = displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
+          profileItem.classList.add('signed-in');
+          profileLabel.textContent = truncatedName;
+        } else {
+          profileItem.classList.remove('signed-in');
+          profileLabel.textContent = 'Sign In';
+        }
+        return true;
+      }
+      return false;
+    };
+    
     if (user) {
       // Verify user still exists
       try {
@@ -970,6 +989,11 @@ async function makeGuidesPublic() {
       if (text) text.textContent = user.displayName || user.email?.split('@')[0];
       if (btn) { btn.textContent = 'Sign Out'; btn.onclick = () => signOut(auth); }
       
+      // Update global nav immediately and with retries
+      if (!updateGlobalNavProfile()) {
+        [100, 300, 500, 1000].forEach(delay => setTimeout(updateGlobalNavProfile, delay));
+      }
+      
       // Refresh user-specific content when signing in
       console.log('🔄 User signed in, refreshing content...');
       if (window.landingController) {
@@ -982,6 +1006,9 @@ async function makeGuidesPublic() {
         btn.textContent = 'Sign In'; 
         btn.onclick = openAuthModal;
       }
+      
+      // Update global nav
+      updateGlobalNavProfile();
       
       // Hide user-specific content when signing out
       if (window.landingController) {

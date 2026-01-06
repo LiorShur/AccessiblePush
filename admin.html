@@ -1626,6 +1626,31 @@
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
+      
+      // Update global nav profile button
+      const updateGlobalNavProfile = () => {
+        const profileItem = document.getElementById('globalNavProfile');
+        const profileLabel = document.getElementById('profileLabel');
+        if (profileItem && profileLabel) {
+          if (user) {
+            const displayName = user.displayName || user.email?.split('@')[0] || 'You';
+            const truncatedName = displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
+            profileItem.classList.add('signed-in');
+            profileLabel.textContent = truncatedName;
+          } else {
+            profileItem.classList.remove('signed-in');
+            profileLabel.textContent = 'Sign In';
+          }
+          return true;
+        }
+        return false;
+      };
+      
+      // Update global nav immediately and with retries
+      if (!updateGlobalNavProfile()) {
+        [100, 300, 500, 1000].forEach(delay => setTimeout(updateGlobalNavProfile, delay));
+      }
+      
       if (user) {
         if (!isAdmin(user)) {
           showToast('Access denied - Admin only', 'error');
