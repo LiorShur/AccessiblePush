@@ -53,9 +53,40 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-right: auto;
     }
-    .header-actions { display: flex; align-items: center; gap: 12px; }
+    
+    .admin-badge {
+      background: #fbbf24;
+      color: #1e3a2f;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7em;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+      margin-right: 160px; /* Space for toolbar */
+    }
+    
+    /* Hide header-actions on mobile */
+    @media (max-width: 768px) {
+      .header-actions {
+        display: none !important;
+      }
+      .admin-badge {
+        margin-left: auto;
+        margin-right: 160px; /* Space for toolbar */
+      }
+      .top-nav {
+        padding: 0 12px;
+      }
+    }
+    
     .user-info { font-size: 0.85em; opacity: 0.9; }
     
     .connection-status {
@@ -1059,7 +1090,8 @@
     
     <!-- Top Navigation -->
     <nav class="top-nav" role="navigation" aria-label="Main navigation">
-      <a href="index.html" class="nav-brand">♿ Accessible <span class="admin-badge">ADMIN</span></a>
+      <a href="index.html" class="nav-brand">♿ Accessible</a>
+      <span class="admin-badge">ADMIN</span>
       <div class="header-actions">
         <span class="connection-status online" id="connectionStatus">🟢 Online</span>
         <span class="user-info" id="userInfo"></span>
@@ -1431,7 +1463,7 @@
   <script type="module">
     import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js';
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js';
-    import { getFirestore, collection, doc, getDoc, getDocs, getDocsFromServer, updateDoc, deleteDoc, Timestamp, enableIndexedDbPersistence, waitForPendingWrites } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js';
+    import { getFirestore, collection, doc, getDoc, getDocs, getDocsFromServer, updateDoc, deleteDoc, Timestamp, enableIndexedDbPersistence, waitForPendingWrites, query, where } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js';
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js';
 
     // Firebase config
@@ -1603,6 +1635,10 @@
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         document.getElementById('userInfo').textContent = user.email;
+        
+        // Load announcements count immediately
+        updateAnnouncementsCount();
+        
         await loadAllData();
       } else {
         document.getElementById('loginSection').style.display = 'flex';
