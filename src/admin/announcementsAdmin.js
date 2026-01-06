@@ -297,6 +297,17 @@ class AnnouncementsAdmin {
               </div>
               
               <div class="form-group">
+                <label>🔗 Link URL (optional)</label>
+                <input type="url" id="announceLinkUrl" placeholder="https://example.com">
+              </div>
+              
+              <div class="form-group">
+                <label>📎 Document URL (optional)</label>
+                <input type="url" id="announceDocUrl" placeholder="https://example.com/document.pdf">
+                <input type="text" id="announceDocName" placeholder="Document name (e.g., User Guide)" style="margin-top: 8px;">
+              </div>
+              
+              <div class="form-group">
                 <label>Preview</label>
                 <div class="preview-box">
                   <div class="preview-title" id="previewTitle">Your title here</div>
@@ -432,6 +443,15 @@ class AnnouncementsAdmin {
         maintenance: '🔧'
       }[a.type] || '📣';
       
+      // Build attachments indicator
+      let attachments = '';
+      if (a.linkUrl || a.documentUrl) {
+        attachments = '<div style="font-size: 0.75em; color: #6b7280; margin-top: 6px;">';
+        if (a.linkUrl) attachments += '🔗 Link ';
+        if (a.documentUrl) attachments += `📎 ${a.documentName || 'Document'}`;
+        attachments += '</div>';
+      }
+      
       return `
         <div class="history-item ${a.active ? '' : 'inactive'}">
           <div class="header">
@@ -446,6 +466,7 @@ class AnnouncementsAdmin {
           </div>
           <div class="title">${this.escapeHtml(a.title)}</div>
           <div class="body">${this.escapeHtml(a.body).substring(0, 150)}${a.body.length > 150 ? '...' : ''}</div>
+          ${attachments}
           <div class="actions">
             ${a.active ? 
               `<button class="btn-secondary" onclick="announcementsAdmin.toggleActive('${a.id}', false)">Deactivate</button>` :
@@ -473,6 +494,9 @@ class AnnouncementsAdmin {
       const body = document.getElementById('announceBody').value.trim();
       const type = document.getElementById('announceType').value;
       const priority = document.getElementById('announcePriority').value;
+      const linkUrl = document.getElementById('announceLinkUrl').value.trim();
+      const documentUrl = document.getElementById('announceDocUrl').value.trim();
+      const documentName = document.getElementById('announceDocName').value.trim();
       
       if (!title || !body) {
         throw new Error('Title and message are required');
@@ -490,6 +514,13 @@ class AnnouncementsAdmin {
         updatedAt: serverTimestamp()
       };
       
+      // Add optional fields if provided
+      if (linkUrl) announcement.linkUrl = linkUrl;
+      if (documentUrl) {
+        announcement.documentUrl = documentUrl;
+        announcement.documentName = documentName || 'Document';
+      }
+      
       await addDoc(collection(db, 'announcements'), announcement);
       
       // Clear form
@@ -497,6 +528,9 @@ class AnnouncementsAdmin {
       document.getElementById('announceBody').value = '';
       document.getElementById('announceType').value = 'general';
       document.getElementById('announcePriority').value = 'normal';
+      document.getElementById('announceLinkUrl').value = '';
+      document.getElementById('announceDocUrl').value = '';
+      document.getElementById('announceDocName').value = '';
       document.getElementById('titleCount').textContent = '0';
       document.getElementById('bodyCount').textContent = '0';
       this.updatePreview();

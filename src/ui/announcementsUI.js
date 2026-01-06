@@ -1,17 +1,17 @@
 /**
  * Announcements UI Component
  * Displays admin announcements to users
- * - Bell icon with unread badge
+ * - Bell icon with unread badge (via topToolbarUI)
  * - Auto-show new announcements
  * - Modal to view all announcements
  */
 
 import { announcementsService } from '../services/announcementsService.js';
+import { topToolbarUI } from './topToolbarUI.js';
 
 class AnnouncementsUI {
   constructor() {
     this.isModalOpen = false;
-    this.bellElement = null;
     this.initialized = false;
   }
 
@@ -21,8 +21,8 @@ class AnnouncementsUI {
   async initialize() {
     if (this.initialized) return;
     
-    // Create the bell icon
-    this.createBellIcon();
+    // Initialize the toolbar (contains bell, feedback, contrast buttons)
+    topToolbarUI.initialize();
     
     // Set up callbacks
     announcementsService.onNewAnnouncement = (announcement) => {
@@ -68,7 +68,6 @@ class AnnouncementsUI {
       inset: 0;
       background: rgba(0,0,0,0.3);
       z-index: 10002;
-      animation: fadeIn 0.2s ease-out;
     `;
     overlay.onclick = () => this.dismissCenteredBanner();
     
@@ -96,10 +95,6 @@ class AnnouncementsUI {
         @keyframes popIn {
           from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
           to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
         }
         #announcement-center-banner:hover {
           transform: translate(-50%, -50%) scale(1.02);
@@ -166,145 +161,26 @@ class AnnouncementsUI {
   }
 
   /**
-   * Create the bell icon in the nav
-   */
-  createBellIcon() {
-    // Check if bell already exists
-    if (document.getElementById('announcementsBell')) return;
-    
-    // Find nav menu or create floating bell
-    const navMenu = document.getElementById('navMenu');
-    
-    const bellContainer = document.createElement('div');
-    bellContainer.id = 'announcementsBell';
-    bellContainer.innerHTML = `
-      <style>
-        #announcementsBell {
-          position: fixed;
-          top: 12px;
-          right: 60px;
-          z-index: 10000;
-        }
-        #announcementsBell .bell-btn {
-          background: rgba(255, 255, 255, 0.95);
-          border: 1px solid #e5e7eb;
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          font-size: 20px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-          transition: transform 0.2s, box-shadow 0.2s;
-          position: relative;
-        }
-        #announcementsBell .bell-btn:hover {
-          transform: scale(1.05);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        #announcementsBell .bell-btn:active {
-          transform: scale(0.95);
-        }
-        #announcementsBell .bell-btn.wiggle {
-          animation: bellWiggle 3s ease-in-out infinite;
-        }
-        @keyframes bellWiggle {
-          0%, 20%, 100% { transform: rotate(0deg); }
-          2%, 6%, 10% { transform: rotate(15deg); }
-          4%, 8% { transform: rotate(-15deg); }
-          12% { transform: rotate(10deg); }
-          14% { transform: rotate(-5deg); }
-          16% { transform: rotate(0deg); }
-        }
-        #announcementsBell .badge {
-          position: absolute;
-          top: -4px;
-          right: -4px;
-          background: #ef4444;
-          color: white;
-          font-size: 11px;
-          font-weight: 700;
-          min-width: 18px;
-          height: 18px;
-          border-radius: 9px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0 4px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-        #announcementsBell .badge.hidden {
-          display: none;
-        }
-        #announcementsBell .badge.pulse {
-          animation: badgePulse 1s ease-in-out infinite;
-        }
-        @keyframes badgePulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.2); }
-        }
-        
-        /* High contrast support */
-        .high-contrast #announcementsBell .bell-btn {
-          background: #000;
-          border-color: #fff;
-        }
-        .high-contrast #announcementsBell .bell-btn .icon {
-          filter: invert(1);
-        }
-      </style>
-      <button class="bell-btn" onclick="announcementsUI.openModal()" aria-label="View announcements">
-        <span class="icon">🔔</span>
-        <span class="badge hidden" id="announcementsBadge">0</span>
-      </button>
-    `;
-    
-    document.body.appendChild(bellContainer);
-    this.bellElement = bellContainer;
-  }
-
-  /**
-   * Update the badge count and control wiggle animation
+   * Update the badge count via toolbar
    */
   updateBadge(count) {
-    const badge = document.getElementById('announcementsBadge');
-    const bellBtn = document.querySelector('#announcementsBell .bell-btn');
-    if (!badge) return;
-    
-    if (count > 0) {
-      badge.textContent = count > 9 ? '9+' : count;
-      badge.classList.remove('hidden');
-      badge.classList.add('pulse');
-      
-      // Stop pulsing after a few seconds
-      setTimeout(() => badge.classList.remove('pulse'), 3000);
-    } else {
-      badge.classList.add('hidden');
-      // Stop wiggle when no unread
-      if (bellBtn) bellBtn.classList.remove('wiggle');
-    }
+    topToolbarUI.updateBadge(count);
   }
 
   /**
-   * Start wiggle animation on bell
+   * Start wiggle animation via toolbar
    */
   startWiggle() {
-    const bellBtn = document.querySelector('#announcementsBell .bell-btn');
-    if (bellBtn && announcementsService.getUnreadCount() > 0) {
-      bellBtn.classList.add('wiggle');
+    if (announcementsService.getUnreadCount() > 0) {
+      topToolbarUI.startWiggle();
     }
   }
 
   /**
-   * Stop wiggle animation on bell
+   * Stop wiggle animation via toolbar
    */
   stopWiggle() {
-    const bellBtn = document.querySelector('#announcementsBell .bell-btn');
-    if (bellBtn) {
-      bellBtn.classList.remove('wiggle');
-    }
+    topToolbarUI.stopWiggle();
   }
 
   /**
@@ -560,8 +436,25 @@ class AnnouncementsUI {
           color: #6b7280;
           line-height: 1.5;
         }
-        #announcements-modal .announcement-item .priority-high {
-          color: #dc2626;
+        #announcements-modal .announcement-item .attachments {
+          display: flex;
+          gap: 8px;
+          margin-top: 8px;
+          flex-wrap: wrap;
+        }
+        #announcements-modal .announcement-item .attachment-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 10px;
+          background: #e0f2fe;
+          color: #0369a1;
+          border-radius: 6px;
+          font-size: 12px;
+          text-decoration: none;
+        }
+        #announcements-modal .announcement-item .attachment-link:hover {
+          background: #bae6fd;
         }
         #announcements-modal .announcement-item .badge {
           display: inline-block;
@@ -643,6 +536,33 @@ class AnnouncementsUI {
           color: #374151;
           white-space: pre-wrap;
         }
+        #announcements-modal .announcement-expanded .attachments {
+          margin-top: 20px;
+          padding-top: 16px;
+          border-top: 1px solid #e5e7eb;
+        }
+        #announcements-modal .announcement-expanded .attachments h4 {
+          font-size: 14px;
+          color: #6b7280;
+          margin: 0 0 10px 0;
+        }
+        #announcements-modal .announcement-expanded .attachment-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          color: #166534;
+          border-radius: 8px;
+          text-decoration: none;
+          font-weight: 500;
+          margin-right: 10px;
+          margin-bottom: 10px;
+        }
+        #announcements-modal .announcement-expanded .attachment-btn:hover {
+          background: #dcfce7;
+        }
       </style>
       <div class="modal-content">
         <div class="modal-header">
@@ -699,6 +619,19 @@ class AnnouncementsUI {
       const badgeClass = a.priority === 'high' ? 'important' : (a.type === 'update' ? 'update' : 'new');
       const badgeText = a.priority === 'high' ? 'Important' : (a.type === 'update' ? 'Update' : 'New');
       
+      // Build attachments HTML
+      let attachmentsHtml = '';
+      if (a.linkUrl || a.documentUrl) {
+        attachmentsHtml = '<div class="attachments">';
+        if (a.linkUrl) {
+          attachmentsHtml += `<a href="${this.escapeHtml(a.linkUrl)}" target="_blank" class="attachment-link" onclick="event.stopPropagation()">🔗 Link</a>`;
+        }
+        if (a.documentUrl) {
+          attachmentsHtml += `<a href="${this.escapeHtml(a.documentUrl)}" target="_blank" class="attachment-link" onclick="event.stopPropagation()">📎 Document</a>`;
+        }
+        attachmentsHtml += '</div>';
+      }
+      
       return `
         <div class="announcement-item ${isUnread ? 'unread' : ''}" onclick="announcementsUI.viewAnnouncement('${a.id}')">
           <div class="header">
@@ -709,6 +642,7 @@ class AnnouncementsUI {
             <div class="time">${timeAgo}</div>
           </div>
           <div class="body">${this.escapeHtml(a.body).substring(0, 100)}${a.body.length > 100 ? '...' : ''}</div>
+          ${attachmentsHtml}
         </div>
       `;
     }).join('');
@@ -729,6 +663,20 @@ class AnnouncementsUI {
     
     const timeAgo = announcementsService.getTimeAgo(announcement.createdAt);
     
+    // Build attachments HTML
+    let attachmentsHtml = '';
+    if (announcement.linkUrl || announcement.documentUrl) {
+      attachmentsHtml = '<div class="attachments"><h4>📎 Attachments</h4>';
+      if (announcement.linkUrl) {
+        attachmentsHtml += `<a href="${this.escapeHtml(announcement.linkUrl)}" target="_blank" class="attachment-btn">🔗 Open Link</a>`;
+      }
+      if (announcement.documentUrl) {
+        const docName = announcement.documentName || 'Document';
+        attachmentsHtml += `<a href="${this.escapeHtml(announcement.documentUrl)}" target="_blank" class="attachment-btn">📄 ${this.escapeHtml(docName)}</a>`;
+      }
+      attachmentsHtml += '</div>';
+    }
+    
     listEl.innerHTML = `
       <div class="announcement-expanded">
         <button class="back-btn" onclick="announcementsUI.showList()">
@@ -740,6 +688,7 @@ class AnnouncementsUI {
           ${announcement.author ? ` by ${this.escapeHtml(announcement.author)}` : ''}
         </div>
         <div class="body">${this.escapeHtml(announcement.body)}</div>
+        ${attachmentsHtml}
       </div>
     `;
   }

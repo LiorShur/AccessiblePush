@@ -446,6 +446,13 @@ class BetaFeedback {
     fab.addEventListener('mouseleave', () => fab.classList.remove('expanded'));
     
     document.body.appendChild(fab);
+    
+    // Hide FAB if toolbar exists (toolbar has its own feedback button)
+    setTimeout(() => {
+      if (document.getElementById('topToolbar')) {
+        fab.style.display = 'none';
+      }
+    }, 100);
   }
 
   /**
@@ -521,6 +528,13 @@ class BetaFeedback {
     });
     
     document.body.appendChild(overlay);
+  }
+
+  /**
+   * Open feedback modal (alias for toolbar compatibility)
+   */
+  openFeedbackModal() {
+    this.open();
   }
 
   /**

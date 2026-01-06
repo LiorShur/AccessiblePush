@@ -9,17 +9,17 @@
    CSS CUSTOM PROPERTIES (Design Tokens)
    ============================================ */
 :root {
-  /* Colors */
-  --nav-bg: rgba(255, 255, 255, 0.98);
-  --nav-bg-solid: #ffffff;
-  --nav-text: #1f2937;
-  --nav-text-muted: #6b7280;
-  --nav-accent: #2c5530;
-  --nav-accent-light: #4a7c59;
+  /* Colors - Dark theme for top nav */
+  --nav-bg: #000;
+  --nav-bg-solid: #000;
+  --nav-text: #ffffff;
+  --nav-text-muted: #9ca3af;
+  --nav-accent: #4ade80;
+  --nav-accent-light: #86efac;
   --nav-hover: #f3f4f6;
   --nav-active: #f0fdf4;
-  --nav-border: #e5e7eb;
-  --nav-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --nav-border: #333;
+  --nav-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   
   /* Spacing */
   --nav-height: 56px;
@@ -35,7 +35,7 @@
   --nav-transition: 0.2s ease;
   
   /* Z-index layers - high enough for Leaflet maps */
-  --z-nav: 10000;
+  --z-nav: 9999;
   --z-menu: 10001;
   --z-backdrop: 10000;
   --z-modal: 20000;
@@ -52,8 +52,6 @@
   right: 0;
   height: var(--nav-height);
   background: var(--nav-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   box-shadow: var(--nav-shadow);
   display: flex;
   align-items: center;
@@ -124,7 +122,7 @@
 
 .menu-toggle:hover,
 .menu-toggle:focus-visible {
-  background: var(--nav-hover);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .menu-toggle .hamburger-icon {
