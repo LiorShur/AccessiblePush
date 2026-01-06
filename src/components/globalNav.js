@@ -243,8 +243,25 @@ export class GlobalNav {
     window.addEventListener('authStateChanged', updateAuthUI);
     
     // Firebase auth state listener
-    if (window.auth?.onAuthStateChanged) {
-      window.auth.onAuthStateChanged(updateAuthUI);
+    const setupFirebaseListener = () => {
+      if (window.auth?.onAuthStateChanged) {
+        window.auth.onAuthStateChanged(updateAuthUI);
+        return true;
+      }
+      return false;
+    };
+    
+    // Try immediately
+    if (!setupFirebaseListener()) {
+      // If not available, wait for Firebase to initialize
+      const waitForAuth = setInterval(() => {
+        if (setupFirebaseListener()) {
+          clearInterval(waitForAuth);
+        }
+      }, 200);
+      
+      // Clear after 10 seconds
+      setTimeout(() => clearInterval(waitForAuth), 10000);
     }
     
     // Fallback: periodic check during initial load
@@ -252,7 +269,7 @@ export class GlobalNav {
     const interval = setInterval(() => {
       updateAuthUI();
       checks++;
-      if (checks > 10) clearInterval(interval);
+      if (checks > 20) clearInterval(interval);
     }, 500);
   }
 
