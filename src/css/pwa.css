@@ -540,7 +540,7 @@
 .pwa-install-modal {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 100000; /* Higher than toolbar (10000) */
   display: flex;
   align-items: center;
   justify-content: center;
