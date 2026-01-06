@@ -195,6 +195,12 @@ setupCloudButtonsWithRetry() {
           detail: { user, authenticated: true } 
         }));
         
+        // Directly update global nav if available
+        if (window.updateGlobalNavAuth) {
+          console.log('🔄 Directly updating global nav auth state');
+          window.updateGlobalNavAuth({ detail: { user, authenticated: true } });
+        }
+        
         // Verify the user still exists on the server
         try {
           // Try to reload the user to verify they still exist
@@ -250,6 +256,12 @@ setupCloudButtonsWithRetry() {
         window.dispatchEvent(new CustomEvent('authStateChanged', { 
           detail: { user: null, authenticated: false } 
         }));
+        
+        // Directly update global nav if available
+        if (window.updateGlobalNavAuth) {
+          console.log('🔄 Directly updating global nav auth state (signed out)');
+          window.updateGlobalNavAuth({ detail: { user: null, authenticated: false } });
+        }
         
         // Reset userService on logout
         userService.reset();
