@@ -1238,6 +1238,41 @@ loadLocalStats() {
   console.log(`👤 Local stats: ${totalRoutes} routes, ${totalDistance.toFixed(1)} km`);
 }
 
+  /**
+   * Update the global nav profile button with user state
+   * @param {Object|null} user - Firebase user object or null for signed out
+   */
+  updateGlobalNavProfile(user) {
+    const updateNav = () => {
+      const profileItem = document.getElementById('globalNavProfile');
+      const profileLabel = document.getElementById('profileLabel');
+      
+      if (profileItem && profileLabel) {
+        if (user) {
+          const displayName = user.displayName || user.email?.split('@')[0] || 'You';
+          const truncatedName = displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
+          profileItem.classList.add('signed-in');
+          profileLabel.textContent = truncatedName;
+          console.log('🔄 Global nav updated: signed in as', truncatedName);
+        } else {
+          profileItem.classList.remove('signed-in');
+          profileLabel.textContent = 'Sign In';
+          console.log('🔄 Global nav updated: signed out');
+        }
+        return true;
+      }
+      return false;
+    };
+    
+    // Try immediately
+    if (updateNav()) return;
+    
+    // Retry with delays (global nav might not be initialized yet)
+    [100, 300, 500, 1000, 2000].forEach(delay => {
+      setTimeout(updateNav, delay);
+    });
+  }
+
   // Utility Functions
   updateElement(id, value) {
     const element = document.getElementById(id);
@@ -1596,8 +1631,12 @@ Happy trail mapping! 🥾`);
         }
       }
       
-      // Load user's trails
+      // Load user's trails and update stats
       this.loadMyTrails();
+      this.updateUserStats(); // Also update routes mapped counter
+      
+      // Update global nav profile button
+      this.updateGlobalNavProfile(authStatus.user);
       
     } else {
       userInfo?.classList.add('hidden');
@@ -1614,6 +1653,9 @@ Happy trail mapping! 🥾`);
       if (myTrailsSection) {
         myTrailsSection.style.display = 'none';
       }
+      
+      // Update global nav profile button
+      this.updateGlobalNavProfile(null);
       
       userService.reset();
     }
