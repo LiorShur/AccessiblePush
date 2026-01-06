@@ -11,322 +11,13 @@ body {
   line-height: 1.6;
   color: #333;
   overflow-x: hidden;
-  background: #f8f9fa;
 }
 
-/* ========================================
-   NEW STREAMLINED LAYOUT
-   ======================================== */
-
-/* Page Header - Tagline below nav */
-.page-header {
-  margin-top: 56px;
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  text-align: center;
-}
-
-.page-header .tagline {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.95rem;
-  font-weight: 400;
-  margin: 0;
-  letter-spacing: 0.3px;
-}
-
-/* Quick Actions Section */
-.quick-actions-section {
-  padding: 20px 16px;
-  background: #f8f9fa;
-}
-
-.quick-actions-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.quick-action-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 12px;
-  background: #fff;
-  border: none;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 100px;
-}
-
-.quick-action-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-}
-
-.quick-action-card:active {
-  transform: scale(0.98);
-}
-
-.quick-action-card .qa-icon {
-  font-size: 2rem;
-  margin-bottom: 8px;
-}
-
-.quick-action-card .qa-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #1a1a2e;
-  margin-bottom: 2px;
-}
-
-.quick-action-card .qa-subtitle {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-/* Color accents for each card */
-.quick-action-card:nth-child(1) { border-top: 3px solid #667eea; }
-.quick-action-card:nth-child(2) { border-top: 3px solid #ef4444; }
-.quick-action-card:nth-child(3) { border-top: 3px solid #4a7c59; }
-.quick-action-card:nth-child(4) { border-top: 3px solid #f59e0b; }
-
-/* Section Containers */
-.section-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 0 16px;
-}
-
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #1a1a2e;
-  margin-bottom: 16px;
-}
-
-/* Community Pulse Section */
-.community-pulse-section {
-  padding: 24px 16px;
-  background: #fff;
-}
-
-.pulse-stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-.pulse-stat {
-  text-align: center;
-  padding: 16px 8px;
-  background: #f8f9fa;
-  border-radius: 12px;
-}
-
-.pulse-stat .pulse-number {
-  display: block;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #667eea;
-  line-height: 1.2;
-}
-
-.pulse-stat .pulse-label {
-  display: block;
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-/* My Trails Section */
-.my-trails-section {
-  padding: 24px 16px;
-  background: #f0fdf4;
-  border-top: 1px solid #dcfce7;
-  border-bottom: 1px solid #dcfce7;
-}
-
-.my-trails-section .section-container {
-  max-width: 600px;
-}
-
-.my-trails-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.my-trails-header .section-title {
-  margin-bottom: 0;
-}
-
-.new-trail-btn {
-  padding: 8px 16px;
-  background: #4a7c59;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-
-.new-trail-btn:hover {
-  background: #3d6b4a;
-}
-
-.my-trails-stats {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.my-trails-actions {
-  margin-top: 16px;
-}
-
-.view-guides-btn {
-  width: 100%;
-  padding: 12px;
-  background: #fff;
-  border: 2px solid #4a7c59;
-  color: #4a7c59;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.view-guides-btn:hover {
-  background: #4a7c59;
-  color: #fff;
-}
-
-.my-trails-empty {
-  text-align: center;
-  padding: 20px;
-}
-
-.my-trails-empty p {
-  color: #6b7280;
-  margin-bottom: 12px;
-}
-
-.start-trail-btn {
-  display: inline-block;
-  padding: 10px 20px;
-  background: #4a7c59;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 500;
-}
-
-/* Challenges Section */
-.challenges-section {
-  padding: 24px 16px;
-  background: #f9fafb;
-}
-
-/* What's New Section */
-.whats-new-section {
-  padding: 24px 16px;
-  background: #fff;
-  border-top: 1px solid #e5e7eb;
-}
-
-.announcements-feed {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 16px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.announcements-feed .feed-loading {
-  color: #6b7280;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.announcement-item {
-  padding: 12px;
-  background: #fff;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  border-left: 3px solid #667eea;
-}
-
-.announcement-item:last-child {
-  margin-bottom: 0;
-}
-
-.announcement-item .ann-title {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #1a1a2e;
-  margin-bottom: 4px;
-}
-
-.announcement-item .ann-date {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-/* Featured Section */
-.featured-section {
-  padding: 24px 16px 100px;
-  background: #f8f9fa;
-}
-
-.featured-section .section-container {
-  max-width: 800px;
-}
-
-.featured-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.load-more-btn {
-  display: block;
-  width: 100%;
-  max-width: 300px;
-  margin: 24px auto 0;
-  padding: 12px 24px;
-  background: #fff;
-  border: 2px solid #667eea;
-  color: #667eea;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.load-more-btn:hover {
-  background: #667eea;
-  color: #fff;
-}
-
-/* ========================================
-   LEGACY STYLES (kept for compatibility)
-   ======================================== */
-
-/* Hero Section - Hidden by default now */
+/* Hero Section */
 .hero-section {
-  display: none;
   position: relative;
   height: 100vh;
+  display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -341,6 +32,13 @@ body {
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4a7c59 100%);
+  animation: gradientShift 8s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4a7c59 100%); }
+  33% { background: linear-gradient(135deg, #4a7c59 0%, #667eea 50%, #764ba2 100%); }
+  66% { background: linear-gradient(135deg, #764ba2 0%, #4a7c59 50%, #667eea 100%); }
 }
 
 .hero-content {
@@ -348,6 +46,18 @@ body {
   z-index: 2;
   max-width: 800px;
   padding: 0 20px;
+  animation: fadeInUp 1.2s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero-title {
@@ -365,7 +75,12 @@ body {
 }
 
 .auth-status-landing {
-  display: none;
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  padding: 15px 25px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Main Navigation Cards */
@@ -1743,137 +1458,4 @@ body {
     flex: 1;
     justify-content: center;
   }
-}
-
-/* ========================================
-   TRACK TRAIL MODAL
-   ======================================== */
-
-.track-modal {
-  max-width: 480px;
-  width: 95%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.track-modal .modal-content {
-  padding: 24px;
-}
-
-.track-modal .modal-description {
-  color: #6b7280;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 24px;
-}
-
-.feature-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 12px;
-}
-
-.feature-item .feature-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
-.feature-item .feature-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.feature-item .feature-text strong {
-  font-size: 0.95rem;
-  color: #1a1a2e;
-}
-
-.feature-item .feature-text span {
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-.modal-stats {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-bottom: 24px;
-}
-
-.modal-stat {
-  text-align: center;
-  padding: 16px 24px;
-  background: linear-gradient(135deg, #667eea15, #764ba215);
-  border-radius: 12px;
-  flex: 1;
-}
-
-.modal-stat .stat-value {
-  display: block;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #667eea;
-}
-
-.modal-stat .stat-label {
-  display: block;
-  font-size: 0.8rem;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-.modal-action-btn {
-  width: 100%;
-  padding: 14px 24px;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.modal-action-btn.primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-}
-
-.modal-action-btn.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-/* High contrast for Track Modal */
-.high-contrast .track-modal .modal-content {
-  background: #fff;
-}
-
-.high-contrast .feature-item {
-  background: #f0f0f0;
-  border: 2px solid #000;
-}
-
-.high-contrast .modal-stat {
-  background: #f0f0f0;
-  border: 2px solid #000;
-}
-
-.high-contrast .modal-stat .stat-value {
-  color: #000;
-}
-
-.high-contrast .modal-action-btn.primary {
-  background: #000;
-  color: #fff;
 }

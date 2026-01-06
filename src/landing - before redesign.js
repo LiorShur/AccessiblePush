@@ -167,10 +167,6 @@ class LandingPageController {
       if (userResult?.count) totalItems += userResult.count;
       if (userResult?.warning) warnings.push('user');
       
-      // Load announcements feed (non-blocking)
-      console.log('📰 Loading announcements feed...');
-      this.loadAnnouncementsFeed().catch(e => console.warn('Announcements feed load failed:', e));
-      
       // Check if we actually got data
       if (totalItems === 0 && warnings.length > 0) {
         console.warn('⚠️ All queries returned 0 items - likely offline or empty cache');
@@ -346,7 +342,6 @@ class LandingPageController {
     window.openTrailBrowser = () => this.openTrailBrowser();
     window.closeTrailBrowser = () => this.closeTrailBrowser();
     window.openTracker = () => this.openTracker();
-    window.closeTrackModal = () => this.closeTrackModal();
     window.quickSearch = () => this.quickSearch();
     window.searchTrails = () => this.searchTrails();
     window.applyFilters = () => this.applyFilters();
@@ -383,31 +378,8 @@ class LandingPageController {
   }
 
   openTracker() {
-    // Show track trail modal
-    const modal = document.getElementById('trackTrailModal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-      
-      // Update stats in modal
-      const totalRoutes = document.getElementById('totalRoutes')?.textContent || '0';
-      const totalDistance = document.getElementById('totalDistance')?.textContent || '0';
-      const modalRoutes = document.getElementById('modalTotalRoutes');
-      const modalDistance = document.getElementById('modalTotalDistance');
-      if (modalRoutes) modalRoutes.textContent = totalRoutes;
-      if (modalDistance) modalDistance.textContent = totalDistance;
-    } else {
-      // Fallback: redirect to tracker
-      window.location.href = 'tracker.html';
-    }
-  }
-  
-  closeTrackModal() {
-    const modal = document.getElementById('trackTrailModal');
-    if (modal) {
-      modal.classList.add('hidden');
-      document.body.style.overflow = '';
-    }
+    // Redirect to main tracker app
+    window.location.href = 'tracker.html';
   }
 
   // Search Functions
@@ -750,81 +722,6 @@ calculateAndDisplayStats(guides) {
   this.animateNumber('totalKm', Math.round(totalKm));
   this.animateNumber('accessibleTrails', accessibleTrails);
   this.animateNumber('totalUsers', uniqueUsers.size);
-}
-
-// Load recent announcements for the "What's New" feed
-async loadAnnouncementsFeed() {
-  const feedContainer = document.getElementById('announcementsFeed');
-  if (!feedContainer) return;
-  
-  try {
-    const { collection, query, orderBy, limit, getDocs } = 
-      await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
-    
-    const announcementsQuery = query(
-      collection(db, 'announcements'),
-      orderBy('createdAt', 'desc'),
-      limit(5)
-    );
-    
-    const snapshot = await getDocs(announcementsQuery);
-    
-    if (snapshot.empty) {
-      feedContainer.innerHTML = `
-        <div class="announcement-item">
-          <div class="ann-title">Welcome to Accessible! 🎉</div>
-          <div class="ann-date">Start tracking trails and reporting issues to help make outdoor spaces accessible for everyone.</div>
-        </div>
-      `;
-      return;
-    }
-    
-    let html = '';
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const date = data.createdAt?.toDate?.() || new Date(data.createdAt);
-      const formattedDate = this.formatRelativeDate(date);
-      
-      html += `
-        <div class="announcement-item">
-          <div class="ann-title">${this.escapeHtml(data.title || 'Announcement')}</div>
-          <div class="ann-date">${formattedDate}</div>
-        </div>
-      `;
-    });
-    
-    feedContainer.innerHTML = html;
-    
-  } catch (error) {
-    console.warn('Failed to load announcements feed:', error);
-    feedContainer.innerHTML = `
-      <div class="announcement-item">
-        <div class="ann-title">Welcome to Accessible! 🎉</div>
-        <div class="ann-date">Explore accessible trails and report accessibility issues in your community.</div>
-      </div>
-    `;
-  }
-}
-
-// Format date as relative time (e.g., "2 days ago")
-formatRelativeDate(date) {
-  const now = new Date();
-  const diffMs = now - date;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-  return `${Math.floor(diffDays / 365)} years ago`;
-}
-
-// Escape HTML to prevent XSS
-escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
 
 // UPDATED: Load featured trails using cached data if available

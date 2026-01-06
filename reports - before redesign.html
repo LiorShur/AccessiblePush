@@ -106,7 +106,7 @@
     }
 
     /* ==========================================
-       REPORTS PAGE STYLES - REDESIGNED
+       REPORTS PAGE STYLES - FIXED
        ========================================== */
     
     /* CRITICAL: Override body overflow for scrolling */
@@ -118,338 +118,86 @@
     }
 
     body { 
-      background: #f8f9fa;
-      padding-top: 56px; /* Space for fixed nav */
+      background: linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--primary-dark, #764ba2) 100%);
+      padding-top: 64px; /* Space for fixed nav */
     }
 
-    .reports-page { 
-      max-width: 100%;
-      margin: 0;
-      padding: 0;
-      padding-bottom: 100px; /* Space for global nav */
-    }
-
-    /* Compact Header */
-    .reports-header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      padding: 12px 16px;
-      text-align: center;
-    }
-
-    .reports-tagline {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 0.9rem;
-      margin: 0;
-    }
-
-    /* Map Section - Full Width */
-    .map-section-fullwidth {
+    .page-container { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      padding: 24px;
       position: relative;
-      width: 100%;
-      height: 45vh;
-      min-height: 280px;
-      max-height: 400px;
-    }
-
-    .reports-map {
-      width: 100%;
-      height: 100%;
       z-index: 1;
     }
 
-    .map-controls-overlay {
-      position: absolute;
-      right: 12px;
-      top: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 1000;
+    .page-header {
+      background: white; 
+      border-radius: 16px;
+      padding: 32px; 
+      margin-bottom: 24px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .page-header h1 { 
+      font-size: 2rem; 
+      color: #1a1a1a; 
+      margin-bottom: 8px; 
+    }
+    .page-header p { 
+      color: #6b7280; 
+      font-size: 1.1rem; 
+      margin: 0; 
     }
 
-    .map-fab-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: none;
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      cursor: pointer;
+    /* Stats */
+    .stats-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 16px; 
+      margin-bottom: 24px; 
+    }
+    .stat-card { 
+      background: white; 
+      border-radius: 12px; 
+      padding: 24px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+      text-align: center; 
+    }
+    .stat-value { 
+      font-size: 2.5rem; 
+      font-weight: 700; 
+      color: #667eea; 
+      margin-bottom: 8px;
+      min-height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
-      color: #374151;
-      transition: all 0.2s;
+    }
+    .stat-label { 
+      color: #6b7280; 
+      font-size: 0.875rem; 
+      font-weight: 600; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px; 
+    }
+    
+    /* Loading spinner for stats */
+    .stat-loading {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
-    .map-fab-btn:hover {
-      background: #f3f4f6;
-      transform: scale(1.05);
-    }
-
-    .map-fab-btn:active {
-      transform: scale(0.95);
-    }
-
-    .map-info-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 8px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      z-index: 1000;
-      backdrop-filter: blur(8px);
-    }
-
-    .map-info-bar #visibleReportsCount {
-      color: #374151;
-      font-weight: 500;
-    }
-
-    .auto-update-toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      color: #6b7280;
-      font-size: 0.8rem;
-    }
-
-    .auto-update-toggle input {
-      width: 16px;
-      height: 16px;
-      accent-color: #667eea;
-    }
-
-    /* Quick Stats Bar */
-    .quick-stats-bar {
-      display: flex;
-      background: #fff;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 12px 8px;
-      gap: 8px;
-      overflow-x: auto;
-    }
-
-    .quick-stat {
-      flex: 1;
-      min-width: 70px;
-      text-align: center;
-      padding: 8px 4px;
-      background: #f8f9fa;
-      border-radius: 8px;
-    }
-
-    .quick-stat .qs-value {
-      display: block;
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #667eea;
-    }
-
-    .quick-stat .qs-label {
-      display: block;
-      font-size: 0.7rem;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .quick-stat.location .qs-value {
-      font-size: 1rem;
-    }
-
-    /* Expandable Filters */
-    .filters-accordion {
-      background: #fff;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .filters-toggle {
-      width: 100%;
-      padding: 14px 16px;
-      background: none;
-      border: none;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .filters-toggle .chevron {
-      transition: transform 0.2s;
-    }
-
-    .filters-toggle[aria-expanded="true"] .chevron {
-      transform: rotate(180deg);
-    }
-
-    .filters-content {
-      padding: 0 16px 16px;
-      transition: max-height 0.3s ease, opacity 0.3s ease;
-      overflow: hidden;
-    }
-
-    .filters-content.collapsed {
-      max-height: 0;
-      padding: 0 16px;
-      opacity: 0;
-    }
-
-    .filters-content:not(.collapsed) {
-      max-height: 400px;
-      opacity: 1;
-    }
-
-    .filters-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .filters-grid .form-group {
-      margin: 0;
-    }
-
-    .filters-grid .form-group label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #6b7280;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-    }
-
-    .filters-grid .form-select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      background: #fff;
-    }
-
-    .filter-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .filter-actions .btn {
-      flex: 1;
-      min-width: 80px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .filter-actions .btn-primary {
-      background: #667eea;
-      color: #fff;
-      border: none;
-    }
-
-    .filter-actions .btn-secondary {
-      background: #f3f4f6;
-      color: #374151;
-      border: 1px solid #e5e7eb;
-    }
-
-    /* Reports List Section */
-    .reports-list-section {
-      padding: 16px;
-    }
-
-    .reports-list-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .reports-list-header h2 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #1a1a2e;
-      margin: 0;
-    }
-
-    .reports-list-header #listReportsCount {
-      font-size: 0.85rem;
-      color: #6b7280;
-    }
-
-    .reports-timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* Mobile Responsive */
-    @media (max-width: 480px) {
-      .map-section-fullwidth {
-        height: 40vh;
-        min-height: 250px;
-      }
-
-      .filters-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .quick-stats-bar {
-        padding: 8px 4px;
-      }
-
-      .quick-stat {
-        min-width: 60px;
-        padding: 6px 2px;
-      }
-
-      .quick-stat .qs-value {
-        font-size: 1.1rem;
-      }
-    }
-
-    @media (min-width: 768px) {
-      .reports-page {
-        max-width: 900px;
-        margin: 0 auto;
-      }
-
-      .map-section-fullwidth {
-        border-radius: 0 0 16px 16px;
-        overflow: hidden;
-      }
-
-      .quick-stats-bar {
-        border-radius: 12px;
-        margin: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      }
-
-      .filters-accordion {
-        margin: 0 16px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      }
-
-      .filters-grid {
-        grid-template-columns: repeat(4, 1fr);
-      }
-    } 
+    /* Filters */
+    .filters-section { 
+      background: white; 
       border-radius: 12px; 
       padding: 24px; 
       margin-bottom: 24px; 
@@ -1054,122 +802,106 @@
     <span class="toggle-text">High Contrast</span>
   </button>
 
-  <main id="main-content" class="reports-page" role="main">
-    <!-- Compact Header -->
-    <div class="reports-header">
-      <p class="reports-tagline">Report and view accessibility barriers in outdoor spaces and urban areas</p>
+  <main id="main-content" class="page-container" role="main">
+    <!-- Header -->
+    <div class="page-header">
+      <h1>📋 Accessibility Reports</h1>
+      <p>Report and view accessibility barriers in outdoor spaces and urban areas</p>
     </div>
 
-    <!-- Map Section - Primary Focus -->
-    <div class="map-section-fullwidth">
-      <div id="reportMap" class="reports-map"></div>
-      <div class="map-controls-overlay">
-        <button class="map-fab-btn" id="centerMapBtn" title="Center on my location" aria-label="Center map on my location">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
-          </svg>
-        </button>
-        <button class="map-fab-btn" id="zoomInBtn" title="Zoom in" aria-label="Zoom in">+</button>
-        <button class="map-fab-btn" id="zoomOutBtn" title="Zoom out" aria-label="Zoom out">−</button>
+    <!-- Stats -->
+    <div class="stats-grid" aria-label="Report statistics">
+      <div class="stat-card">
+        <div class="stat-value" id="totalReports" aria-live="polite"><span class="stat-loading"></span></div>
+        <div class="stat-label">Total Reports</div>
       </div>
-      <div class="map-info-bar">
-        <span id="visibleReportsCount">0 reports in view</span>
-        <label class="auto-update-toggle">
-          <input type="checkbox" id="autoUpdateReports" checked>
-          <span>Auto-update on pan</span>
-        </label>
+      <div class="stat-card">
+        <div class="stat-value" id="newReports" aria-live="polite"><span class="stat-loading"></span></div>
+        <div class="stat-label">New</div>
       </div>
-    </div>
-
-    <!-- Quick Stats Bar -->
-    <div class="quick-stats-bar">
-      <div class="quick-stat">
-        <span class="qs-value" id="totalReports">0</span>
-        <span class="qs-label">Total</span>
+      <div class="stat-card">
+        <div class="stat-value" id="resolvedReports" aria-live="polite"><span class="stat-loading"></span></div>
+        <div class="stat-label">Resolved</div>
       </div>
-      <div class="quick-stat">
-        <span class="qs-value" id="newReports">0</span>
-        <span class="qs-label">New</span>
-      </div>
-      <div class="quick-stat">
-        <span class="qs-value" id="resolvedReports">0</span>
-        <span class="qs-label">Resolved</span>
-      </div>
-      <div class="quick-stat location">
-        <span class="qs-value" id="yourLocation">📍</span>
-        <span class="qs-label">Your Area</span>
+      <div class="stat-card">
+        <div class="stat-value" id="yourLocation" aria-live="polite">Detecting...</div>
+        <div class="stat-label">Your Location</div>
       </div>
     </div>
 
-    <!-- Expandable Filters -->
-    <div class="filters-accordion">
-      <button class="filters-toggle" id="filtersToggleBtn" aria-expanded="false" aria-controls="filtersContent">
-        <span>🔍 Filter Reports</span>
-        <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-        </svg>
-      </button>
-      <div class="filters-content collapsed" id="filtersContent">
-        <div class="filters-grid">
-          <div class="form-group">
-            <label for="statusFilter">Status</label>
-            <select id="statusFilter" class="form-select">
-              <option value="">All Statuses</option>
-              <option value="new">New</option>
-              <option value="acknowledged">Acknowledged</option>
-              <option value="in_progress">In Progress</option>
-              <option value="resolved">Resolved</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="severityFilter">Severity</label>
-            <select id="severityFilter" class="form-select">
-              <option value="">All Severities</option>
-              <option value="5,critical">⚠️ 5 - Critical</option>
-              <option value="4,high">⚠️ 4 - High</option>
-              <option value="3,medium">⚠️ 3 - Medium</option>
-              <option value="2,low">⚠️ 2 - Low</option>
-              <option value="1,minor">⚠️ 1 - Minor</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="typeFilter">Issue Type</label>
-            <select id="typeFilter" class="form-select">
-              <option value="">All Types</option>
-              <option value="curb_ramp">Missing/Damaged Curb Ramp</option>
-              <option value="sidewalk_blocked">Blocked Sidewalk</option>
-              <option value="damaged_sidewalk">Damaged Sidewalk</option>
-              <option value="inaccessible_entrance">Inaccessible Entrance</option>
-              <option value="broken_elevator">Broken Elevator/Lift</option>
-              <option value="parking_blocked">Blocked Accessible Parking</option>
-              <option value="trail_obstacle">Trail Obstacle</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="durationFilter">Duration</label>
-            <select id="durationFilter" class="form-select">
-              <option value="">All Types</option>
-              <option value="permanent">🏗️ Permanent</option>
-              <option value="temporary">⏳ Temporary</option>
-            </select>
-          </div>
+    <!-- Filters -->
+    <div class="filters-section">
+      <h2 class="filters-title"><span>🔍</span><span>Filter Reports</span></h2>
+      <div class="filters-grid">
+        <div class="form-group">
+          <label for="statusFilter">Status</label>
+          <select id="statusFilter" class="form-select">
+            <option value="">All Statuses</option>
+            <option value="new">New</option>
+            <option value="acknowledged">Acknowledged</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
         </div>
-        <div class="filter-actions">
-          <button class="btn btn-primary" id="applyFiltersBtn">Apply</button>
-          <button class="btn btn-secondary" id="resetFiltersBtn">Reset</button>
-          <button class="btn btn-secondary" id="exportAllBtn" title="Export to CSV">📊 Export</button>
+        <div class="form-group">
+          <label for="severityFilter">Severity</label>
+          <select id="severityFilter" class="form-select">
+            <option value="">All Severities</option>
+            <option value="5,critical">⚠️ 5 - Critical</option>
+            <option value="4,high">⚠️ 4 - High</option>
+            <option value="3,medium">⚠️ 3 - Medium</option>
+            <option value="2,low">⚠️ 2 - Low</option>
+            <option value="1,minor">⚠️ 1 - Minor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="typeFilter">Issue Type</label>
+          <select id="typeFilter" class="form-select">
+            <option value="">All Types</option>
+            <option value="curb_ramp">Missing/Damaged Curb Ramp</option>
+            <option value="sidewalk_blocked">Blocked Sidewalk</option>
+            <option value="damaged_sidewalk">Damaged Sidewalk</option>
+            <option value="inaccessible_entrance">Inaccessible Entrance</option>
+            <option value="broken_elevator">Broken Elevator/Lift</option>
+            <option value="parking_blocked">Blocked Accessible Parking</option>
+            <option value="trail_obstacle">Trail Obstacle</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="durationFilter">Duration Type</label>
+          <select id="durationFilter" class="form-select">
+            <option value="">All Types</option>
+            <option value="permanent">🏗️ Permanent Only</option>
+            <option value="temporary">⏳ Temporary Only</option>
+          </select>
         </div>
       </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="applyFiltersBtn">🔍 Apply Filters</button>
+        <button class="btn btn-secondary" id="resetFiltersBtn">🔄 Reset</button>
+        <button class="btn btn-secondary" id="useMyLocationBtn">📍 Use My Location</button>
+        <button class="btn btn-secondary" id="exportAllBtn" title="Export filtered reports to CSV for 311 submission">📊 Export CSV</button>
+        <button class="btn btn-secondary" id="printAllBtn" title="Print all filtered reports (can save as PDF)">🖨️ Print All</button>
+      </div>
     </div>
 
-    <!-- Reports List -->
-    <div class="reports-list-section">
-      <div class="reports-list-header">
-        <h2>📋 Reports</h2>
-        <span id="listReportsCount">Loading...</span>
+    <!-- Map -->
+    <div class="map-section">
+      <div class="map-header">
+        <h2>🗺️ Report Map</h2>
+        <div class="map-controls">
+          <button class="map-control-btn" id="centerMapBtn" title="Center on my location">📍</button>
+          <button class="map-control-btn" id="fullscreenBtn" title="Toggle fullscreen">⛶</button>
+        </div>
       </div>
-      <div id="reportTimeline" class="reports-timeline">
+      <div id="reportMap"></div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-section">
+      <h2>📋 Recent Reports</h2>
+      <div id="reportTimeline">
         <div class="loading-spinner">Loading reports...</div>
       </div>
     </div>
@@ -2065,36 +1797,6 @@
       document.getElementById('totalReports').textContent = allReports.length;
       document.getElementById('newReports').textContent = allReports.filter(r => r.status === 'new').length;
       document.getElementById('resolvedReports').textContent = allReports.filter(r => r.status === 'resolved').length;
-      
-      // Update list count
-      const listCount = document.getElementById('listReportsCount');
-      if (listCount) {
-        listCount.textContent = `${filteredReports.length} report${filteredReports.length !== 1 ? 's' : ''}`;
-      }
-      
-      // Update visible reports count if map is ready
-      if (map) {
-        const bounds = map.getBounds();
-        const visibleCount = countReportsInBounds(bounds);
-        const countEl = document.getElementById('visibleReportsCount');
-        if (countEl) {
-          countEl.textContent = `${visibleCount} report${visibleCount !== 1 ? 's' : ''} in view`;
-        }
-      }
-    }
-
-    /**
-     * Count reports within map bounds
-     */
-    function countReportsInBounds(bounds) {
-      if (!bounds || !filteredReports) return 0;
-      
-      return filteredReports.filter(report => {
-        const lat = report.latitude || report.location?.latitude;
-        const lng = report.longitude || report.location?.longitude;
-        if (!lat || !lng) return false;
-        return bounds.contains([lat, lng]);
-      }).length;
     }
 
     /**
@@ -2953,72 +2655,38 @@
      * Setup event listeners
      */
     function setupEventListeners() {
-      // Filters toggle accordion
-      const filtersToggle = document.getElementById('filtersToggleBtn');
-      const filtersContent = document.getElementById('filtersContent');
-      if (filtersToggle && filtersContent) {
-        filtersToggle.addEventListener('click', () => {
-          const isExpanded = filtersToggle.getAttribute('aria-expanded') === 'true';
-          filtersToggle.setAttribute('aria-expanded', !isExpanded);
-          filtersContent.classList.toggle('collapsed');
-        });
-      }
-
       // Apply filters
-      document.getElementById('applyFiltersBtn')?.addEventListener('click', applyFilters);
+      document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
 
       // Reset filters
-      document.getElementById('resetFiltersBtn')?.addEventListener('click', resetFilters);
+      document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
 
       // Export filtered reports to CSV
-      document.getElementById('exportAllBtn')?.addEventListener('click', exportFilteredReportsCSV);
+      document.getElementById('exportAllBtn').addEventListener('click', exportFilteredReportsCSV);
 
-      // Center map
-      document.getElementById('centerMapBtn')?.addEventListener('click', () => {
+      // Print all filtered reports
+      document.getElementById('printAllBtn').addEventListener('click', printAllFilteredReports);
+
+      // Use my location
+      document.getElementById('useMyLocationBtn').addEventListener('click', async () => {
+        await getUserLocation();
         if (currentLocation) {
-          map.setView([currentLocation.lat, currentLocation.lng], 14);
-        } else {
-          getUserLocation().then(() => {
-            if (currentLocation) {
-              map.setView([currentLocation.lat, currentLocation.lng], 14);
-            }
-          });
+          filterByProximity(currentLocation, 50);
         }
       });
 
-      // Zoom controls
-      document.getElementById('zoomInBtn')?.addEventListener('click', () => {
-        if (map) map.zoomIn();
+      // Center map
+      document.getElementById('centerMapBtn').addEventListener('click', () => {
+        if (currentLocation) {
+          map.setView([currentLocation.lat, currentLocation.lng], 13);
+        }
       });
 
-      document.getElementById('zoomOutBtn')?.addEventListener('click', () => {
-        if (map) map.zoomOut();
-      });
-
-      // Map move/zoom for viewport-based loading
-      if (map) {
-        let updateTimeout;
-        const updateVisibleReports = () => {
-          const autoUpdate = document.getElementById('autoUpdateReports');
-          if (autoUpdate && !autoUpdate.checked) return;
-          
-          clearTimeout(updateTimeout);
-          updateTimeout = setTimeout(() => {
-            const bounds = map.getBounds();
-            const visibleCount = countReportsInBounds(bounds);
-            const countEl = document.getElementById('visibleReportsCount');
-            if (countEl) {
-              countEl.textContent = `${visibleCount} report${visibleCount !== 1 ? 's' : ''} in view`;
-            }
-          }, 300);
-        };
-
-        map.on('moveend', updateVisibleReports);
-        map.on('zoomend', updateVisibleReports);
-      }
+      // Fullscreen toggle
+      document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
 
       // Report FAB - open create modal
-      document.getElementById('reportFabBtn')?.addEventListener('click', () => {
+      document.getElementById('reportFabBtn').addEventListener('click', () => {
         if (!currentUser) {
           alert('Please sign in to report an accessibility issue');
           return;
@@ -3027,15 +2695,15 @@
       });
 
       // Create report modal events
-      document.getElementById('closeCreateModalBtn')?.addEventListener('click', closeCreateReportModal);
+      document.getElementById('closeCreateModalBtn').addEventListener('click', closeCreateReportModal);
       
-      document.getElementById('createReportModal')?.addEventListener('click', (e) => {
+      document.getElementById('createReportModal').addEventListener('click', (e) => {
         if (e.target.id === 'createReportModal') {
           closeCreateReportModal();
         }
       });
       
-      document.getElementById('useCurrentLocationBtn')?.addEventListener('click', async () => {
+      document.getElementById('useCurrentLocationBtn').addEventListener('click', async () => {
         if (currentLocation) {
           setReportLocation(currentLocation.lat, currentLocation.lng);
         } else {
@@ -3046,7 +2714,7 @@
         }
       });
       
-      document.getElementById('addPhotosBtn')?.addEventListener('click', () => {
+      document.getElementById('addPhotosBtn').addEventListener('click', () => {
         // Show options for take photo or upload
         const photoOptions = document.createElement('div');
         photoOptions.id = 'photoOptionsMenu';
@@ -4707,8 +4375,7 @@ Generated: ${new Date().toLocaleString()}`;
     
     // Handle URL action parameter
     const urlParams = new URLSearchParams(window.location.search);
-    const action = urlParams.get('action');
-    if (action === 'create' || action === 'new') {
+    if (urlParams.get('action') === 'create') {
       setTimeout(() => window.openReportModal?.(), 500);
     }
   </script>

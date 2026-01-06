@@ -259,9 +259,11 @@
     cursor: pointer;
   }
   /* menu-toggle display is handled by critical CSS above */
+  .hero-section { margin-top: 56px; }
   .auth-status-landing { display: none !important; }
   
   @media (max-width: 768px) {
+    .hero-section { margin-top: 50px; }
     .nav-menu .nav-auth { width: 100%; margin-top: 8px; }
     .nav-menu .nav-auth .btn { width: 100%; padding: 12px; font-size: 0.9rem; }
     
@@ -393,72 +395,191 @@
   <span class="toggle-text">High Contrast</span>
 </button>
 
-  <!-- Page Header -->
-  <main id="main-content" role="main">
-  <div class="page-header">
-    <p class="tagline">Making outdoor spaces accessible for everyone</p>
-  </div>
-
-  <!-- Quick Actions Grid -->
-  <section class="quick-actions-section" aria-label="Quick actions">
-    <div class="quick-actions-grid">
-      <button class="quick-action-card" onclick="openTracker()" aria-label="Track a new trail">
-        <span class="qa-icon">📍</span>
-        <span class="qa-title">Track Trail</span>
-        <span class="qa-subtitle">Record GPS route</span>
-      </button>
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+      <h1 class="hero-title">♿ Accessible</h1>
+      <p class="hero-subtitle">Making outdoor spaces accessible for everyone</p>
       
-      <button class="quick-action-card" onclick="window.location.href='reports.html?action=new'" aria-label="Report an accessibility issue">
-        <span class="qa-icon">⚠️</span>
-        <span class="qa-title">Report Issue</span>
-        <span class="qa-subtitle">Flag a barrier</span>
-      </button>
-      
-      <button class="quick-action-card" onclick="openTrailBrowser()" aria-label="Find accessible trails">
-        <span class="qa-icon">🔍</span>
-        <span class="qa-title">Find Trails</span>
-        <span class="qa-subtitle">Browse guides</span>
-      </button>
-      
-      <button class="quick-action-card" onclick="window.location.href='reports.html'" aria-label="View accessibility reports">
-        <span class="qa-icon">📋</span>
-        <span class="qa-title">View Reports</span>
-        <span class="qa-subtitle">See issues</span>
-      </button>
-    </div>
-  </section>
-
-  <!-- Community Pulse Section -->
-  <section class="community-pulse-section" aria-label="Community statistics">
-    <div class="section-container">
-      <h2 class="section-title">📊 Community Pulse</h2>
-      <div class="pulse-stats">
-        <div class="pulse-stat">
-          <span class="pulse-number" id="publicGuides">0</span>
-          <span class="pulse-label">Trails Mapped</span>
+      <!-- Auth Status -->
+      <div id="authStatusBar" class="auth-status-landing">
+        <div id="userInfo" class="user-info hidden">
+          <span class="user-greeting">Welcome back, <span id="userEmail"></span>!</span>
+          <button id="logoutBtn" class="auth-btn logout-btn">Logout</button>
         </div>
-        <div class="pulse-stat">
-          <span class="pulse-number" id="totalKm">0</span>
-          <span class="pulse-label">km Documented</span>
-        </div>
-        <div class="pulse-stat">
-          <span class="pulse-number" id="accessibleTrails">0</span>
-          <span class="pulse-label">Fully Accessible</span>
-        </div>
-        <div class="pulse-stat">
-          <span class="pulse-number" id="totalUsers">0</span>
-          <span class="pulse-label">Contributors</span>
+        <div id="authPrompt" class="auth-prompt">
+          <button id="showAuthBtn" class="auth-btn login-btn">Sign In</button>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+<!-- Add this anywhere in your landing page for debugging -->
+<!-- <div style="position: fixed; top: 80px; right: 20px; z-index: 9999; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px;">
+  <button onclick="debugTrailGuides()" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 5px; margin: 2px;">
+    🔍 Check Guides
+  </button>
+  <button onclick="makeGuidesPublic()" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; margin: 2px;">
+    🌍 Make Public
+  </button>
+</div> -->
+
+<script>
+// Add these global functions for easy debugging
+async function debugTrailGuides() {
+  try {
+    const { collection, getDocs, query, limit } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
+    const { db } = await import("./firebase-setup.js");
+    
+    const guidesQuery = query(collection(db, 'trail_guides'), limit(20));
+    const snapshot = await getDocs(guidesQuery);
+    
+    console.log('📊 TOTAL GUIDES:', snapshot.size);
+    alert(`Found ${snapshot.size} trail guides total`);
+    
+    if (snapshot.size > 0) {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        console.log('📄', data.routeName, '- Public:', data.isPublic, '- User:', data.userEmail);
+      });
+    }
+  } catch (error) {
+    console.error('❌ Debug failed:', error);
+    alert('Debug failed: ' + error.message);
+  }
+}
+
+async function makeGuidesPublic() {
+  try {
+    const { collection, getDocs, query, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
+    const { db, auth } = await import("./firebase-setup.js");
+    
+    if (!auth.currentUser) {
+      alert('Please sign in first!');
+      return;
+    }
+    
+    const guidesQuery = query(collection(db, 'trail_guides'));
+    const snapshot = await getDocs(guidesQuery);
+    
+    let updated = 0;
+    const promises = [];
+    
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.userId === auth.currentUser.uid && !data.isPublic) {
+        promises.push(updateDoc(doc(db, 'trail_guides', docSnap.id), {
+          isPublic: true,
+          publishedAt: new Date().toISOString()
+        }));
+        updated++;
+      }
+    });
+    
+    if (promises.length === 0) {
+      alert('No private guides found to make public!');
+      return;
+    }
+    
+    await Promise.all(promises);
+    alert(`✅ Made ${updated} guides public!`);
+    
+  } catch (error) {
+    console.error('❌ Failed:', error);
+    alert('Failed: ' + error.message);
+  }
+}
+</script>
+  <!-- Main Navigation -->
+  <main id="main-content" class="main-navigation" role="main">
+    <div class="nav-container">
+      
+      <!-- Search Trail Guides -->
+      <div class="nav-card discover-card">
+        <div class="nav-card-icon">🔍</div>
+        <h2>Discover Accessible Trails</h2>
+        <p>Browse community-contributed accessible trail guides with detailed accessibility information, photos, and reviews.</p>
+        
+        <div class="nav-card-features">
+          <span class="feature-tag">♿ Wheelchair Access</span>
+          <span class="feature-tag">📷 Photos & Notes</span>
+          <span class="feature-tag">⭐ Community Reviews</span>
+          <span class="feature-tag">🗺️ Interactive Maps</span>
+        </div>
+        
+        <button class="nav-card-button primary" onclick="openTrailBrowser()">
+          🔍 Browse Trail Guides
+        </button>
+        
+        <div class="quick-search" role="search">
+          <label for="quickSearch" class="visually-hidden">Search trails</label>
+          <input type="text" id="quickSearch" placeholder="Quick search trails..." maxlength="50" aria-label="Quick search trails">
+          <button onclick="quickSearch()" class="search-btn" aria-label="Search trails">Search</button>
+        </div>
+      </div>
+
+      <!-- Track New Trail -->
+      <div class="nav-card track-card">
+        <div class="nav-card-icon">📍</div>
+        <h2>Map a New Trail</h2>
+        <p>Use GPS tracking to document new accessible routes. Record accessibility features, take photos, and create trail guides for the community.</p>
+        
+        <div class="nav-card-features">
+          <span class="feature-tag">📱 GPS Tracking</span>
+          <span class="feature-tag">📝 Accessibility Survey</span>
+          <span class="feature-tag">📷 Photo Documentation</span>
+          <span class="feature-tag">☁️ Cloud Sync</span>
+        </div>
+        
+        <button class="nav-card-button secondary" onclick="openTracker()">
+          📍 Start Tracking
+        </button>
+        
+        <div class="tracker-stats">
+          <div class="stat-item">
+            <span class="stat-number" id="totalRoutes">0</span>
+            <span class="stat-label">Routes Mapped</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="totalDistance">0</span>
+            <span class="stat-label">km Documented</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Community Stats Section -->
+  <div class="community-section">
+    <div class="community-container">
+      <h3>🌍 Community Impact</h3>
+      <div class="community-stats">
+        <div class="community-stat">
+          <span class="stat-big" id="publicGuides">0</span>
+          <span class="stat-desc">Public Trail Guides</span>
+        </div>
+        <div class="community-stat">
+          <span class="stat-big" id="totalKm">0</span>
+          <span class="stat-desc">Kilometers Mapped</span>
+        </div>
+        <div class="community-stat">
+          <span class="stat-big" id="accessibleTrails">0</span>
+          <span class="stat-desc">Wheelchair Accessible</span>
+        </div>
+        <div class="community-stat">
+          <span class="stat-big" id="totalUsers">0</span>
+          <span class="stat-desc">Contributors</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- My Trails Section (logged-in users only) -->
-  <section class="my-trails-section" id="myTrailsSection" style="display: none;" aria-label="My trail guides">
-    <div class="section-container">
+  <div class="my-trails-section" id="myTrailsSection" style="display: none;">
+    <div class="my-trails-container">
       <div class="my-trails-header">
-        <h2 class="section-title">📍 My Trail Guides</h2>
-        <a href="tracker.html" class="new-trail-btn">+ New Trail</a>
+        <h3>📍 My Trail Guides</h3>
+        <a href="tracker.html" class="new-trail-btn">+ Record New Trail</a>
       </div>
       <div class="my-trails-stats" id="myTrailsStats">
         <!-- Stats populated by JS -->
@@ -473,31 +594,21 @@
         <a href="tracker.html" class="start-trail-btn">Start Your First Trail</a>
       </div>
     </div>
-  </section>
+  </div>
 
   <!-- Community Challenges Section -->
-  <section class="challenges-section" aria-label="Community challenges">
-    <div class="section-container">
+  <div class="challenges-section" style="padding: 20px 0; background: #f9fafb;">
+    <div class="challenges-container" style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
       <div id="communityChallengesPanel">
         <!-- Challenges will be dynamically inserted here -->
       </div>
     </div>
-  </section>
-
-  <!-- What's New Section -->
-  <section class="whats-new-section" aria-label="Latest announcements">
-    <div class="section-container">
-      <h2 class="section-title">📰 What's New</h2>
-      <div id="announcementsFeed" class="announcements-feed">
-        <p class="feed-loading">Loading announcements...</p>
-      </div>
-    </div>
-  </section>
+  </div>
 
   <!-- Featured Trails -->
-  <section class="featured-section" aria-label="Featured accessible trails">
-    <div class="section-container">
-      <h2 class="section-title">⭐ Featured Accessible Trails</h2>
+  <div class="featured-section">
+    <div class="featured-container">
+      <h3>⭐ Featured Accessible Trails</h3>
       
       <!-- Trail Search & Filters -->
       <div id="trailSearchContainer"></div>
@@ -510,8 +621,7 @@
       </div>
       <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreFeatured()">Load More Trails</button>
     </div>
-  </section>
-  </main>
+  </div>
 
   <!-- Footer -->
   <footer class="footer-section">
@@ -603,67 +713,6 @@
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Track Trail Modal -->
-  <div id="trackTrailModal" class="modal hidden">
-    <div class="modal-backdrop" onclick="closeTrackModal()"></div>
-    <div class="modal-container track-modal">
-      <div class="modal-header">
-        <h2>📍 Map a New Trail</h2>
-        <button class="modal-close" onclick="closeTrackModal()">✕</button>
-      </div>
-      
-      <div class="modal-content">
-        <p class="modal-description">Use GPS tracking to document accessible routes. Record accessibility features, take photos, and create trail guides for the community.</p>
-        
-        <div class="feature-list">
-          <div class="feature-item">
-            <span class="feature-icon">📱</span>
-            <div class="feature-text">
-              <strong>GPS Tracking</strong>
-              <span>Record your route with real-time location</span>
-            </div>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">📝</span>
-            <div class="feature-text">
-              <strong>Accessibility Survey</strong>
-              <span>Document surface, slope, and obstacles</span>
-            </div>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">📷</span>
-            <div class="feature-text">
-              <strong>Photo Documentation</strong>
-              <span>Add photos with accessibility notes</span>
-            </div>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">☁️</span>
-            <div class="feature-text">
-              <strong>Cloud Sync</strong>
-              <span>Save and access trails from any device</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="modal-stats" id="trackModalStats">
-          <div class="modal-stat">
-            <span class="stat-value" id="modalTotalRoutes">0</span>
-            <span class="stat-label">Routes Mapped</span>
-          </div>
-          <div class="modal-stat">
-            <span class="stat-value" id="modalTotalDistance">0</span>
-            <span class="stat-label">km Documented</span>
-          </div>
-        </div>
-        
-        <button class="modal-action-btn primary" onclick="window.location.href='tracker.html'">
-          📍 Start Tracking Now
-        </button>
       </div>
     </div>
   </div>
