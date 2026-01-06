@@ -420,40 +420,62 @@ class PWAManager {
       const installBtn = document.getElementById('pwaInstallNowBtn');
       installBtn?.addEventListener('click', () => {
         // Must call prompt() synchronously in click handler to preserve user gesture
+        console.log('[PWA] Install button clicked');
+        console.log('[PWA] deferredPrompt exists:', !!this.deferredPrompt);
+        
         if (!this.deferredPrompt) {
-          console.warn('[PWA] No deferred prompt available');
-          toast.info('Install not available. Try refreshing the page.');
+          console.warn('[PWA] No deferred prompt available - beforeinstallprompt may not have fired');
+          console.log('[PWA] This can happen if:');
+          console.log('  - App is already installed');
+          console.log('  - Browser doesn\'t support PWA install');
+          console.log('  - Not served over HTTPS (localhost is OK)');
+          console.log('  - manifest.json issues');
+          toast.info('Install not available on this browser. Try Chrome or Edge.');
           this.closeInstallModal();
+          this.hideInstallButton();
           return;
         }
         
-        console.log('[PWA] Triggering install prompt...');
+        console.log('[PWA] Triggering native install prompt...');
         
-        // Close our modal first so browser prompt is visible
+        // Close our modal and banner first so browser prompt is visible
         this.closeInstallModal();
+        this.hideInstallButton();
+        
+        // Store reference before it might get cleared
+        const promptEvent = this.deferredPrompt;
         
         // Trigger browser's native install prompt (must be sync with user gesture)
-        this.deferredPrompt.prompt();
+        try {
+          promptEvent.prompt();
+          console.log('[PWA] prompt() called successfully');
+        } catch (promptError) {
+          console.error('[PWA] prompt() failed:', promptError);
+          toast.error('Could not show install dialog');
+          this.deferredPrompt = null;
+          return;
+        }
         
         // Handle the result asynchronously
-        this.deferredPrompt.userChoice.then((choiceResult) => {
+        promptEvent.userChoice.then((choiceResult) => {
           console.log('[PWA] User choice:', choiceResult.outcome);
           
           if (choiceResult.outcome === 'accepted') {
             console.log('[PWA] User accepted install');
-            // appinstalled event will fire and show success toast
+            toast.success('Installing Access Nature... 🎉');
+            // appinstalled event will also fire
           } else {
             console.log('[PWA] User dismissed install');
             toast.info('Installation cancelled');
+            // Show banner again since user dismissed
+            this.showInstallButton();
           }
           
           // Clear the prompt - can only be used once
           this.deferredPrompt = null;
-          this.hideInstallButton();
           
         }).catch((error) => {
-          console.error('[PWA] Install prompt error:', error);
-          toast.error('Installation failed');
+          console.error('[PWA] userChoice error:', error);
           this.deferredPrompt = null;
         });
       });
@@ -560,11 +582,20 @@ class PWAManager {
   }
 
   /**
-   * Hide install button
+   * Hide and remove install button/banner
    */
   hideInstallButton() {
+    console.log('[PWA] hideInstallButton called');
     const banner = document.getElementById('pwaInstallBanner');
-    banner?.classList.remove('visible');
+    console.log('[PWA] Banner element:', banner ? 'found' : 'not found');
+    if (banner) {
+      banner.classList.remove('visible');
+      // Remove from DOM after animation
+      setTimeout(() => {
+        console.log('[PWA] Removing banner from DOM');
+        banner.remove();
+      }, 300);
+    }
   }
 
   /**
