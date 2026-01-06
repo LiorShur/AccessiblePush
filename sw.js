@@ -9,7 +9,7 @@
  * - Images: Cache First
  */
 
-const CACHE_VERSION = 'v2.8.1-announcements-ui';
+const CACHE_VERSION = 'v2.8.5-toolbar-fixes';
 const APP_CACHE = `access-nature-app-${CACHE_VERSION}`;
 const DATA_CACHE = `access-nature-data-${CACHE_VERSION}`;
 const MAP_CACHE = `access-nature-maps-${CACHE_VERSION}`;
@@ -79,6 +79,7 @@ const APP_SHELL = [
   
   // UI - Announcements
   './src/ui/announcementsUI.js',
+  './src/ui/topToolbarUI.js',
   
   // External Libraries (CDN - will be cached on first use)
   'https://unpkg.com/leaflet@1.9.3/dist/leaflet.css',

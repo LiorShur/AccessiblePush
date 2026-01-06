@@ -481,13 +481,12 @@
       left: 0;
       right: 0;
       height: 64px;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      background: #000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 0 24px;
-      z-index: 10000;
+      z-index: 9999;
     }
     .nav-brand {
       display: flex;
@@ -495,47 +494,39 @@
       gap: 8px;
       font-weight: 700;
       font-size: 1.25rem;
-      color: #111827;
+      color: #fff;
       text-decoration: none;
+      margin-right: auto;
     }
     .nav-brand-icon {
       font-size: 1.5rem;
     }
     .nav-auth-indicator {
-      display: flex;
-      align-items: center;
+      display: none;
     }
-    .nav-auth-indicator {
-      display: flex;
-      align-items: center;
+    /* Leave space for toolbar on the right */
+    .top-nav::after {
+      content: '';
+      width: 150px;
       flex-shrink: 0;
     }
-    .nav-auth-indicator .auth-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: #f3f4f6;
-      border-radius: 20px;
-      font-size: 0.875rem;
-      color: #4b5563;
-    }
-    .nav-auth-indicator .auth-status.signed-in {
-      background: #dcfce7;
-      color: #166534;
-    }
     .nav-menu {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: transparent;
+      display: none;
+    }
+    @media (min-width: 769px) {
+      .nav-menu {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: transparent;
+      }
     }
     .nav-link {
       display: flex;
       align-items: center;
       gap: 6px;
       padding: 8px 16px;
-      color: #4b5563;
+      color: #fff;
       text-decoration: none;
       border-radius: 8px;
       transition: all 0.2s;
@@ -4399,6 +4390,12 @@ Generated: ${new Date().toLocaleString()}`;
   <script type="module">
     import { betaFeedback } from './src/utils/betaFeedback.js';
     betaFeedback.initialize();
+  </script>
+  
+  <!-- Top Toolbar -->
+  <script type="module">
+    import { topToolbarUI } from './src/ui/topToolbarUI.js';
+    // Auto-initializes on import
   </script>
 </body>
 </html>

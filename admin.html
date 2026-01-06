@@ -29,21 +29,32 @@
       min-height: 100vh;
     }
     
-    /* Header */
-    .header {
-      background: linear-gradient(135deg, #1e3a2f, #2c5530);
-      color: white;
-      padding: 16px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
+    /* Top Navigation */
+    .top-nav {
+      position: fixed;
       top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: #000;
+      color: white;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      z-index: 9999;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
     
-    .header h1 { font-size: 1.3em; display: flex; align-items: center; gap: 10px; }
+    .nav-brand {
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: auto;
+    }
     .header-actions { display: flex; align-items: center; gap: 12px; }
     .user-info { font-size: 0.85em; opacity: 0.9; }
     
@@ -1046,18 +1057,18 @@
       <span class="toggle-text">High Contrast</span>
     </button>
     
-    <!-- Header -->
-    <div class="header">
-      <h1>🌲 Access Nature <span class="admin-badge">ADMIN</span></h1>
+    <!-- Top Navigation -->
+    <nav class="top-nav" role="navigation" aria-label="Main navigation">
+      <a href="index.html" class="nav-brand">♿ Accessible <span class="admin-badge">ADMIN</span></a>
       <div class="header-actions">
         <span class="connection-status online" id="connectionStatus">🟢 Online</span>
         <span class="user-info" id="userInfo"></span>
         <button class="header-btn" onclick="window.location.href='tracker.html'">🗺️ Tracker</button>
         <button class="header-btn" onclick="signOutUser()">Sign Out</button>
       </div>
-    </div>
+    </nav>
 
-    <div class="container">
+    <div class="container" style="margin-top: 70px;">
       <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card active" data-section="routes" onclick="switchSection('routes')">
@@ -2033,6 +2044,22 @@
 
     // ==================== RENDERING ====================
 
+    async function updateAnnouncementsCount() {
+      try {
+        const q = query(
+          collection(db, 'announcements'),
+          where('active', '==', true)
+        );
+        const snapshot = await getDocs(q);
+        const countEl = document.getElementById('announcementsCount');
+        if (countEl) {
+          countEl.textContent = snapshot.size;
+        }
+      } catch (error) {
+        console.log('Could not load announcements count:', error.message);
+      }
+    }
+
     function updateAllCounts() {
       const sections = ['routes', 'guides', 'conditions', 'reports'];
       const totalItems = sections.reduce((sum, s) => sum + cache[s].length, 0);
@@ -2051,6 +2078,9 @@
           countEl.title = '';
         }
       });
+      
+      // Also update announcements count
+      updateAnnouncementsCount();
     }
 
     function renderCurrentSection() {
@@ -3652,6 +3682,18 @@
         try { if (navigator.vibrate) navigator.vibrate(10); } catch(e) {}
       });
     })();
+  </script>
+  
+  <!-- Top Toolbar -->
+  <script type="module">
+    import { topToolbarUI } from './src/ui/topToolbarUI.js';
+    // Auto-initializes on import
+  </script>
+  
+  <!-- Beta Feedback -->
+  <script type="module">
+    import { betaFeedback } from './src/utils/betaFeedback.js';
+    betaFeedback.initialize();
   </script>
 </body>
 </html>

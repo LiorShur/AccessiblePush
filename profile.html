@@ -85,14 +85,14 @@
       top: 0;
       left: 0;
       right: 0;
-      background: #2c5530;
+      height: 56px;
+      background: #000;
       color: white;
-      padding: 12px 16px;
+      padding: 0 16px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
       z-index: 9999;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     
     .nav-brand {
@@ -100,13 +100,22 @@
       text-decoration: none;
       font-weight: 600;
       font-size: 1.1rem;
+      margin-right: auto;
     }
     
     .nav-auth-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.9rem;
+      display: none;
+    }
+    
+    .menu-toggle {
+      display: none;
+    }
+    
+    /* Leave space for toolbar on the right */
+    .top-nav::after {
+      content: '';
+      width: 150px;
+      flex-shrink: 0;
     }
     
     /* Desktop: show nav-menu, hide hamburger */
@@ -1708,6 +1717,12 @@
   <script type="module">
     import { betaFeedback } from './src/utils/betaFeedback.js';
     betaFeedback.initialize();
+  </script>
+  
+  <!-- Top Toolbar -->
+  <script type="module">
+    import { topToolbarUI } from './src/ui/topToolbarUI.js';
+    // Auto-initializes on import
   </script>
 </body>
 </html>
