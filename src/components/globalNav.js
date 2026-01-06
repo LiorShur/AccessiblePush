@@ -257,7 +257,10 @@ export class GlobalNav {
 
     // Profile button click handler
     profileItem.addEventListener('click', () => {
-      if (this.isSignedIn) {
+      // Check DOM state directly (more reliable than this.isSignedIn when pages update DOM directly)
+      const isSignedInByDOM = profileItem.classList.contains('signed-in');
+      
+      if (this.isSignedIn || isSignedInByDOM) {
         // Navigate to profile page
         window.location.href = 'profile.html';
       } else {
