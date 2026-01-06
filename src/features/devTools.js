@@ -180,13 +180,15 @@ class DevTools {
     let tapTimer = null;
     
     const cornerArea = document.createElement('div');
+    cornerArea.id = 'devToolsSecretArea';
     cornerArea.style.cssText = `
       position: fixed;
-      top: 0;
+      top: 60px;
       right: 0;
       width: 60px;
       height: 60px;
-      z-index: 99996;
+      z-index: 9999;
+      pointer-events: auto;
     `;
     
     cornerArea.addEventListener('click', () => {
@@ -203,7 +205,7 @@ class DevTools {
     });
     
     document.body.appendChild(cornerArea);
-    console.log('🔓 Secret gesture enabled: triple-tap top-right corner');
+    console.log('🔓 Secret gesture enabled: triple-tap top-right corner (below toolbar)');
   }
 }
 
