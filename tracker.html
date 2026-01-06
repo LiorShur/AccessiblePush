@@ -1451,10 +1451,10 @@ textarea:focus-visible,
         const profileLabel = document.getElementById('profileLabel');
         if (profileItem && profileLabel) {
           if (user) {
-            const displayName = user.displayName || user.email?.split('@')[0] || 'You';
-            const truncatedName = displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
+            const displayName = user.email?.split('@')[0] || user.displayName || 'User';
+            const truncatedName = displayName && displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
             profileItem.classList.add('signed-in');
-            profileLabel.textContent = truncatedName;
+            if (truncatedName) profileLabel.textContent = truncatedName;
           } else {
             profileItem.classList.remove('signed-in');
             profileLabel.textContent = 'Sign In';
@@ -2269,10 +2269,20 @@ textarea:focus-visible,
   })();
 </script>
 
-<!-- Top Toolbar -->
+<!-- Top Toolbar & Announcements -->
 <script type="module">
   import { topToolbarUI } from './src/ui/topToolbarUI.js';
-  // Auto-initializes on import
+  import { announcementsUI } from './src/ui/announcementsUI.js';
+  
+  // Initialize announcements when user is signed in
+  const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js');
+  const auth = getAuth();
+  
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      announcementsUI?.initialize();
+    }
+  });
 </script>
 </body>
 </html>
