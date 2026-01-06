@@ -7,6 +7,7 @@ import { loadingStates } from './ui/loadingStates.js';
 import { gamificationUI } from './ui/gamificationUI.js';
 import { mobilityProfileUI } from './ui/mobilityProfileUI.js';
 import { announcementsUI } from './ui/announcementsUI.js';
+import { topToolbarUI } from './ui/topToolbarUI.js';
 import { communityChallenges } from './features/communityChallenges.js';
 import { accessibilityRating } from './features/accessibilityRating.js';
 import { trailSearch } from './features/trailSearch.js';
