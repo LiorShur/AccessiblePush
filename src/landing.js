@@ -1955,17 +1955,17 @@ Happy trail mapping! 🥾`);
       return `
         <div class="guide-list-item" 
              onclick="window.landingController?.openGuideByIndex(${index})"
-             style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #e5e7eb; cursor: pointer; transition: background 0.2s;"
-             onmouseover="this.style.background='#f0fdf4'" 
+             style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: background 0.2s;"
+             onmouseover="this.style.background='rgba(102,126,234,0.1)'" 
              onmouseout="this.style.background=''">
           <span style="font-size: 1.8rem;">📚</span>
           <div style="flex: 1; min-width: 0;">
-            <div style="font-weight: 600; color: #1f2937; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(name)}</div>
-            <div style="font-size: 0.85rem; color: #6b7280;">
+            <div style="font-weight: 600; color: #fff; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${this.escapeHtml(name)}</div>
+            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">
               📏 ${distance.toFixed(1)} km • 📅 ${dateStr} • ${isPublic ? '🌍 Public' : '🔒 Private'}
             </div>
           </div>
-          <span style="color: #2c5530; font-size: 1.2rem;">→</span>
+          <span style="color: #667eea; font-size: 1.2rem;">→</span>
         </div>
       `;
     }).join('');
@@ -1977,7 +1977,7 @@ Happy trail mapping! 🥾`);
         <div id="guideListContainer" style="max-height: 60vh; overflow-y: auto; margin: -16px; margin-top: 0;">
           ${modalContent}
         </div>
-        <p style="text-align: center; color: #6b7280; font-size: 0.85rem; margin-top: 16px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+        <p style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
           Click a trail guide to view full details
         </p>
       `,
@@ -1991,34 +1991,49 @@ Happy trail mapping! 🥾`);
   openGuideByIndex(index) {
     console.log('📚 openGuideByIndex called:', index);
     
-    // Close modal first - try multiple methods
-    const closeModal = () => {
-      // Try backdrop
-      const backdrop = document.querySelector('.modal-backdrop');
-      if (backdrop) {
-        backdrop.remove();
-        return true;
+    // Close all modals - try multiple approaches
+    // 1. Use modal system's closeAll
+    try {
+      if (modal && typeof modal.closeAll === 'function') {
+        console.log('📚 Calling modal.closeAll()');
+        modal.closeAll();
       }
-      // Try modal container
-      const modalContainer = document.querySelector('.modal-container');
-      if (modalContainer) {
-        modalContainer.remove();
-        return true;
-      }
-      return false;
+    } catch (e) {
+      console.warn('📚 modal.closeAll failed:', e);
+    }
+    
+    // 2. Fallback: directly remove modal backdrops from DOM
+    const removeModalElements = () => {
+      // Remove all modal backdrops (the modal system uses this class)
+      document.querySelectorAll('.modal-backdrop').forEach(el => {
+        console.log('📚 Removing modal-backdrop element');
+        el.classList.remove('active');
+        el.remove();
+      });
+      
+      // Also try removing any other modal containers
+      document.querySelectorAll('.modal-dialog').forEach(el => {
+        console.log('📚 Removing modal-dialog element');
+        el.remove();
+      });
+      
+      // Restore body scroll
+      document.body.style.overflow = '';
+      document.body.classList.remove('modal-open');
     };
     
-    // Close immediately
-    closeModal();
-    // Also try after a frame (for async rendering)
-    requestAnimationFrame(() => closeModal());
+    // Run immediately
+    removeModalElements();
+    
+    // And again after a frame (for any async rendering)
+    requestAnimationFrame(removeModalElements);
     
     // Get guide from temp array
     const guide = window._tempGuides?.[index];
     if (guide) {
       console.log('📚 Opening guide:', guide.routeName || guide.id);
-      // Small delay to ensure modal is closed
-      setTimeout(() => this.showTrailGuide(guide), 50);
+      // Delay to ensure modal is fully closed
+      setTimeout(() => this.showTrailGuide(guide), 150);
     } else {
       console.error('📚 Guide not found at index:', index);
       toast.error('Guide not found');
@@ -2057,6 +2072,11 @@ Happy trail mapping! 🥾`);
       
       console.log('📚 HTML content length:', guideHTML?.length || 0);
       
+      // IMPORTANT: Remove any existing modals before showing guide
+      document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+      document.body.style.overflow = '';
+      document.body.classList.remove('modal-open');
+      
       // Create fullscreen overlay with iframe for proper script execution (maps, etc.)
       const overlay = document.createElement('div');
       overlay.className = 'trail-guide-overlay';
@@ -2082,7 +2102,7 @@ Happy trail mapping! 🥾`);
             right: 0;
             bottom: 0;
             background: white;
-            z-index: 10000;
+            z-index: 200000;
             display: flex;
             flex-direction: column;
             overflow: hidden;
