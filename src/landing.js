@@ -1249,15 +1249,13 @@ loadLocalStats() {
       
       if (profileItem && profileLabel) {
         if (user) {
-          const displayName = user.displayName || user.email?.split('@')[0] || 'You';
-          const truncatedName = displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
+          const displayName = user.email?.split('@')[0] || user.displayName || 'User';
+          const truncatedName = displayName && displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
           profileItem.classList.add('signed-in');
-          profileLabel.textContent = truncatedName;
-          console.log('🔄 Global nav updated: signed in as', truncatedName);
+          if (truncatedName) profileLabel.textContent = truncatedName;
         } else {
           profileItem.classList.remove('signed-in');
           profileLabel.textContent = 'Sign In';
-          console.log('🔄 Global nav updated: signed out');
         }
         return true;
       }
