@@ -207,7 +207,20 @@ export class GlobalNav {
       const eventUser = event?.detail?.user;
       const user = eventUser || firebaseUser;
       
-      this.isSignedIn = !!(user || authIndicator || localToken);
+      // Check if profile is already showing signed-in state (set by page's own auth handler)
+      const alreadySignedIn = profileItem.classList.contains('signed-in');
+      
+      // Determine if user is signed in
+      const isNowSignedIn = !!(user || authIndicator || localToken);
+      
+      // Don't downgrade from signed-in to signed-out unless we have explicit sign-out event
+      // This prevents the periodic check from resetting state when window.auth isn't available
+      if (alreadySignedIn && !isNowSignedIn && !event?.detail?.forceUpdate) {
+        // Already signed in but can't verify - don't change state
+        return;
+      }
+      
+      this.isSignedIn = isNowSignedIn;
       
       if (this.isSignedIn) {
         // Get user name - prefer email username, never use "You"
@@ -283,17 +296,12 @@ export class GlobalNav {
         }
       }, 200);
       
-      // Clear after 10 seconds
-      setTimeout(() => clearInterval(waitForAuth), 10000);
+      // Clear after 5 seconds
+      setTimeout(() => clearInterval(waitForAuth), 5000);
     }
     
-    // Fallback: periodic check during initial load
-    let checks = 0;
-    const interval = setInterval(() => {
-      updateAuthUI();
-      checks++;
-      if (checks > 30) clearInterval(interval);
-    }, 500);
+    // Note: Removed aggressive periodic check - pages now handle their own auth state updates
+    // and push them to global nav via updateGlobalNavProfile functions
   }
 
   /**
