@@ -195,11 +195,8 @@ setupCloudButtonsWithRetry() {
           detail: { user, authenticated: true } 
         }));
         
-        // Directly update global nav if available
-        if (window.updateGlobalNavAuth) {
-          console.log('🔄 Directly updating global nav auth state');
-          window.updateGlobalNavAuth({ detail: { user, authenticated: true } });
-        }
+        // Update global nav with retries and fallback
+        this.updateGlobalNav(user);
         
         // Verify the user still exists on the server
         try {
@@ -257,17 +254,60 @@ setupCloudButtonsWithRetry() {
           detail: { user: null, authenticated: false } 
         }));
         
-        // Directly update global nav if available
-        if (window.updateGlobalNavAuth) {
-          console.log('🔄 Directly updating global nav auth state (signed out)');
-          window.updateGlobalNavAuth({ detail: { user: null, authenticated: false } });
-        }
+        // Update global nav with retries and fallback
+        this.updateGlobalNav(null);
         
         // Reset userService on logout
         userService.reset();
         
         this.executeCallbacks('onLogout');
       }
+    });
+  }
+
+  /**
+   * Update global nav profile button with retries and direct DOM fallback
+   * @param {Object|null} user - Firebase user object or null for signed out
+   */
+  updateGlobalNav(user) {
+    const updateNav = () => {
+      // Try the exposed function first
+      if (window.updateGlobalNavAuth) {
+        console.log('🔄 Updating global nav via exposed function');
+        window.updateGlobalNavAuth({ detail: { user, authenticated: !!user } });
+        return true;
+      }
+      
+      // Fallback: directly update DOM elements
+      const profileItem = document.getElementById('globalNavProfile');
+      const profileLabel = document.getElementById('profileLabel');
+      
+      if (profileItem && profileLabel) {
+        console.log('🔄 Updating global nav via direct DOM manipulation');
+        if (user) {
+          const displayName = user.displayName || user.email?.split('@')[0] || 'You';
+          const truncatedName = displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
+          profileItem.classList.add('signed-in');
+          profileLabel.textContent = truncatedName;
+        } else {
+          profileItem.classList.remove('signed-in');
+          profileLabel.textContent = 'Sign In';
+        }
+        return true;
+      }
+      
+      return false;
+    };
+    
+    // Try immediately
+    if (updateNav()) return;
+    
+    // Retry with delays (global nav might not be initialized yet)
+    const delays = [100, 300, 500, 1000, 2000];
+    delays.forEach(delay => {
+      setTimeout(() => {
+        updateNav();
+      }, delay);
     });
   }
 
