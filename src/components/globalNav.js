@@ -197,17 +197,29 @@ export class GlobalNav {
     const profileLabel = document.getElementById('profileLabel');
     if (!profileItem || !profileLabel) return;
 
-    const updateAuthUI = () => {
+    const updateAuthUI = (event) => {
       // Check various auth indicators
       const firebaseUser = window.auth?.currentUser;
       const authIndicator = document.querySelector('.auth-status.signed-in');
       const localToken = localStorage.getItem('accessNature_authToken');
       
-      this.isSignedIn = !!(firebaseUser || authIndicator || localToken);
+      // Also check event detail if available
+      const eventUser = event?.detail?.user;
+      const user = eventUser || firebaseUser;
+      
+      this.isSignedIn = !!(user || authIndicator || localToken);
+      
+      console.log('[GlobalNav] Auth state update:', { 
+        isSignedIn: this.isSignedIn, 
+        hasFirebaseUser: !!firebaseUser,
+        hasEventUser: !!eventUser 
+      });
       
       if (this.isSignedIn) {
         // Get user name
-        this.userName = firebaseUser?.displayName || 
+        this.userName = user?.displayName || 
+                       user?.email?.split('@')[0] ||
+                       firebaseUser?.displayName ||
                        firebaseUser?.email?.split('@')[0] ||
                        localStorage.getItem('accessNature_userName') ||
                        'You';
@@ -239,13 +251,19 @@ export class GlobalNav {
     // Initial check
     updateAuthUI();
 
-    // Listen for auth changes
-    window.addEventListener('authStateChanged', updateAuthUI);
+    // Listen for custom auth changes event (from auth.js)
+    window.addEventListener('authStateChanged', (e) => {
+      console.log('[GlobalNav] Received authStateChanged event');
+      updateAuthUI(e);
+    });
     
     // Firebase auth state listener
     const setupFirebaseListener = () => {
       if (window.auth?.onAuthStateChanged) {
-        window.auth.onAuthStateChanged(updateAuthUI);
+        window.auth.onAuthStateChanged((user) => {
+          console.log('[GlobalNav] Firebase auth state changed:', !!user);
+          updateAuthUI({ detail: { user } });
+        });
         return true;
       }
       return false;
@@ -257,6 +275,7 @@ export class GlobalNav {
       const waitForAuth = setInterval(() => {
         if (setupFirebaseListener()) {
           clearInterval(waitForAuth);
+          updateAuthUI(); // Check again now that we have auth
         }
       }, 200);
       
@@ -269,7 +288,7 @@ export class GlobalNav {
     const interval = setInterval(() => {
       updateAuthUI();
       checks++;
-      if (checks > 20) clearInterval(interval);
+      if (checks > 30) clearInterval(interval);
     }, 500);
   }
 
