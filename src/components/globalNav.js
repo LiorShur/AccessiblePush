@@ -209,28 +209,29 @@ export class GlobalNav {
       
       this.isSignedIn = !!(user || authIndicator || localToken);
       
-      console.log('[GlobalNav] Auth state update:', { 
-        isSignedIn: this.isSignedIn, 
-        hasFirebaseUser: !!firebaseUser,
-        hasEventUser: !!eventUser 
-      });
-      
       if (this.isSignedIn) {
-        // Get user name
-        this.userName = user?.displayName || 
-                       user?.email?.split('@')[0] ||
-                       firebaseUser?.displayName ||
-                       firebaseUser?.email?.split('@')[0] ||
-                       localStorage.getItem('accessNature_userName') ||
-                       'You';
+        // Get user name - prefer email username, never use "You"
+        const userName = user?.email?.split('@')[0] ||
+                        firebaseUser?.email?.split('@')[0] ||
+                        user?.displayName ||
+                        firebaseUser?.displayName ||
+                        localStorage.getItem('accessNature_userName');
         
-        // Truncate long names
-        const displayName = this.userName.length > 10 
-          ? this.userName.substring(0, 10) + '…' 
-          : this.userName;
-        
-        profileItem.classList.add('signed-in');
-        profileLabel.textContent = displayName;
+        if (userName) {
+          this.userName = userName;
+          
+          // Truncate long names
+          const displayName = userName.length > 10 
+            ? userName.substring(0, 10) + '…' 
+            : userName;
+          
+          profileItem.classList.add('signed-in');
+          profileLabel.textContent = displayName;
+        } else {
+          // No name available yet, just show signed-in state
+          profileItem.classList.add('signed-in');
+          // Don't change the label if we don't have a name
+        }
       } else {
         profileItem.classList.remove('signed-in');
         profileLabel.textContent = 'Sign In';
