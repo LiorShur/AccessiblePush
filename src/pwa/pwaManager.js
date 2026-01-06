@@ -239,14 +239,21 @@ class PWAManager {
    * Setup install prompt listener
    */
   setupInstallPrompt() {
+    // Log current state
+    console.log('[PWA] Setting up install prompt listener...');
+    console.log('[PWA] Display mode standalone:', window.matchMedia('(display-mode: standalone)').matches);
+    console.log('[PWA] Navigator standalone:', window.navigator.standalone);
+    
     window.addEventListener('beforeinstallprompt', (e) => {
-      console.log('[PWA] Install prompt available');
+      console.log('[PWA] ✅ beforeinstallprompt event fired!');
+      console.log('[PWA] Event platforms:', e.platforms);
       
       // Prevent automatic prompt
       e.preventDefault();
       
       // Store event for later use
       this.deferredPrompt = e;
+      console.log('[PWA] Deferred prompt stored');
       
       // Show custom install button/banner
       this.showInstallButton();
@@ -254,13 +261,24 @@ class PWAManager {
 
     // Listen for successful install
     window.addEventListener('appinstalled', () => {
-      console.log('[PWA] App installed successfully');
+      console.log('[PWA] ✅ App installed successfully');
       this.isInstalled = true;
       this.deferredPrompt = null;
       this.hideInstallButton();
       this.saveState({ installed: true });
       toast.success('Access Nature installed! 🎉');
     });
+    
+    // Debug: Check if we missed the event (it fires very early)
+    setTimeout(() => {
+      if (!this.deferredPrompt && !this.isInstalled) {
+        console.log('[PWA] No install prompt available after 2s. Possible reasons:');
+        console.log('  - App is already installed');
+        console.log('  - Browser does not support PWA install');
+        console.log('  - Page is not served over HTTPS (localhost is OK)');
+        console.log('  - manifest.json is missing or invalid');
+      }
+    }, 2000);
   }
 
   /**
@@ -399,9 +417,31 @@ class PWAManager {
     });
     
     if (!isIOS) {
-      document.getElementById('pwaInstallNowBtn')?.addEventListener('click', () => {
-        this.closeInstallModal();
-        this.promptInstall();
+      const installBtn = document.getElementById('pwaInstallNowBtn');
+      installBtn?.addEventListener('click', async () => {
+        // Show loading state
+        const originalText = installBtn.innerHTML;
+        installBtn.innerHTML = '<span class="btn-icon">⏳</span> Installing...';
+        installBtn.disabled = true;
+        
+        try {
+          // Prompt install first
+          const installed = await this.promptInstall();
+          
+          if (installed) {
+            installBtn.innerHTML = '<span class="btn-icon">✅</span> Installed!';
+            setTimeout(() => this.closeInstallModal(), 1500);
+          } else {
+            // User dismissed or error
+            installBtn.innerHTML = originalText;
+            installBtn.disabled = false;
+          }
+        } catch (error) {
+          console.error('[PWA] Install error:', error);
+          installBtn.innerHTML = originalText;
+          installBtn.disabled = false;
+          this.closeInstallModal();
+        }
       });
     }
     
@@ -556,24 +596,43 @@ class PWAManager {
    * Trigger install prompt
    */
   async promptInstall() {
+    console.log('[PWA] promptInstall called, deferredPrompt:', this.deferredPrompt ? 'exists' : 'null');
+    
     if (!this.deferredPrompt) {
-      toast.info('Install is not available on this device');
-      return;
+      console.warn('[PWA] No deferred prompt available');
+      toast.info('Install is not available. Try refreshing the page.');
+      return false;
     }
 
-    // Show the prompt
-    this.deferredPrompt.prompt();
+    try {
+      // Show the native browser install prompt
+      console.log('[PWA] Calling prompt()...');
+      this.deferredPrompt.prompt();
 
-    // Wait for user response
-    const { outcome } = await this.deferredPrompt.userChoice;
-    
-    console.log('[PWA] Install prompt outcome:', outcome);
-    
-    if (outcome === 'accepted') {
+      // Wait for user response
+      console.log('[PWA] Waiting for userChoice...');
+      const choiceResult = await this.deferredPrompt.userChoice;
+      
+      console.log('[PWA] Install prompt outcome:', choiceResult.outcome);
+      
+      if (choiceResult.outcome === 'accepted') {
+        console.log('[PWA] User accepted the install prompt');
+        toast.success('Installing Access Nature...');
+      } else {
+        console.log('[PWA] User dismissed the install prompt');
+      }
+      
+      // Clear the deferred prompt - it can only be used once
       this.deferredPrompt = null;
+      this.hideInstallButton();
+      
+      return choiceResult.outcome === 'accepted';
+      
+    } catch (error) {
+      console.error('[PWA] Error during install prompt:', error);
+      toast.error('Installation failed. Please try again.');
+      return false;
     }
-    
-    this.hideInstallButton();
   }
 
   // ==================== Connectivity ====================
