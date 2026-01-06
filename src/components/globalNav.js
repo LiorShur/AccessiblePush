@@ -216,11 +216,12 @@ export class GlobalNav {
       // Don't downgrade from signed-in to signed-out unless we have explicit sign-out event
       // This prevents the periodic check from resetting state when window.auth isn't available
       if (alreadySignedIn && !isNowSignedIn && !event?.detail?.forceUpdate) {
-        // Already signed in but can't verify - don't change state
+        // Already signed in but can't verify - trust the DOM state
+        this.isSignedIn = true;
         return;
       }
       
-      this.isSignedIn = isNowSignedIn;
+      this.isSignedIn = isNowSignedIn || alreadySignedIn;
       
       if (this.isSignedIn) {
         // Get user name - prefer email username, never use "You"
