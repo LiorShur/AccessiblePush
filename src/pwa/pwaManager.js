@@ -418,30 +418,44 @@ class PWAManager {
     
     if (!isIOS) {
       const installBtn = document.getElementById('pwaInstallNowBtn');
-      installBtn?.addEventListener('click', async () => {
-        // Show loading state
-        const originalText = installBtn.innerHTML;
-        installBtn.innerHTML = '<span class="btn-icon">⏳</span> Installing...';
-        installBtn.disabled = true;
-        
-        try {
-          // Prompt install first
-          const installed = await this.promptInstall();
-          
-          if (installed) {
-            installBtn.innerHTML = '<span class="btn-icon">✅</span> Installed!';
-            setTimeout(() => this.closeInstallModal(), 1500);
-          } else {
-            // User dismissed or error
-            installBtn.innerHTML = originalText;
-            installBtn.disabled = false;
-          }
-        } catch (error) {
-          console.error('[PWA] Install error:', error);
-          installBtn.innerHTML = originalText;
-          installBtn.disabled = false;
+      installBtn?.addEventListener('click', () => {
+        // Must call prompt() synchronously in click handler to preserve user gesture
+        if (!this.deferredPrompt) {
+          console.warn('[PWA] No deferred prompt available');
+          toast.info('Install not available. Try refreshing the page.');
           this.closeInstallModal();
+          return;
         }
+        
+        console.log('[PWA] Triggering install prompt...');
+        
+        // Close our modal first so browser prompt is visible
+        this.closeInstallModal();
+        
+        // Trigger browser's native install prompt (must be sync with user gesture)
+        this.deferredPrompt.prompt();
+        
+        // Handle the result asynchronously
+        this.deferredPrompt.userChoice.then((choiceResult) => {
+          console.log('[PWA] User choice:', choiceResult.outcome);
+          
+          if (choiceResult.outcome === 'accepted') {
+            console.log('[PWA] User accepted install');
+            // appinstalled event will fire and show success toast
+          } else {
+            console.log('[PWA] User dismissed install');
+            toast.info('Installation cancelled');
+          }
+          
+          // Clear the prompt - can only be used once
+          this.deferredPrompt = null;
+          this.hideInstallButton();
+          
+        }).catch((error) => {
+          console.error('[PWA] Install prompt error:', error);
+          toast.error('Installation failed');
+          this.deferredPrompt = null;
+        });
       });
     }
     
@@ -609,28 +623,44 @@ class PWAManager {
       console.log('[PWA] Calling prompt()...');
       this.deferredPrompt.prompt();
 
-      // Wait for user response
+      // Wait for user response with timeout
       console.log('[PWA] Waiting for userChoice...');
-      const choiceResult = await this.deferredPrompt.userChoice;
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Install prompt timeout')), 60000)
+      );
+      
+      const choiceResult = await Promise.race([
+        this.deferredPrompt.userChoice,
+        timeoutPromise
+      ]);
       
       console.log('[PWA] Install prompt outcome:', choiceResult.outcome);
-      
-      if (choiceResult.outcome === 'accepted') {
-        console.log('[PWA] User accepted the install prompt');
-        toast.success('Installing Access Nature...');
-      } else {
-        console.log('[PWA] User dismissed the install prompt');
-      }
       
       // Clear the deferred prompt - it can only be used once
       this.deferredPrompt = null;
       this.hideInstallButton();
       
-      return choiceResult.outcome === 'accepted';
+      if (choiceResult.outcome === 'accepted') {
+        console.log('[PWA] User accepted the install prompt');
+        toast.success('Installing Access Nature...');
+        return true;
+      } else {
+        console.log('[PWA] User dismissed the install prompt');
+        return false;
+      }
       
     } catch (error) {
       console.error('[PWA] Error during install prompt:', error);
-      toast.error('Installation failed. Please try again.');
+      // Clear the prompt anyway - it's probably unusable now
+      this.deferredPrompt = null;
+      this.hideInstallButton();
+      
+      if (error.message === 'Install prompt timeout') {
+        toast.info('Install prompt timed out. Please try again.');
+      } else {
+        toast.error('Installation failed. Please try again.');
+      }
       return false;
     }
   }
