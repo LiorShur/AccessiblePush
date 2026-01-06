@@ -3783,10 +3783,10 @@
     import { announcementsUI } from './src/ui/announcementsUI.js';
     
     // Initialize announcements when user is signed in
-    const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js');
-    const auth = getAuth();
+    const { getAuth: getAuthInstance, onAuthStateChanged: onAuthChange } = await import('https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js');
+    const authInstance = getAuthInstance();
     
-    onAuthStateChanged(auth, (user) => {
+    onAuthChange(authInstance, (user) => {
       if (user) {
         announcementsUI?.initialize();
       }
