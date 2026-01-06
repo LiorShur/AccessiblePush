@@ -9,7 +9,7 @@
  * - Images: Cache First
  */
 
-const CACHE_VERSION = 'v2.9.2-pwa-install-debug';
+const CACHE_VERSION = 'v2.9.3-profile-name-fix';
 const APP_CACHE = `access-nature-app-${CACHE_VERSION}`;
 const DATA_CACHE = `access-nature-data-${CACHE_VERSION}`;
 const MAP_CACHE = `access-nature-maps-${CACHE_VERSION}`;
