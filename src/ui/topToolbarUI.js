@@ -27,31 +27,31 @@ class TopToolbarUI {
    * Hide old FAB elements
    */
   hideOldElements() {
-    // Hide old high contrast toggle FAB
-    const oldContrastFab = document.getElementById('highContrastToggle');
-    if (oldContrastFab) oldContrastFab.style.display = 'none';
-    
-    // Hide old feedback FAB
-    const oldFeedbackFab = document.getElementById('feedbackFab');
-    if (oldFeedbackFab) oldFeedbackFab.style.display = 'none';
-    
-    // Hide any other high contrast toggles
-    document.querySelectorAll('.high-contrast-toggle').forEach(el => {
-      if (el.id !== 'toolbarContrastBtn') {
-        el.style.display = 'none';
-      }
-    });
-    
-    // Also hide after a delay (for dynamically created elements)
-    setTimeout(() => {
-      const fab1 = document.getElementById('highContrastToggle');
-      const fab2 = document.getElementById('feedbackFab');
-      if (fab1) fab1.style.display = 'none';
-      if (fab2) fab2.style.display = 'none';
-      document.querySelectorAll('.high-contrast-toggle, .feedback-fab').forEach(el => {
-        el.style.display = 'none';
+    const hideElements = () => {
+      // Hide old high contrast toggle FAB
+      const oldContrastFab = document.getElementById('highContrastToggle');
+      if (oldContrastFab) oldContrastFab.style.setProperty('display', 'none', 'important');
+      
+      // Hide old feedback FAB
+      const oldFeedbackFab = document.getElementById('feedbackFab');
+      if (oldFeedbackFab) oldFeedbackFab.style.setProperty('display', 'none', 'important');
+      
+      // Hide any other high contrast toggles and feedback fabs
+      document.querySelectorAll('.high-contrast-toggle, .feedback-fab, [class*="feedback-btn"]:not(#toolbarFeedbackBtn)').forEach(el => {
+        if (!el.closest('#topToolbar')) {
+          el.style.setProperty('display', 'none', 'important');
+        }
       });
-    }, 500);
+    };
+    
+    // Hide immediately
+    hideElements();
+    
+    // Also hide after delays (for dynamically created elements)
+    setTimeout(hideElements, 100);
+    setTimeout(hideElements, 500);
+    setTimeout(hideElements, 1000);
+    setTimeout(hideElements, 2000);
   }
 
   /**
@@ -148,23 +148,33 @@ class TopToolbarUI {
         /* Feedback button - speech bubble with BETA text */
         #topToolbar .feedback-btn {
           position: relative;
+          width: auto;
+          min-width: 42px;
+          padding: 0 10px;
+          gap: 4px;
         }
         
-        #topToolbar .feedback-btn .bubble-icon {
-          width: 28px;
-          height: 28px;
+        #topToolbar .feedback-btn .bubble-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 2px;
         }
         
-        #topToolbar .feedback-btn .bubble-icon .bubble-outline {
+        #topToolbar .feedback-btn .speech-icon {
+          width: 18px;
+          height: 18px;
           fill: none;
           stroke: white;
-          stroke-width: 1.5;
+          stroke-width: 2;
+          stroke-linecap: round;
+          stroke-linejoin: round;
         }
         
-        #topToolbar .feedback-btn .bubble-icon .beta-text {
-          fill: white;
-          font-size: 5px;
+        #topToolbar .feedback-btn .beta-label {
+          font-size: 10px;
           font-weight: 700;
+          color: white;
+          letter-spacing: 0.5px;
           font-family: system-ui, -apple-system, sans-serif;
         }
         
@@ -197,12 +207,8 @@ class TopToolbarUI {
           stroke: white;
         }
         
-        .high-contrast #topToolbar .feedback-btn .bubble-outline {
+        .high-contrast #topToolbar .feedback-btn .speech-icon {
           stroke: white;
-        }
-        
-        .high-contrast #topToolbar .feedback-btn .beta-text {
-          fill: white;
         }
         
         /* Mobile adjustments */
@@ -219,6 +225,11 @@ class TopToolbarUI {
             border-radius: 6px;
           }
           
+          #topToolbar .feedback-btn {
+            min-width: 38px;
+            padding: 0 8px;
+          }
+          
           #topToolbar .contrast-btn svg {
             width: 22px;
             height: 22px;
@@ -229,18 +240,25 @@ class TopToolbarUI {
             height: 20px;
           }
           
-          #topToolbar .feedback-btn .bubble-icon {
-            width: 24px;
-            height: 24px;
+          #topToolbar .feedback-btn .speech-icon {
+            width: 16px;
+            height: 16px;
+          }
+          
+          #topToolbar .feedback-btn .beta-label {
+            font-size: 9px;
           }
         }
         
-        /* Hide old FABs when toolbar exists */
-        body:has(#topToolbar) .high-contrast-toggle:not(#topToolbar .toolbar-btn),
-        body:has(#topToolbar) #highContrastToggle,
-        body:has(#topToolbar) #feedbackFab,
-        body:has(#topToolbar) .feedback-fab {
+        /* Force hide old FABs */
+        #highContrastToggle,
+        #feedbackFab,
+        .high-contrast-toggle:not(#toolbarContrastBtn),
+        .feedback-fab {
           display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
         }
         
         /* Screen reader only class */
@@ -264,12 +282,14 @@ class TopToolbarUI {
         </svg>
       </button>
       
-      <!-- Beta Feedback (middle) - Speech bubble with BETA -->
+      <!-- Beta Feedback (middle) - Speech bubble icon with BETA text -->
       <button class="toolbar-btn feedback-btn" id="toolbarFeedbackBtn" aria-label="Send feedback" title="Beta Feedback">
-        <svg class="bubble-icon" viewBox="0 0 28 28">
-          <path class="bubble-outline" d="M4 4h20c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2h-6l-4 4-4-4H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-          <text class="beta-text" x="14" y="14" text-anchor="middle" dominant-baseline="middle">BETA</text>
-        </svg>
+        <span class="bubble-wrapper">
+          <svg class="speech-icon" viewBox="0 0 24 24">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="beta-label">BETA</span>
+        </span>
       </button>
       
       <!-- Announcements Bell (rightmost) -->
