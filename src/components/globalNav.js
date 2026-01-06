@@ -236,6 +236,9 @@ export class GlobalNav {
         profileLabel.textContent = 'Sign In';
       }
     };
+    
+    // Expose updateAuthUI globally so auth.js can call it directly
+    window.updateGlobalNavAuth = updateAuthUI;
 
     // Profile button click handler
     profileItem.addEventListener('click', () => {
