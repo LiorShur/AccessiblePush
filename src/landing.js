@@ -14,6 +14,7 @@ import { trailSearch } from './features/trailSearch.js';
 import { showError, getErrorMessage } from './utils/errorMessages.js';
 import { userService } from './services/userService.js';
 import { betaFeedback } from './utils/betaFeedback.js';
+import { i18n, t } from './i18n/i18n.js';
 // import { initializeAccessReport } from './js/modules/access-report-main.js';
 
 // Early global function stubs (replaced once controller initializes)
@@ -2696,6 +2697,19 @@ async function initAccessReport() {
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('📄 DOM Content Loaded - starting landing page init');
   try {
+    // Initialize i18n (language support) first
+    console.log('🌐 Initializing i18n...');
+    await i18n.init();
+    i18n.createLanguageToggle('langToggleContainer');
+    i18n.translatePage();
+    
+    // Listen for language changes to retranslate
+    i18n.onLanguageChange((newLang, prevLang) => {
+      console.log(`🌐 Language changed: ${prevLang} → ${newLang}`);
+      // Retranslate the page
+      i18n.translatePage();
+    });
+    
     // Initialize landing page controller
     const landingController = new LandingPageController();
     console.log('📄 LandingPageController created');
@@ -2718,6 +2732,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.userService = userService;
     window.showError = showError;
     window.getErrorMessage = getErrorMessage;
+    window.i18n = i18n;
+    window.t = t;
     
     // Setup badge notification popups
     gamificationUI.setupBadgeNotifications();
