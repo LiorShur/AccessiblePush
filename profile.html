@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="src/css/unified-nav.css">
   <link rel="stylesheet" href="src/css/mobile-responsive.css">
   <link rel="stylesheet" href="src/css/error-messages.css">
+  <link rel="stylesheet" href="src/css/rtl.css">
   <link rel="stylesheet" href="src/css/high-contrast.css">
   <link rel="stylesheet" href="src/css/global-nav.css">
   <link rel="manifest" href="manifest.json">
@@ -827,6 +828,9 @@
     </span>
     <span class="toggle-text">High Contrast</span>
   </button>
+  
+  <!-- Language Toggle -->
+  <div id="langToggleContainer" class="floating-lang-toggle"></div>
   
   <!-- Loading Overlay -->
   <div id="loadingOverlay" class="loading-overlay" role="alert" aria-live="polite">
@@ -1702,6 +1706,38 @@
         });
       });
     });
+  </script>
+  
+  <!-- i18n (Internationalization) -->
+  <script type="module">
+    import { i18n, t } from './src/i18n/i18n.js';
+    
+    // Initialize i18n
+    try {
+      await i18n.init();
+      i18n.createLanguageToggle('langToggleContainer');
+      i18n.translatePage();
+      
+      // Listen for language changes
+      i18n.onLanguageChange((newLang) => {
+        i18n.translatePage();
+      });
+      
+      // Make available globally
+      window.i18n = i18n;
+      window.t = t;
+    } catch (e) {
+      console.warn('🌐 i18n initialization failed:', e);
+      // Apply direction from saved preference
+      const savedLang = localStorage.getItem('accessNature_language') || 'en';
+      if (savedLang === 'he') {
+        document.documentElement.setAttribute('dir', 'rtl');
+        document.documentElement.setAttribute('lang', 'he');
+        document.body.setAttribute('dir', 'rtl');
+        document.documentElement.classList.add('rtl');
+        document.body.classList.add('rtl');
+      }
+    }
   </script>
   
   <!-- Global Bottom Navigation -->

@@ -41,6 +41,7 @@
   <link rel="stylesheet" href="src/css/unified-nav.css">
   <link rel="stylesheet" href="src/css/mobile-responsive.css">
   <link rel="stylesheet" href="src/css/error-messages.css">
+  <link rel="stylesheet" href="src/css/rtl.css">
 
   <!-- CRITICAL: Apply saved preferences immediately to prevent flash -->
   <script>
@@ -1049,7 +1050,7 @@
   <main id="main-content" class="reports-page" role="main">
     <!-- Compact Header -->
     <div class="reports-header">
-      <p class="reports-tagline">Report and view accessibility barriers in outdoor spaces and urban areas</p>
+      <p class="reports-tagline" data-i18n="reports.tagline">Report and view accessibility barriers in outdoor spaces and urban areas</p>
     </div>
 
     <!-- Map Section - Primary Focus -->
@@ -4673,6 +4674,37 @@ Generated: ${new Date().toLocaleString()}`;
         btn.querySelector('.btn-text').textContent = 'Create Account';
       }
     });
+  </script>
+  
+  <!-- i18n (Internationalization) -->
+  <script type="module">
+    import { i18n, t } from './src/i18n/i18n.js';
+    
+    // Initialize i18n
+    try {
+      await i18n.init();
+      i18n.translatePage();
+      
+      // Listen for language changes
+      i18n.onLanguageChange((newLang) => {
+        i18n.translatePage();
+      });
+      
+      // Make available globally
+      window.i18n = i18n;
+      window.t = t;
+    } catch (e) {
+      console.warn('🌐 i18n initialization failed:', e);
+      // Apply direction from saved preference
+      const savedLang = localStorage.getItem('accessNature_language') || 'en';
+      if (savedLang === 'he') {
+        document.documentElement.setAttribute('dir', 'rtl');
+        document.documentElement.setAttribute('lang', 'he');
+        document.body.setAttribute('dir', 'rtl');
+        document.documentElement.classList.add('rtl');
+        document.body.classList.add('rtl');
+      }
+    }
   </script>
   
   <!-- Global Bottom Navigation -->

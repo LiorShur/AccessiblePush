@@ -197,6 +197,7 @@
   <link rel="stylesheet" href="src/css/mobile-responsive.css">
   <link rel="stylesheet" href="src/css/global-nav.css">
   <link rel="stylesheet" href="src/css/error-messages.css">
+  <link rel="stylesheet" href="src/css/rtl.css">
 
   <!-- CRITICAL: Apply saved preferences immediately to prevent flash -->
   <script>
@@ -396,34 +397,34 @@
   <!-- Page Header -->
   <main id="main-content" role="main">
   <div class="page-header">
-    <p class="tagline">Making outdoor spaces accessible for everyone</p>
+    <p class="tagline" data-i18n="common.tagline">Making outdoor spaces accessible for everyone</p>
   </div>
 
   <!-- Quick Actions Grid -->
   <section class="quick-actions-section" aria-label="Quick actions">
     <div class="quick-actions-grid">
-      <button class="quick-action-card" onclick="openTracker()" aria-label="Track a new trail">
+      <button class="quick-action-card" onclick="openTracker()" aria-label="Track a new trail" data-i18n-aria="index.trackTrail">
         <span class="qa-icon">📍</span>
-        <span class="qa-title">Track Trail</span>
-        <span class="qa-subtitle">Record GPS route</span>
+        <span class="qa-title" data-i18n="index.trackTrail">Track Trail</span>
+        <span class="qa-subtitle" data-i18n="index.trackTrailDesc">Record GPS route</span>
       </button>
       
-      <button class="quick-action-card" onclick="window.location.href='reports.html?action=new'" aria-label="Report an accessibility issue">
+      <button class="quick-action-card" onclick="window.location.href='reports.html?action=new'" aria-label="Report an accessibility issue" data-i18n-aria="index.reportIssue">
         <span class="qa-icon">⚠️</span>
-        <span class="qa-title">Report Issue</span>
-        <span class="qa-subtitle">Flag a barrier</span>
+        <span class="qa-title" data-i18n="index.reportIssue">Report Issue</span>
+        <span class="qa-subtitle" data-i18n="index.reportIssueDesc">Flag a barrier</span>
       </button>
       
-      <button class="quick-action-card" onclick="openTrailBrowser()" aria-label="Find accessible trails">
+      <button class="quick-action-card" onclick="openTrailBrowser()" aria-label="Find accessible trails" data-i18n-aria="index.findTrails">
         <span class="qa-icon">🔍</span>
-        <span class="qa-title">Find Trails</span>
-        <span class="qa-subtitle">Browse guides</span>
+        <span class="qa-title" data-i18n="index.findTrails">Find Trails</span>
+        <span class="qa-subtitle" data-i18n="index.findTrailsDesc">Browse guides</span>
       </button>
       
-      <button class="quick-action-card" onclick="window.location.href='reports.html'" aria-label="View accessibility reports">
+      <button class="quick-action-card" onclick="window.location.href='reports.html'" aria-label="View accessibility reports" data-i18n-aria="index.viewReports">
         <span class="qa-icon">📋</span>
-        <span class="qa-title">View Reports</span>
-        <span class="qa-subtitle">See issues</span>
+        <span class="qa-title" data-i18n="index.viewReports">View Reports</span>
+        <span class="qa-subtitle" data-i18n="index.viewReportsDesc">See issues</span>
       </button>
     </div>
   </section>
@@ -431,23 +432,23 @@
   <!-- Community Pulse Section -->
   <section class="community-pulse-section" aria-label="Community statistics">
     <div class="section-container">
-      <h2 class="section-title">📊 Community Pulse</h2>
+      <h2 class="section-title">📊 <span data-i18n="index.communityPulse">Community Pulse</span></h2>
       <div class="pulse-stats">
         <div class="pulse-stat">
           <span class="pulse-number" id="publicGuides">0</span>
-          <span class="pulse-label">Trails Mapped</span>
+          <span class="pulse-label" data-i18n="index.trailsMapped">Trails Mapped</span>
         </div>
         <div class="pulse-stat">
           <span class="pulse-number" id="totalKm">0</span>
-          <span class="pulse-label">km Documented</span>
+          <span class="pulse-label" data-i18n="index.kmDocumented">km Documented</span>
         </div>
         <div class="pulse-stat">
           <span class="pulse-number" id="accessibleTrails">0</span>
-          <span class="pulse-label">Fully Accessible</span>
+          <span class="pulse-label" data-i18n="index.fullyAccessible">Fully Accessible</span>
         </div>
         <div class="pulse-stat">
           <span class="pulse-number" id="totalUsers">0</span>
-          <span class="pulse-label">Contributors</span>
+          <span class="pulse-label" data-i18n="index.contributors">Contributors</span>
         </div>
       </div>
     </div>
@@ -457,20 +458,20 @@
   <section class="my-trails-section" id="myTrailsSection" style="display: none;" aria-label="My trail guides">
     <div class="section-container">
       <div class="my-trails-header">
-        <h2 class="section-title">📍 My Trail Guides</h2>
-        <a href="tracker.html" class="new-trail-btn">+ New Trail</a>
+        <h2 class="section-title">📍 <span data-i18n="index.myTrailGuides">My Trail Guides</span></h2>
+        <a href="tracker.html" class="new-trail-btn" data-i18n="index.newTrail">+ New Trail</a>
       </div>
       <div class="my-trails-stats" id="myTrailsStats">
         <!-- Stats populated by JS -->
       </div>
       <div class="my-trails-actions">
         <button class="view-guides-btn" id="viewMyGuidesBtn" onclick="window.landingController?.showMyTrailGuides()">
-          📚 View My Trail Guides
+          📚 <span data-i18n="index.viewMyGuides">View My Trail Guides</span>
         </button>
       </div>
       <div class="my-trails-empty" id="myTrailsEmpty" style="display: none;">
-        <p>🥾 You haven't created any trail guides yet!</p>
-        <a href="tracker.html" class="start-trail-btn">Start Your First Trail</a>
+        <p>🥾 <span data-i18n="index.noGuidesYet">You haven't created any trail guides yet!</span></p>
+        <a href="tracker.html" class="start-trail-btn" data-i18n="index.startFirstTrail">Start Your First Trail</a>
       </div>
     </div>
   </section>
@@ -487,9 +488,9 @@
   <!-- What's New Section -->
   <section class="whats-new-section" aria-label="Latest announcements">
     <div class="section-container">
-      <h2 class="section-title">📰 What's New</h2>
+      <h2 class="section-title">📰 <span data-i18n="index.whatsNew">What's New</span></h2>
       <div id="announcementsFeed" class="announcements-feed">
-        <p class="feed-loading">Loading announcements...</p>
+        <p class="feed-loading" data-i18n="index.loadingAnnouncements">Loading announcements...</p>
       </div>
     </div>
   </section>
@@ -497,7 +498,7 @@
   <!-- Featured Trails -->
   <section class="featured-section" aria-label="Featured accessible trails">
     <div class="section-container">
-      <h2 class="section-title">⭐ Featured Accessible Trails</h2>
+      <h2 class="section-title">⭐ <span data-i18n="index.featuredTrails">Featured Accessible Trails</span></h2>
       
       <!-- Trail Search & Filters -->
       <div id="trailSearchContainer"></div>
@@ -508,7 +509,7 @@
       <div id="featuredTrails" class="featured-grid">
         <!-- Dynamically populated -->
       </div>
-      <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreFeatured()">Load More Trails</button>
+      <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreFeatured()" data-i18n="index.loadMore">Load More Trails</button>
     </div>
   </section>
   </main>
@@ -518,19 +519,19 @@
     <div class="footer-container">
       <div class="footer-content">
         <div class="footer-brand">
-          <h4>♿ Accessible</h4>
-          <p>Making outdoor spaces accessible for everyone</p>
+          <h4>♿ <span data-i18n="common.appName">Accessible</span></h4>
+          <p data-i18n="common.tagline">Making outdoor spaces accessible for everyone</p>
         </div>
         <div class="footer-links">
-          <a href="#" onclick="showAbout(); return false;">About</a>
-          <a href="privacy.html">Privacy Policy</a>
-          <a href="terms.html">Terms of Service</a>
-          <a href="#" onclick="showContact(); return false;">Contact</a>
-          <a href="beta-guide.html" style="color: #7c3aed;">📝 Beta Guide</a>
+          <a href="#" onclick="showAbout(); return false;" data-i18n="footer.about">About</a>
+          <a href="privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
+          <a href="terms.html" data-i18n="footer.terms">Terms of Service</a>
+          <a href="#" onclick="showContact(); return false;" data-i18n="footer.contact">Contact</a>
+          <a href="beta-guide.html" style="color: #7c3aed;">📝 <span data-i18n="footer.betaGuide">Beta Guide</span></a>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2024 Accessible. Making trails accessible for all abilities.</p>
+        <p>&copy; 2024 Accessible. <span data-i18n="footer.copyright">Making trails accessible for all abilities.</span></p>
       </div>
     </div>
   </footer>
