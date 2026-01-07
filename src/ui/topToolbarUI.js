@@ -197,6 +197,19 @@ class TopToolbarUI {
           fill: black;
         }
         
+        /* Language toggle button */
+        #topToolbar .lang-btn {
+          font-size: 1.2rem;
+          line-height: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        #topToolbar .lang-btn .lang-flag {
+          font-size: 1.3rem;
+        }
+        
         /* High contrast mode support */
         .high-contrast #topToolbar .toolbar-btn {
           background: #000;
@@ -282,6 +295,11 @@ class TopToolbarUI {
         </svg>
       </button>
       
+      <!-- Language Toggle -->
+      <button class="toolbar-btn lang-btn" id="toolbarLangBtn" aria-label="Switch language" title="Switch Language">
+        <span class="lang-flag" id="toolbarLangFlag">🇮🇱</span>
+      </button>
+      
       <!-- Beta Feedback (middle) - Speech bubble icon with BETA text -->
       <button class="toolbar-btn feedback-btn" id="toolbarFeedbackBtn" aria-label="Send feedback" title="Beta Feedback">
         <span class="bubble-wrapper">
@@ -336,6 +354,54 @@ class TopToolbarUI {
     contrastBtn?.addEventListener('click', () => {
       this.toggleHighContrast();
     });
+    
+    // Language toggle button
+    const langBtn = document.getElementById('toolbarLangBtn');
+    langBtn?.addEventListener('click', () => {
+      this.toggleLanguage();
+    });
+    
+    // Update language button to show correct flag
+    this.updateLanguageButton();
+  }
+
+  /**
+   * Toggle language between English and Hebrew
+   */
+  toggleLanguage() {
+    const currentLang = localStorage.getItem('accessNature_language') || 'en';
+    const newLang = currentLang === 'en' ? 'he' : 'en';
+    
+    // Save preference
+    localStorage.setItem('accessNature_language', newLang);
+    
+    // If i18n is available, use it
+    if (window.i18n && window.i18n.setLanguage) {
+      window.i18n.setLanguage(newLang).then(() => {
+        window.i18n.translatePage();
+        this.updateLanguageButton();
+      });
+    } else {
+      // Fallback: reload page to apply language
+      window.location.reload();
+    }
+  }
+
+  /**
+   * Update language button to show the OTHER language's flag
+   */
+  updateLanguageButton() {
+    const langFlag = document.getElementById('toolbarLangFlag');
+    const langBtn = document.getElementById('toolbarLangBtn');
+    if (!langFlag || !langBtn) return;
+    
+    const currentLang = localStorage.getItem('accessNature_language') || 'en';
+    const isHebrew = currentLang === 'he';
+    
+    // Show the OTHER language's flag (the one user can switch TO)
+    langFlag.textContent = isHebrew ? '🇬🇧' : '🇮🇱';
+    langBtn.title = isHebrew ? 'Switch to English' : 'עברית';
+    langBtn.setAttribute('aria-label', isHebrew ? 'Switch to English' : 'Switch to Hebrew');
   }
 
   /**
