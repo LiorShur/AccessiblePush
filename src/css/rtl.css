@@ -1,0 +1,495 @@
+/* ==============================================
+   ACCESSIBLE - RTL (Right-to-Left) STYLES
+   Hebrew and Arabic language support
+   
+   File: src/css/rtl.css
+   Version: 1.2
+   ============================================== */
+
+/* ========== Global RTL Defaults ========== */
+
+[dir="rtl"],
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Hebrew-specific font stack */
+[lang="he"] {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial Hebrew', 'Heebo', Roboto, sans-serif;
+}
+
+/* ========== EXCLUDED FROM RTL - CRITICAL ========== */
+/* Top navigation, toolbar, and bottom nav MUST stay LTR */
+
+/* Override with maximum specificity using :where to avoid cascade issues */
+html[dir="rtl"] .top-nav,
+html[dir="rtl"] nav.top-nav,
+html[dir="rtl"] [role="navigation"],
+html[dir="rtl"] #topToolbar,
+html[dir="rtl"] .global-nav,
+html[dir="rtl"] nav.global-nav,
+html[dir="rtl"] .bottom-nav,
+html[dir="rtl"] .nav-menu,
+html[dir="rtl"] .nav-brand,
+html[dir="rtl"] .nav-auth-indicator,
+html[dir="rtl"] .nav-auth,
+html[dir="rtl"] .menu-toggle,
+html[dir="rtl"] .toolbar-btn,
+html[dir="rtl"] .global-nav-item {
+  direction: ltr !important;
+  text-align: left !important;
+  flex-direction: row !important;
+}
+
+/* All children of nav elements stay LTR */
+html[dir="rtl"] .top-nav *,
+html[dir="rtl"] nav.top-nav *,
+html[dir="rtl"] #topToolbar *,
+html[dir="rtl"] .global-nav *,
+html[dir="rtl"] nav.global-nav *,
+html[dir="rtl"] .bottom-nav *,
+html[dir="rtl"] .nav-menu *,
+html[dir="rtl"] .nav-brand * {
+  direction: ltr !important;
+}
+
+/* Prevent flex reversal on nav containers */
+html[dir="rtl"] .top-nav,
+html[dir="rtl"] .global-nav {
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+}
+
+/* Nav menu items stay in row */
+html[dir="rtl"] .nav-menu {
+  flex-direction: row !important;
+}
+
+/* Mobile nav menu - keep column but LTR text */
+@media (max-width: 768px) {
+  html[dir="rtl"] .nav-menu {
+    flex-direction: column !important;
+  }
+  
+  html[dir="rtl"] .nav-menu .nav-link {
+    text-align: left !important;
+  }
+}
+
+/* Global nav items stay vertical but LTR */
+html[dir="rtl"] .global-nav-item {
+  flex-direction: column !important;
+  text-align: center !important;
+}
+
+html[dir="rtl"] .global-nav-item * {
+  text-align: center !important;
+}
+
+/* ========== Logical Properties Override ========== */
+/* Use CSS logical properties for automatic RTL support */
+
+/* For browsers that don't fully support logical properties */
+[dir="rtl"] .text-left { text-align: right; }
+[dir="rtl"] .text-right { text-align: left; }
+
+/* ========== Main Content RTL ========== */
+
+/* Page header */
+[dir="rtl"] .page-header {
+  text-align: center; /* Keep centered */
+}
+
+[dir="rtl"] .tagline {
+  text-align: center;
+}
+
+/* ========== Layout Components ========== */
+
+/* Quick actions - keep grid but RTL text */
+[dir="rtl"] .quick-actions-grid {
+  direction: rtl;
+}
+
+[dir="rtl"] .quick-action-card {
+  text-align: center; /* Keep centered */
+}
+
+/* Section containers */
+[dir="rtl"] .section-container {
+  text-align: right;
+}
+
+[dir="rtl"] .section-title {
+  text-align: right;
+}
+
+/* Cards */
+[dir="rtl"] .nav-card,
+[dir="rtl"] .report-card,
+[dir="rtl"] .trail-card {
+  text-align: right;
+}
+
+/* ========== Stats ========== */
+
+/* Numbers should stay LTR */
+[dir="rtl"] .stat-number,
+[dir="rtl"] .pulse-number,
+[dir="rtl"] .qs-value,
+[dir="rtl"] .stat-value,
+[dir="rtl"] [class*="count"],
+[dir="rtl"] .badge-count {
+  direction: ltr;
+  display: inline-block;
+}
+
+/* Stats layout - keep horizontal but RTL order */
+[dir="rtl"] .pulse-stats {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .pulse-stat {
+  text-align: center;
+}
+
+[dir="rtl"] .quick-stats-bar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tracker-stats {
+  flex-direction: row-reverse;
+}
+
+/* ========== My Trails Section ========== */
+
+[dir="rtl"] .my-trails-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .my-trails-stats {
+  text-align: right;
+}
+
+[dir="rtl"] .my-trails-actions {
+  text-align: right;
+}
+
+/* ========== Forms ========== */
+
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="url"],
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="number"] {
+  /* Keep LTR for these input types */
+  direction: ltr;
+  text-align: left;
+}
+
+[dir="rtl"] .form-group {
+  text-align: right;
+}
+
+[dir="rtl"] .form-group label {
+  text-align: right;
+}
+
+/* Search bar */
+[dir="rtl"] .search-bar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .search-bar input {
+  border-radius: 0 12px 12px 0;
+}
+
+[dir="rtl"] .search-bar button {
+  border-radius: 12px 0 0 12px;
+}
+
+/* Filters */
+[dir="rtl"] .filters-grid {
+  direction: rtl;
+}
+
+[dir="rtl"] .filter-actions {
+  flex-direction: row-reverse;
+}
+
+/* ========== Buttons ========== */
+
+/* Button with icon */
+[dir="rtl"] .btn-icon-left .btn-icon,
+[dir="rtl"] button .icon-left {
+  margin-left: 8px;
+  margin-right: 0;
+}
+
+[dir="rtl"] .btn-icon-right .btn-icon,
+[dir="rtl"] button .icon-right {
+  margin-right: 8px;
+  margin-left: 0;
+}
+
+/* ========== Icons & Arrows ========== */
+
+/* Flip directional icons */
+[dir="rtl"] .icon-arrow-right,
+[dir="rtl"] .icon-chevron-right,
+[dir="rtl"] .icon-next {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .icon-arrow-left,
+[dir="rtl"] .icon-chevron-left,
+[dir="rtl"] .icon-back {
+  transform: scaleX(-1);
+}
+
+/* Chevron in accordion/dropdown */
+[dir="rtl"] .filters-toggle .chevron {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .filters-toggle[aria-expanded="true"] .chevron {
+  transform: scaleX(-1) rotate(180deg);
+}
+
+/* Arrow in lists */
+[dir="rtl"] .list-item-arrow,
+[dir="rtl"] .guide-list-item span:last-child {
+  transform: scaleX(-1);
+}
+
+/* ========== Lists ========== */
+
+[dir="rtl"] ul:not(.nav-menu):not(.global-nav),
+[dir="rtl"] ol {
+  padding-right: 20px;
+  padding-left: 0;
+}
+
+[dir="rtl"] .feature-list,
+[dir="rtl"] .feature-item {
+  text-align: right;
+}
+
+[dir="rtl"] .feature-item {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .feature-item .feature-icon {
+  margin-left: 12px;
+  margin-right: 0;
+}
+
+/* ========== Map Controls ========== */
+
+[dir="rtl"] .map-controls-overlay {
+  right: auto;
+  left: 12px;
+}
+
+[dir="rtl"] .map-info-bar {
+  text-align: right;
+}
+
+[dir="rtl"] .leaflet-control-zoom {
+  left: 10px;
+  right: auto;
+}
+
+[dir="rtl"] .leaflet-control-attribution {
+  left: 0;
+  right: auto;
+}
+
+/* ========== Modals ========== */
+
+[dir="rtl"] .modal-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .modal-header h2,
+[dir="rtl"] .modal-header h3,
+[dir="rtl"] .modal-title {
+  text-align: right;
+}
+
+[dir="rtl"] .modal-close {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir="rtl"] .modal-body {
+  text-align: right;
+}
+
+[dir="rtl"] .modal-footer {
+  flex-direction: row-reverse;
+}
+
+/* ========== Cards ========== */
+
+[dir="rtl"] .report-card,
+[dir="rtl"] .trail-card,
+[dir="rtl"] .timeline-card {
+  text-align: right;
+}
+
+[dir="rtl"] .card-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .card-meta {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .card-actions {
+  flex-direction: row-reverse;
+}
+
+/* Announcement items */
+[dir="rtl"] .announcement-item {
+  border-left: none;
+  border-right: 3px solid #667eea;
+  text-align: right;
+}
+
+/* ========== Timeline ========== */
+
+[dir="rtl"] .reports-timeline {
+  text-align: right;
+}
+
+[dir="rtl"] .reports-list-header {
+  flex-direction: row-reverse;
+}
+
+/* ========== Toast Notifications ========== */
+
+[dir="rtl"] .toast-container {
+  left: 20px;
+  right: auto;
+}
+
+[dir="rtl"] .toast {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .toast-icon {
+  margin-left: 12px;
+  margin-right: 0;
+}
+
+[dir="rtl"] .toast-close {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+/* ========== Footer ========== */
+
+[dir="rtl"] .footer-content {
+  direction: rtl;
+}
+
+[dir="rtl"] .footer-brand {
+  text-align: right;
+}
+
+[dir="rtl"] .footer-links {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+/* ========== Tracker Page ========== */
+
+[dir="rtl"] .tracker-controls {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tracker-stats-panel {
+  text-align: right;
+}
+
+[dir="rtl"] .stat-item {
+  text-align: center;
+}
+
+/* ========== Profile Page ========== */
+
+[dir="rtl"] .profile-header {
+  text-align: right;
+}
+
+[dir="rtl"] .profile-stats {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .settings-item {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .settings-item label {
+  margin-left: 12px;
+  margin-right: 0;
+}
+
+/* ========== Admin Page ========== */
+
+[dir="rtl"] .admin-nav {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .admin-panel {
+  text-align: right;
+}
+
+[dir="rtl"] .data-table th,
+[dir="rtl"] .data-table td {
+  text-align: right;
+}
+
+/* ========== Animations ========== */
+
+@keyframes slideInFromRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideInFromLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+[dir="rtl"] .slide-in-right {
+  animation: slideInFromLeft 0.3s ease;
+}
+
+[dir="rtl"] .slide-in-left {
+  animation: slideInFromRight 0.3s ease;
+}
+
+/* ========== Print Styles ========== */
+
+@media print {
+  [dir="rtl"] * {
+    direction: rtl;
+    text-align: right;
+  }
+}
+
+/* ========== High Contrast + RTL ========== */
+
+.high-contrast[dir="rtl"] .announcement-item {
+  border-right: 4px solid #000;
+  border-left: none;
+}
