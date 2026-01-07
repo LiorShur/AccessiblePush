@@ -83,9 +83,19 @@ class TopToolbarUI {
           justify-content: center;
           cursor: pointer;
           font-size: 20px;
+          line-height: 1;
           position: relative;
           transition: background 0.2s, transform 0.15s;
           color: white;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        /* Ensure all inner content is centered */
+        #topToolbar .toolbar-btn > * {
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         
         #topToolbar .toolbar-btn:hover {
@@ -204,10 +214,17 @@ class TopToolbarUI {
           display: flex;
           align-items: center;
           justify-content: center;
+          padding: 0;
         }
         
         #topToolbar .lang-btn .lang-flag {
-          font-size: 1.3rem;
+          font-size: 1.4rem;
+          line-height: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          margin-top: -1px; /* Fine-tune vertical alignment for emoji */
         }
         
         /* High contrast mode support */
