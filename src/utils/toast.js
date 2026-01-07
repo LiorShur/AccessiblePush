@@ -3,8 +3,136 @@
 // Non-blocking notifications replacing alert()
 // 
 // File: src/utils/toast.js
-// Version: 2.0 - Standalone with inline styles
+// Version: 2.1 - With i18n support
 // ==============================================
+
+/**
+ * Toast translations
+ */
+const toastTranslations = {
+  en: {
+    // Success messages
+    saved: "Saved successfully",
+    deleted: "Deleted successfully",
+    updated: "Updated successfully",
+    submitted: "Submitted successfully",
+    uploaded: "Uploaded successfully",
+    copied: "Copied to clipboard",
+    routeSaved: "Route saved successfully!",
+    reportSubmitted: "Report submitted successfully!",
+    profileUpdated: "Profile updated successfully",
+    settingsSaved: "Settings saved",
+    feedbackSent: "Thank you for your feedback!",
+    
+    // Error messages
+    genericError: "Something went wrong. Please try again.",
+    networkError: "Network error. Check your connection.",
+    saveError: "Failed to save. Please try again.",
+    loadError: "Failed to load data",
+    uploadError: "Upload failed. Please try again.",
+    deleteError: "Failed to delete",
+    locationError: "Could not get your location",
+    locationDenied: "Location access denied",
+    cameraError: "Could not access camera",
+    cameraDenied: "Camera access denied",
+    authRequired: "Please sign in to continue",
+    permissionDenied: "You don't have permission for this",
+    sessionExpired: "Session expired. Please sign in again.",
+    fileTooLarge: "File is too large",
+    invalidFileType: "Invalid file type",
+    requiredField: "Please fill in all required fields",
+    
+    // Warning messages
+    unsavedChanges: "You have unsaved changes",
+    offlineMode: "You're offline. Some features may be limited.",
+    slowConnection: "Slow connection detected",
+    
+    // Info messages
+    syncing: "Syncing data...",
+    syncComplete: "Sync complete",
+    savedLocally: "Changes saved locally",
+    willSyncOnline: "Will sync when online",
+    processing: "Processing...",
+    loading: "Loading...",
+    
+    // Tracking
+    trackingStarted: "Recording started",
+    trackingStopped: "Recording stopped",
+    trackingPaused: "Recording paused",
+    trackingResumed: "Recording resumed",
+    waypointAdded: "Waypoint added",
+    photoAdded: "Photo added",
+    noteAdded: "Note added",
+    
+    // Close button
+    close: "Close"
+  },
+  he: {
+    // Success messages
+    saved: "נשמר בהצלחה",
+    deleted: "נמחק בהצלחה",
+    updated: "עודכן בהצלחה",
+    submitted: "נשלח בהצלחה",
+    uploaded: "הועלה בהצלחה",
+    copied: "הועתק ללוח",
+    routeSaved: "המסלול נשמר בהצלחה!",
+    reportSubmitted: "הדיווח נשלח בהצלחה!",
+    profileUpdated: "הפרופיל עודכן בהצלחה",
+    settingsSaved: "ההגדרות נשמרו",
+    feedbackSent: "תודה על המשוב שלך!",
+    
+    // Error messages
+    genericError: "משהו השתבש. נסה שוב.",
+    networkError: "שגיאת רשת. בדוק את החיבור שלך.",
+    saveError: "השמירה נכשלה. נסה שוב.",
+    loadError: "טעינת הנתונים נכשלה",
+    uploadError: "ההעלאה נכשלה. נסה שוב.",
+    deleteError: "המחיקה נכשלה",
+    locationError: "לא ניתן לקבל את המיקום שלך",
+    locationDenied: "הגישה למיקום נדחתה",
+    cameraError: "לא ניתן לגשת למצלמה",
+    cameraDenied: "הגישה למצלמה נדחתה",
+    authRequired: "נא להתחבר כדי להמשיך",
+    permissionDenied: "אין לך הרשאה לפעולה זו",
+    sessionExpired: "פג תוקף ההתחברות. נא להתחבר שוב.",
+    fileTooLarge: "הקובץ גדול מדי",
+    invalidFileType: "סוג קובץ לא חוקי",
+    requiredField: "נא למלא את כל השדות הנדרשים",
+    
+    // Warning messages
+    unsavedChanges: "יש לך שינויים שלא נשמרו",
+    offlineMode: "אתה במצב לא מקוון. חלק מהתכונות עלולות להיות מוגבלות.",
+    slowConnection: "זוהה חיבור איטי",
+    
+    // Info messages
+    syncing: "מסנכרן נתונים...",
+    syncComplete: "הסנכרון הושלם",
+    savedLocally: "השינויים נשמרו מקומית",
+    willSyncOnline: "יסונכרן כשתהיה מקוון",
+    processing: "מעבד...",
+    loading: "טוען...",
+    
+    // Tracking
+    trackingStarted: "ההקלטה התחילה",
+    trackingStopped: "ההקלטה הופסקה",
+    trackingPaused: "ההקלטה מושהית",
+    trackingResumed: "ההקלטה ממשיכה",
+    waypointAdded: "נקודת ציון נוספה",
+    photoAdded: "תמונה נוספה",
+    noteAdded: "הערה נוספה",
+    
+    // Close button
+    close: "סגור"
+  }
+};
+
+/**
+ * Get toast translation
+ */
+function getToastTranslation(key) {
+  const lang = localStorage.getItem('accessNature_language') || 'en';
+  return toastTranslations[lang]?.[key] || toastTranslations['en']?.[key] || key;
+}
 
 class ToastManager {
   constructor() {
@@ -12,6 +140,13 @@ class ToastManager {
     this.toasts = new Map();
     this.toastCounter = 0;
     this.initialized = false;
+  }
+
+  /**
+   * Get translation helper
+   */
+  t(key) {
+    return getToastTranslation(key);
   }
 
   init() {
@@ -35,12 +170,42 @@ class ToastManager {
           width: calc(100% - 32px);
         }
         
+        /* RTL support */
+        [dir="rtl"] .toast-container {
+          right: auto;
+          left: 16px;
+        }
+        
+        [dir="rtl"] .toast {
+          border-left: none;
+          border-right: 4px solid #6b7280;
+          transform: translateX(-100%);
+        }
+        
+        [dir="rtl"] .toast.show {
+          transform: translateX(0);
+        }
+        
+        [dir="rtl"] .toast.hide {
+          transform: translateX(-100%);
+        }
+        
+        [dir="rtl"] .toast-success { border-right-color: #10b981; }
+        [dir="rtl"] .toast-error { border-right-color: #ef4444; }
+        [dir="rtl"] .toast-warning { border-right-color: #f59e0b; }
+        [dir="rtl"] .toast-info { border-right-color: #3b82f6; }
+        
         @media (max-width: 480px) {
           .toast-container {
             top: 70px;
             left: 16px;
             right: 16px;
             max-width: none;
+          }
+          
+          [dir="rtl"] .toast-container {
+            left: 16px;
+            right: 16px;
           }
         }
         
@@ -181,8 +346,12 @@ class ToastManager {
       title: null,
       duration: 4000,
       closable: true,
+      translateKey: null, // If provided, will translate the message
       ...options
     };
+
+    // Translate message if key provided
+    const displayMessage = config.translateKey ? this.t(config.translateKey) : message;
 
     const toastId = `toast-${++this.toastCounter}`;
     const icons = {
@@ -202,12 +371,12 @@ class ToastManager {
       <div class="toast-icon">${icons[type] || icons.info}</div>
       <div class="toast-content">
         ${config.title ? `<div class="toast-title">${this.escapeHtml(config.title)}</div>` : ''}
-        <div class="toast-message">${this.escapeHtml(message)}</div>
+        <div class="toast-message">${this.escapeHtml(displayMessage)}</div>
       </div>
     `;
 
     if (config.closable) {
-      html += `<button class="toast-close" aria-label="Close">×</button>`;
+      html += `<button class="toast-close" aria-label="${this.t('close')}">×</button>`;
     }
 
     if (config.duration > 0) {
@@ -304,6 +473,23 @@ class ToastManager {
   info(message, options = {}) {
     return this.show(message, 'info', options);
   }
+  
+  // Translated convenience methods
+  successKey(key, options = {}) {
+    return this.show(this.t(key), 'success', options);
+  }
+  
+  errorKey(key, options = {}) {
+    return this.show(this.t(key), 'error', { duration: 6000, ...options });
+  }
+  
+  warningKey(key, options = {}) {
+    return this.show(this.t(key), 'warning', { duration: 5000, ...options });
+  }
+  
+  infoKey(key, options = {}) {
+    return this.show(this.t(key), 'info', options);
+  }
 
   escapeHtml(text) {
     if (typeof text !== 'string') return text;
@@ -323,13 +509,24 @@ export const toast = {
   error: (message, options) => toastManager.error(message, options),
   warning: (message, options) => toastManager.warning(message, options),
   info: (message, options) => toastManager.info(message, options),
+  // Translated versions
+  successKey: (key, options) => toastManager.successKey(key, options),
+  errorKey: (key, options) => toastManager.errorKey(key, options),
+  warningKey: (key, options) => toastManager.warningKey(key, options),
+  infoKey: (key, options) => toastManager.infoKey(key, options),
+  // Utilities
   dismiss: (id) => toastManager.dismiss(id),
-  dismissAll: () => toastManager.dismissAll()
+  dismissAll: () => toastManager.dismissAll(),
+  t: (key) => toastManager.t(key)
 };
+
+// Export translations for external use
+export { toastTranslations, getToastTranslation };
 
 // Make globally available
 if (typeof window !== 'undefined') {
   window.toast = toast;
+  window.getToastTranslation = getToastTranslation;
 }
 
 export default toast;

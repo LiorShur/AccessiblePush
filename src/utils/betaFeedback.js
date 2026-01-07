@@ -7,15 +7,81 @@
  * - Bug reports, feature requests, general feedback
  * - Captures context (page, device, user)
  * - Sends via EmailJS or stores in Firebase
+ * - i18n support for English and Hebrew
  */
 
 import { toast } from './toast.js';
+
+/**
+ * Feedback translations
+ */
+const feedbackTranslations = {
+  en: {
+    title: "Send Feedback",
+    subtitle: "Help us improve Access Nature",
+    bugReport: "Bug Report",
+    featureIdea: "Feature Idea",
+    general: "General",
+    summary: "Summary",
+    summaryPlaceholder: "Brief description of your feedback",
+    details: "Details",
+    detailsPlaceholder: "Please provide as much detail as possible. For bugs, include steps to reproduce.",
+    detailsHint: "The more detail, the better we can help!",
+    email: "Your Email (optional)",
+    emailPlaceholder: "For follow-up questions",
+    emailHint: "We'll only use this to ask clarifying questions",
+    techInfo: "Technical info (auto-captured)",
+    cancel: "Cancel",
+    sendFeedback: "Send Feedback",
+    sending: "Sending...",
+    thankYou: "Thank you for your feedback!",
+    sendError: "Failed to send feedback. Please try again.",
+    required: "Please fill in the summary and details"
+  },
+  he: {
+    title: "שלח משוב",
+    subtitle: "עזור לנו לשפר את נגיש",
+    bugReport: "דיווח באג",
+    featureIdea: "רעיון לתכונה",
+    general: "כללי",
+    summary: "תקציר",
+    summaryPlaceholder: "תיאור קצר של המשוב שלך",
+    details: "פרטים",
+    detailsPlaceholder: "נא לספק כמה שיותר פרטים. לבאגים, כלול שלבים לשחזור.",
+    detailsHint: "ככל שיותר פרטים, כך נוכל לעזור יותר!",
+    email: "הדוא״ל שלך (אופציונלי)",
+    emailPlaceholder: "לשאלות הבהרה",
+    emailHint: "נשתמש בזה רק לשאלות הבהרה",
+    techInfo: "מידע טכני (נאסף אוטומטית)",
+    cancel: "ביטול",
+    sendFeedback: "שלח משוב",
+    sending: "שולח...",
+    thankYou: "תודה על המשוב שלך!",
+    sendError: "שליחת המשוב נכשלה. נסה שוב.",
+    required: "נא למלא את התקציר והפרטים"
+  }
+};
+
+/**
+ * Get feedback translation
+ */
+function getFeedbackTranslation(key) {
+  const lang = localStorage.getItem('accessNature_language') || 'en';
+  return feedbackTranslations[lang]?.[key] || feedbackTranslations['en']?.[key] || key;
+}
 
 class BetaFeedback {
   constructor() {
     this.isOpen = false;
     this.initialized = false;
     this.feedbackEmail = 'feedback@accessnature.app'; // Change to your email
+  }
+
+  /**
+   * Get translation helper
+   */
+  t(key) {
+    return getFeedbackTranslation(key);
   }
 
   /**
@@ -465,11 +531,13 @@ class BetaFeedback {
     overlay.id = 'feedbackOverlay';
     overlay.className = 'feedback-overlay';
     
+    const t = (key) => this.t(key);
+    
     overlay.innerHTML = `
       <div class="feedback-modal">
         <div class="feedback-header">
-          <h2>📝 Send Feedback</h2>
-          <p>Help us improve Access Nature</p>
+          <h2>📝 ${t('title')}</h2>
+          <p>${t('subtitle')}</p>
           <button class="feedback-close" onclick="betaFeedback.close()">&times;</button>
         </div>
         
@@ -478,46 +546,46 @@ class BetaFeedback {
           <div class="feedback-categories">
             <div class="feedback-category" data-category="bug" onclick="betaFeedback.selectCategory('bug')">
               <span class="icon">🐛</span>
-              <span class="label">Bug Report</span>
+              <span class="label">${t('bugReport')}</span>
             </div>
             <div class="feedback-category" data-category="feature" onclick="betaFeedback.selectCategory('feature')">
               <span class="icon">💡</span>
-              <span class="label">Feature Idea</span>
+              <span class="label">${t('featureIdea')}</span>
             </div>
             <div class="feedback-category" data-category="general" onclick="betaFeedback.selectCategory('general')">
               <span class="icon">💭</span>
-              <span class="label">General</span>
+              <span class="label">${t('general')}</span>
             </div>
           </div>
           
           <!-- Feedback Form -->
           <div class="feedback-field">
-            <label for="feedbackTitle">Summary *</label>
-            <input type="text" id="feedbackTitle" placeholder="Brief description of your feedback" maxlength="100">
+            <label for="feedbackTitle">${t('summary')} *</label>
+            <input type="text" id="feedbackTitle" placeholder="${t('summaryPlaceholder')}" maxlength="100">
           </div>
           
           <div class="feedback-field">
-            <label for="feedbackDetails">Details *</label>
-            <textarea id="feedbackDetails" placeholder="Please provide as much detail as possible. For bugs, include steps to reproduce."></textarea>
-            <div class="hint">The more detail, the better we can help!</div>
+            <label for="feedbackDetails">${t('details')} *</label>
+            <textarea id="feedbackDetails" placeholder="${t('detailsPlaceholder')}"></textarea>
+            <div class="hint">${t('detailsHint')}</div>
           </div>
           
           <div class="feedback-field">
-            <label for="feedbackEmail">Your Email (optional)</label>
-            <input type="email" id="feedbackEmail" placeholder="For follow-up questions">
-            <div class="hint">We'll only use this to ask clarifying questions</div>
+            <label for="feedbackEmail">${t('email')}</label>
+            <input type="email" id="feedbackEmail" placeholder="${t('emailPlaceholder')}">
+            <div class="hint">${t('emailHint')}</div>
           </div>
           
           <!-- Context info -->
           <details class="feedback-context">
-            <summary>📋 Technical info (auto-captured)</summary>
+            <summary>📋 ${t('techInfo')}</summary>
             <pre id="feedbackContext"></pre>
           </details>
         </div>
         
         <div class="feedback-footer">
-          <button class="feedback-btn feedback-btn-cancel" onclick="betaFeedback.close()">Cancel</button>
-          <button class="feedback-btn feedback-btn-submit" id="feedbackSubmitBtn" onclick="betaFeedback.submit()">Send Feedback</button>
+          <button class="feedback-btn feedback-btn-cancel" onclick="betaFeedback.close()">${t('cancel')}</button>
+          <button class="feedback-btn feedback-btn-submit" id="feedbackSubmitBtn" onclick="betaFeedback.submit()">${t('sendFeedback')}</button>
         </div>
       </div>
     `;
@@ -679,7 +747,7 @@ class BetaFeedback {
     }
     
     if (!details) {
-      toast.warning('Please provide details');
+      toast.warning(this.t('required'));
       document.getElementById('feedbackDetails')?.focus();
       return;
     }
@@ -688,7 +756,7 @@ class BetaFeedback {
     const submitBtn = document.getElementById('feedbackSubmitBtn');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Sending...';
+      submitBtn.textContent = this.t('sending');
     }
     
     // Prepare feedback data
@@ -729,20 +797,20 @@ class BetaFeedback {
       this.showSuccess();
       
       if (savedToFirebase || sentEmail) {
-        toast.success('Thank you for your feedback! 🙏');
+        toast.success(this.t('thankYou') + ' 🙏');
       } else {
         toast.success('Feedback saved locally. Will sync when online.');
       }
       
     } catch (error) {
       console.error('Feedback submission failed:', error);
-      toast.error('Failed to send feedback. Saved locally.');
+      toast.error(this.t('sendError'));
       this.saveLocally(feedbackData);
     } finally {
       // Re-enable submit button
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Send Feedback';
+        submitBtn.textContent = this.t('sendFeedback');
       }
     }
   }

@@ -3,14 +3,87 @@
 // Beautiful modals replacing confirm() and prompt()
 // 
 // File: src/utils/modal.js
-// Version: 2.0 - Standalone with inline styles
+// Version: 2.1 - With i18n support
 // ==============================================
+
+/**
+ * Modal translations
+ */
+const modalTranslations = {
+  en: {
+    ok: "OK",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    yes: "Yes",
+    no: "No",
+    close: "Close",
+    save: "Save",
+    delete: "Delete",
+    discard: "Discard",
+    submit: "Submit",
+    
+    // Common modal titles
+    success: "Success",
+    error: "Error",
+    warning: "Warning",
+    info: "Information",
+    confirmAction: "Confirm Action",
+    
+    // Common messages
+    areYouSure: "Are you sure?",
+    unsavedChanges: "You have unsaved changes. Do you want to discard them?",
+    deleteConfirm: "Are you sure you want to delete this? This action cannot be undone.",
+    signOutConfirm: "Are you sure you want to sign out?",
+    leavePageConfirm: "Are you sure you want to leave? Your changes will be lost."
+  },
+  he: {
+    ok: "אישור",
+    cancel: "ביטול",
+    confirm: "אישור",
+    yes: "כן",
+    no: "לא",
+    close: "סגור",
+    save: "שמור",
+    delete: "מחק",
+    discard: "בטל",
+    submit: "שלח",
+    
+    // Common modal titles
+    success: "הצלחה",
+    error: "שגיאה",
+    warning: "אזהרה",
+    info: "מידע",
+    confirmAction: "אישור פעולה",
+    
+    // Common messages
+    areYouSure: "האם אתה בטוח?",
+    unsavedChanges: "יש לך שינויים שלא נשמרו. האם לבטל אותם?",
+    deleteConfirm: "האם אתה בטוח שברצונך למחוק? לא ניתן לבטל פעולה זו.",
+    signOutConfirm: "האם אתה בטוח שברצונך להתנתק?",
+    leavePageConfirm: "האם אתה בטוח שברצונך לעזוב? השינויים שלך יאבדו."
+  }
+};
+
+/**
+ * Get modal translation
+ */
+function getModalTranslation(key) {
+  const lang = localStorage.getItem('accessNature_language') || 'en';
+  return modalTranslations[lang]?.[key] || modalTranslations['en']?.[key] || key;
+}
 
 class ModalManager {
   constructor() {
     this.activeModals = new Map();
     this.modalCounter = 0;
     this.initialized = false;
+  }
+
+  /**
+   * Get translation helper
+   */
+  t(key) {
+    return getModalTranslation(key);
   }
 
   init() {
@@ -395,20 +468,20 @@ class ModalManager {
   getDefaultButtons(type, hasInput) {
     if (hasInput) {
       return [
-        { label: 'Cancel', action: 'cancel', variant: 'secondary' },
-        { label: 'OK', action: 'ok', variant: 'primary' }
+        { label: this.t('cancel'), action: 'cancel', variant: 'secondary' },
+        { label: this.t('ok'), action: 'ok', variant: 'primary' }
       ];
     }
     
     switch (type) {
       case 'confirm':
         return [
-          { label: 'Cancel', action: 'cancel', variant: 'secondary' },
-          { label: 'Confirm', action: 'confirm', variant: 'primary' }
+          { label: this.t('cancel'), action: 'cancel', variant: 'secondary' },
+          { label: this.t('confirm'), action: 'confirm', variant: 'primary' }
         ];
       default:
         return [
-          { label: 'OK', action: 'ok', variant: 'primary' }
+          { label: this.t('ok'), action: 'ok', variant: 'primary' }
         ];
     }
   }
@@ -595,12 +668,17 @@ export const modal = {
   error: (message, title) => modalManager.error(message, title),
   warning: (message, title) => modalManager.warning(message, title),
   choice: (message, title, choices) => modalManager.choice(message, title, choices),
-  closeAll: () => modalManager.closeAll()
+  closeAll: () => modalManager.closeAll(),
+  t: (key) => modalManager.t(key)
 };
+
+// Export translations for external use
+export { modalTranslations, getModalTranslation };
 
 // Make globally available
 if (typeof window !== 'undefined') {
   window.modal = modal;
+  window.getModalTranslation = getModalTranslation;
 }
 
 export default modal;
