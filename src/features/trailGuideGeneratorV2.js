@@ -17,19 +17,221 @@
 export class TrailGuideGeneratorV2 {
   
   /**
+   * Translations for trail guide - embedded for standalone HTML
+   */
+  static translations = {
+    en: {
+      trailGuide: "Access Nature Trail Guide",
+      documentedOn: "Documented on",
+      locationNotSpecified: "Location not specified",
+      navigateToStart: "Navigate to Start",
+      googleMaps: "Google Maps",
+      waze: "Waze",
+      downloadPdf: "Download PDF",
+      fullSurveyDetails: "Full Survey Details",
+      generatingPdf: "Generating PDF...",
+      mayTakeSeconds: "This may take a few seconds",
+      completeSurvey: "Complete Accessibility Survey",
+      routeMap: "Route Map",
+      clickMarkers: "Click markers for details",
+      elevationProfile: "Elevation Profile",
+      goodFor: "Good For",
+      trailConditions: "Trail Conditions",
+      facilities: "Facilities",
+      headsUp: "Heads Up",
+      trailTimeline: "Trail Timeline",
+      photos: "Photos",
+      notes: "Notes",
+      waypoints: "Waypoints",
+      start: "Start",
+      finish: "Finish",
+      km: "km",
+      m: "m",
+      duration: "duration",
+      distance: "Distance",
+      elevation: "Elevation",
+      minElevation: "Min",
+      maxElevation: "Max",
+      totalGain: "Total Gain",
+      totalLoss: "Total Loss",
+      fullyAccessible: "Fully Accessible",
+      mostlyAccessible: "Mostly Accessible", 
+      partiallyAccessible: "Partially Accessible",
+      limitedAccessibility: "Limited Accessibility",
+      notAccessible: "Not Accessible",
+      notAssessed: "Not Assessed",
+      suitableForMost: "Suitable for most mobility devices",
+      someBarriers: "Some barriers may exist",
+      significantBarriers: "Significant barriers present",
+      majorBarriers: "Major barriers - limited access",
+      notSuitable: "Not suitable for mobility devices",
+      assessmentNeeded: "Accessibility assessment needed",
+      wheelchairAccessible: "Wheelchair Accessible",
+      strollerFriendly: "Stroller Friendly",
+      seniorFriendly: "Senior Friendly",
+      walkerFriendly: "Walker Friendly",
+      visuallyImpairedFriendly: "Visually Impaired Friendly",
+      surfaceType: "Surface",
+      pathWidth: "Width",
+      slope: "Slope",
+      obstacles: "Obstacles",
+      steps: "Steps",
+      parking: "Parking",
+      restrooms: "Restrooms",
+      restAreas: "Rest Areas",
+      water: "Water",
+      shade: "Shade",
+      lighting: "Lighting",
+      paved: "Paved",
+      gravel: "Gravel",
+      dirt: "Dirt",
+      grass: "Grass",
+      mixed: "Mixed",
+      wide: "Wide",
+      standard: "Standard",
+      narrow: "Narrow",
+      flat: "Flat",
+      gentle: "Gentle",
+      moderate: "Moderate",
+      steep: "Steep",
+      none: "None",
+      few: "Few",
+      some: "Some",
+      many: "Many",
+      available: "Available",
+      notAvailable: "Not Available",
+      nearby: "Nearby",
+      easy: "Easy",
+      difficulty: "Difficulty",
+      accessibleParking: "Accessible Parking",
+      accessibleRestrooms: "Accessible Restrooms",
+      benches: "Benches",
+      shadedAreas: "Shaded Areas",
+      waterFountain: "Water Fountain",
+      wellLit: "Well Lit"
+    },
+    he: {
+      trailGuide: "מדריך שבילים נגיש",
+      documentedOn: "תועד בתאריך",
+      locationNotSpecified: "מיקום לא צוין",
+      navigateToStart: "נווט לנקודת ההתחלה",
+      googleMaps: "מפות גוגל",
+      waze: "וייז",
+      downloadPdf: "הורד PDF",
+      fullSurveyDetails: "פרטי הסקר המלאים",
+      generatingPdf: "יוצר PDF...",
+      mayTakeSeconds: "זה עשוי לקחת מספר שניות",
+      completeSurvey: "סקר נגישות מלא",
+      routeMap: "מפת המסלול",
+      clickMarkers: "לחץ על סמנים לפרטים",
+      elevationProfile: "פרופיל גובה",
+      goodFor: "מתאים עבור",
+      trailConditions: "מצב השביל",
+      facilities: "מתקנים",
+      headsUp: "שים לב",
+      trailTimeline: "ציר זמן המסלול",
+      photos: "תמונות",
+      notes: "הערות",
+      waypoints: "נקודות ציון",
+      start: "התחלה",
+      finish: "סיום",
+      km: "ק״מ",
+      m: "מ׳",
+      duration: "משך",
+      distance: "מרחק",
+      elevation: "גובה",
+      minElevation: "מינימום",
+      maxElevation: "מקסימום",
+      totalGain: "עלייה כוללת",
+      totalLoss: "ירידה כוללת",
+      fullyAccessible: "נגיש לחלוטין",
+      mostlyAccessible: "נגיש ברובו",
+      partiallyAccessible: "נגיש חלקית",
+      limitedAccessibility: "נגישות מוגבלת",
+      notAccessible: "לא נגיש",
+      notAssessed: "לא הוערך",
+      suitableForMost: "מתאים לרוב אמצעי הניידות",
+      someBarriers: "ייתכנו מכשולים מסוימים",
+      significantBarriers: "קיימים מכשולים משמעותיים",
+      majorBarriers: "מכשולים גדולים - גישה מוגבלת",
+      notSuitable: "לא מתאים לאמצעי ניידות",
+      assessmentNeeded: "נדרשת הערכת נגישות",
+      wheelchairAccessible: "נגיש לכיסאות גלגלים",
+      strollerFriendly: "מתאים לעגלות",
+      seniorFriendly: "ידידותי לקשישים",
+      walkerFriendly: "מתאים להליכונים",
+      visuallyImpairedFriendly: "מתאים ללקויי ראייה",
+      surfaceType: "משטח",
+      pathWidth: "רוחב",
+      slope: "שיפוע",
+      obstacles: "מכשולים",
+      steps: "מדרגות",
+      parking: "חניה",
+      restrooms: "שירותים",
+      restAreas: "אזורי מנוחה",
+      water: "מים",
+      shade: "צל",
+      lighting: "תאורה",
+      paved: "סלול",
+      gravel: "חצץ",
+      dirt: "עפר",
+      grass: "דשא",
+      mixed: "מעורב",
+      wide: "רחב",
+      standard: "סטנדרטי",
+      narrow: "צר",
+      flat: "שטוח",
+      gentle: "מתון",
+      moderate: "בינוני",
+      steep: "תלול",
+      none: "ללא",
+      few: "מעט",
+      some: "כמה",
+      many: "הרבה",
+      available: "זמין",
+      notAvailable: "לא זמין",
+      nearby: "בקרבת מקום",
+      easy: "קל",
+      difficulty: "רמת קושי",
+      accessibleParking: "חניית נכים",
+      accessibleRestrooms: "שירותים נגישים",
+      benches: "ספסלים",
+      shadedAreas: "אזורים מוצלים",
+      waterFountain: "ברזייה",
+      wellLit: "מואר היטב"
+    }
+  };
+
+  /**
+   * Get translation for current language
+   */
+  t(key, lang = 'en') {
+    return TrailGuideGeneratorV2.translations[lang]?.[key] || 
+           TrailGuideGeneratorV2.translations['en']?.[key] || 
+           key;
+  }
+
+  /**
    * Generate the enhanced trail guide HTML
    * @param {Array} routeData - Array of route points (locations, photos, notes)
    * @param {Object} routeInfo - Route metadata (name, distance, time, date)
    * @param {Object} accessibilityData - Accessibility survey data
+   * @param {string} lang - Language code ('en' or 'he')
    * @returns {string} Complete HTML document
    */
-  generateHTML(routeData, routeInfo, accessibilityData) {
+  generateHTML(routeData, routeInfo, accessibilityData, lang = null) {
+    // Get language from localStorage if not provided
+    const currentLang = lang || localStorage.getItem('accessNature_language') || 'en';
+    const isRTL = currentLang === 'he';
+    const t = (key) => this.t(key, currentLang);
+    
     // Debug logging
     console.log('🗺️ TrailGuideV2 - Generating HTML with:');
     console.log('  - routeData points:', routeData?.length || 0);
     console.log('  - photos:', routeData?.filter(p => p.type === 'photo').length || 0);
     console.log('  - notes:', routeData?.filter(p => p.type === 'text').length || 0);
     console.log('  - accessibilityData:', accessibilityData);
+    console.log('  - language:', currentLang);
     
     const locationPoints = routeData.filter(p => p.type === 'location' && p.coords);
     const photos = routeData.filter(p => p.type === 'photo');
@@ -39,7 +241,8 @@ export class TrailGuideGeneratorV2 {
     console.log('  - Filtered notes:', notes);
     
     const date = new Date(routeInfo.date);
-    const formattedDate = date.toLocaleDateString('en-US', { 
+    const dateLocale = currentLang === 'he' ? 'he-IL' : 'en-US';
+    const formattedDate = date.toLocaleDateString(dateLocale, { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
@@ -66,15 +269,15 @@ export class TrailGuideGeneratorV2 {
     }
 
     return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${currentLang}" dir="${isRTL ? 'rtl' : 'ltr'}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${routeInfo.name} - Accessible Trail Guide</title>
+    <title>${routeInfo.name} - ${t('trailGuide')}</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        ${this.getStyles()}
+        ${this.getStyles(isRTL)}
     </style>
 </head>
 <body>
@@ -82,10 +285,10 @@ export class TrailGuideGeneratorV2 {
         <!-- Header -->
         <header class="tg-header">
             <div class="tg-header-content">
-                <span class="tg-badge">🌲 Access Nature Trail Guide</span>
+                <span class="tg-badge">🌲 ${t('trailGuide')}</span>
                 <h1 class="tg-title">${routeInfo.name}</h1>
-                <p class="tg-location">${accessibilityData?.location || 'Location not specified'}</p>
-                <p class="tg-date">Documented on ${formattedDate}</p>
+                <p class="tg-location">${accessibilityData?.location || t('locationNotSpecified')}</p>
+                <p class="tg-date">${t('documentedOn')} ${formattedDate}</p>
             </div>
         </header>
 
@@ -93,8 +296,8 @@ export class TrailGuideGeneratorV2 {
         <div class="tg-access-banner ${accessLevel.class}">
             <div class="tg-access-icon">${accessLevel.icon}</div>
             <div class="tg-access-info">
-                <div class="tg-access-level">${accessLevel.label}</div>
-                <div class="tg-access-desc">${accessLevel.description}</div>
+                <div class="tg-access-level">${this.getAccessLevelLabel(accessLevel.level, currentLang)}</div>
+                <div class="tg-access-desc">${this.getAccessLevelDesc(accessLevel.level, currentLang)}</div>
             </div>
         </div>
 
@@ -103,23 +306,23 @@ export class TrailGuideGeneratorV2 {
             ${locationPoints.length > 0 ? `
             <div class="tg-action-dropdown">
                 <button class="tg-action-btn tg-action-navigate" onclick="toggleNavDropdown(event)">
-                    🧭 Navigate to Start
+                    🧭 ${t('navigateToStart')}
                 </button>
                 <div id="navDropdown" class="tg-dropdown-content">
                     <a href="https://www.google.com/maps/dir/?api=1&destination=${locationPoints[0].coords.lat},${locationPoints[0].coords.lng}&travelmode=driving" target="_blank" rel="noopener" onclick="closeNavDropdown()">
-                        📍 Google Maps
+                        📍 ${t('googleMaps')}
                     </a>
                     <a href="https://waze.com/ul?ll=${locationPoints[0].coords.lat},${locationPoints[0].coords.lng}&navigate=yes" target="_blank" rel="noopener" onclick="closeNavDropdown()">
-                        🚗 Waze
+                        🚗 ${t('waze')}
                     </a>
                 </div>
             </div>
             ` : ''}
             <button class="tg-action-btn tg-action-pdf" id="pdfBtn" onclick="downloadPDF()">
-                📥 Download PDF
+                📥 ${t('downloadPdf')}
             </button>
             <button class="tg-action-btn tg-action-details" onclick="closeNavDropdown(); document.getElementById('surveyDetails').classList.toggle('show')">
-                📋 Full Survey Details
+                📋 ${t('fullSurveyDetails')}
             </button>
         </div>
         
@@ -127,57 +330,57 @@ export class TrailGuideGeneratorV2 {
         <div id="pdfLoadingOverlay" class="tg-pdf-overlay" style="display: none;">
             <div class="tg-pdf-loading">
                 <div class="tg-pdf-spinner"></div>
-                <p>Generating PDF...</p>
-                <p class="tg-pdf-hint">This may take a few seconds</p>
+                <p>${t('generatingPdf')}</p>
+                <p class="tg-pdf-hint">${t('mayTakeSeconds')}</p>
             </div>
         </div>
 
         <!-- Hidden Survey Details Panel -->
         <div id="surveyDetails" class="tg-survey-panel">
-            <h3>📋 Complete Accessibility Survey</h3>
-            ${this.renderFullSurveyDetails(accessibilityData)}
+            <h3>📋 ${t('completeSurvey')}</h3>
+            ${this.renderFullSurveyDetails(accessibilityData, currentLang)}
         </div>
 
         <!-- Quick Stats -->
         <div class="tg-stats-row">
             <div class="tg-stat">
                 <span class="tg-stat-value">${(routeInfo.totalDistance || 0).toFixed(1)}</span>
-                <span class="tg-stat-label">km</span>
+                <span class="tg-stat-label">${t('km')}</span>
             </div>
             <div class="tg-stat">
                 <span class="tg-stat-value">${this.formatDuration(routeInfo.elapsedTime || 0)}</span>
-                <span class="tg-stat-label">duration</span>
+                <span class="tg-stat-label">${t('duration')}</span>
             </div>
             <div class="tg-stat">
                 <span class="tg-stat-value">${this.getDifficultyEmoji(accessibilityData)}</span>
-                <span class="tg-stat-label">${this.getDifficultyLabel(accessibilityData)}</span>
+                <span class="tg-stat-label">${this.getDifficultyLabel(accessibilityData, currentLang)}</span>
             </div>
             <div class="tg-stat">
                 <span class="tg-stat-value">${this.getSurfaceIcon(accessibilityData)}</span>
-                <span class="tg-stat-label">${this.getSurfaceLabel(accessibilityData)}</span>
+                <span class="tg-stat-label">${this.getSurfaceLabel(accessibilityData, currentLang)}</span>
             </div>
         </div>
 
         <!-- Elevation Profile -->
-        ${this.renderElevationSection(routeData)}
+        ${this.renderElevationSection(routeData, currentLang)}
 
         <!-- Good For Section -->
-        ${this.renderGoodForSection(accessibilityData)}
+        ${this.renderGoodForSection(accessibilityData, currentLang)}
 
         <!-- Trail Conditions -->
-        ${this.renderConditionsSection(accessibilityData)}
+        ${this.renderConditionsSection(accessibilityData, currentLang)}
 
         <!-- Facilities -->
-        ${this.renderFacilitiesSection(accessibilityData)}
+        ${this.renderFacilitiesSection(accessibilityData, currentLang)}
 
         <!-- Map Section -->
         ${locationPoints.length > 0 ? `
         <section class="tg-section">
-            <h2 class="tg-section-title">🗺️ Route Map</h2>
+            <h2 class="tg-section-title">🗺️ ${t('routeMap')}</h2>
             <div class="tg-map-container">
                 <div id="map"></div>
             </div>
-            <p class="tg-map-hint">Click markers for details</p>
+            <p class="tg-map-hint">${t('clickMarkers')}</p>
             <div class="tg-map-legend">
                 <div class="tg-legend-item"><div class="tg-legend-dot start"></div> Start</div>
                 <div class="tg-legend-item"><div class="tg-legend-dot end"></div> End</div>
@@ -314,31 +517,69 @@ export class TrailGuideGeneratorV2 {
       return {
         class: 'fully',
         icon: '♿',
-        label: 'FULLY ACCESSIBLE',
-        description: 'Suitable for wheelchairs, strollers, and mobility aids'
+        level: 'fully'
       };
     } else if (checkValue.toLowerCase().includes('partial') || checkValue.toLowerCase().includes('assistance')) {
       return {
         class: 'partial',
         icon: '⚠️',
-        label: 'PARTIALLY ACCESSIBLE',
-        description: 'Some sections may require assistance or have barriers'
+        level: 'partial'
       };
     } else if (checkValue.toLowerCase().includes('not')) {
       return {
         class: 'not',
         icon: '🚫',
-        label: 'LIMITED ACCESSIBILITY',
-        description: 'Significant barriers present - check details below'
+        level: 'not'
       };
     }
     
     return {
       class: 'unknown',
       icon: '❓',
-      label: 'ACCESSIBILITY NOT ASSESSED',
-      description: 'No accessibility information available for this trail'
+      level: 'unknown'
     };
+  }
+
+  /**
+   * Get translated accessibility level label
+   */
+  getAccessLevelLabel(level, lang = 'en') {
+    const labels = {
+      en: {
+        fully: 'FULLY ACCESSIBLE',
+        partial: 'PARTIALLY ACCESSIBLE',
+        not: 'LIMITED ACCESSIBILITY',
+        unknown: 'ACCESSIBILITY NOT ASSESSED'
+      },
+      he: {
+        fully: 'נגיש לחלוטין',
+        partial: 'נגיש חלקית',
+        not: 'נגישות מוגבלת',
+        unknown: 'נגישות לא הוערכה'
+      }
+    };
+    return labels[lang]?.[level] || labels['en']?.[level] || level;
+  }
+
+  /**
+   * Get translated accessibility level description
+   */
+  getAccessLevelDesc(level, lang = 'en') {
+    const descs = {
+      en: {
+        fully: 'Suitable for wheelchairs, strollers, and mobility aids',
+        partial: 'Some sections may require assistance or have barriers',
+        not: 'Significant barriers present - check details below',
+        unknown: 'No accessibility information available for this trail'
+      },
+      he: {
+        fully: 'מתאים לכיסאות גלגלים, עגלות ואמצעי ניידות',
+        partial: 'חלק מהקטעים עשויים לדרוש סיוע או מכילים מכשולים',
+        not: 'קיימים מכשולים משמעותיים - בדוק פרטים למטה',
+        unknown: 'אין מידע נגישות זמין לשביל זה'
+      }
+    };
+    return descs[lang]?.[level] || descs['en']?.[level] || '';
   }
 
   formatDuration(milliseconds) {
@@ -368,13 +609,19 @@ export class TrailGuideGeneratorV2 {
     return '😊';
   }
 
-  getDifficultyLabel(data) {
+  getDifficultyLabel(data, lang = 'en') {
     const slopes = data?.trailSlopes || '';
     const quality = data?.surfaceQuality || '';
     
-    if (slopes.includes('Steep') || quality.includes('Poor')) return 'Challenging';
-    if (slopes.includes('Moderate') || quality.includes('Fair')) return 'Moderate';
-    return 'Easy';
+    const labels = {
+      en: { challenging: 'Challenging', moderate: 'Moderate', easy: 'Easy' },
+      he: { challenging: 'מאתגר', moderate: 'בינוני', easy: 'קל' }
+    };
+    const t = labels[lang] || labels['en'];
+    
+    if (slopes.includes('Steep') || quality.includes('Poor')) return t.challenging;
+    if (slopes.includes('Moderate') || quality.includes('Fair')) return t.moderate;
+    return t.easy;
   }
 
   getSurfaceIcon(data) {
@@ -389,17 +636,23 @@ export class TrailGuideGeneratorV2 {
     return '🛤️';
   }
 
-  getSurfaceLabel(data) {
+  getSurfaceLabel(data, lang = 'en') {
     const surfaces = data?.trailSurface || '';
     const surfaceStr = Array.isArray(surfaces) ? surfaces[0] : surfaces;
     
-    if (!surfaceStr) return 'Unknown';
-    if (surfaceStr.includes('Asphalt')) return 'Paved';
-    if (surfaceStr.includes('Concrete')) return 'Concrete';
-    if (surfaceStr.includes('Wood')) return 'Boardwalk';
-    if (surfaceStr.includes('Gravel')) return 'Gravel';
-    if (surfaceStr.includes('Grass')) return 'Grass';
-    if (surfaceStr.includes('Mixed')) return 'Mixed';
+    const labels = {
+      en: { paved: 'Paved', concrete: 'Concrete', boardwalk: 'Boardwalk', gravel: 'Gravel', grass: 'Grass', mixed: 'Mixed', unknown: 'Unknown' },
+      he: { paved: 'סלול', concrete: 'בטון', boardwalk: 'דק עץ', gravel: 'חצץ', grass: 'דשא', mixed: 'מעורב', unknown: 'לא ידוע' }
+    };
+    const t = labels[lang] || labels['en'];
+    
+    if (!surfaceStr) return t.unknown;
+    if (surfaceStr.includes('Asphalt')) return t.paved;
+    if (surfaceStr.includes('Concrete')) return t.concrete;
+    if (surfaceStr.includes('Wood')) return t.boardwalk;
+    if (surfaceStr.includes('Gravel')) return t.gravel;
+    if (surfaceStr.includes('Grass')) return t.grass;
+    if (surfaceStr.includes('Mixed')) return t.mixed;
     return surfaceStr.split(' ')[0];
   }
 
@@ -1207,7 +1460,7 @@ export class TrailGuideGeneratorV2 {
     </script>`;
   }
 
-  getStyles() {
+  getStyles(isRTL = false) {
     return `
         * {
             margin: 0;
@@ -1216,10 +1469,11 @@ export class TrailGuideGeneratorV2 {
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: ${isRTL ? "'Arial Hebrew', 'Heebo', " : ''}-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
             color: #333;
             background: #f5f5f5;
+            direction: ${isRTL ? 'rtl' : 'ltr'};
         }
         
         .tg-container {
