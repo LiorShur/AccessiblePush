@@ -285,10 +285,10 @@ export class TrailGuideGeneratorV2 {
         <!-- Header -->
         <header class="tg-header">
             <div class="tg-header-content">
-                <span class="tg-badge">🌲 ${t('trailGuide')}</span>
+                <span class="tg-badge">🌲 <span data-i18n="trailGuide">${t('trailGuide')}</span></span>
                 <h1 class="tg-title">${routeInfo.name}</h1>
                 <p class="tg-location">${accessibilityData?.location || t('locationNotSpecified')}</p>
-                <p class="tg-date">${t('documentedOn')} ${formattedDate}</p>
+                <p class="tg-date"><span data-i18n="documentedOn">${t('documentedOn')}</span> ${formattedDate}</p>
             </div>
         </header>
 
@@ -296,33 +296,37 @@ export class TrailGuideGeneratorV2 {
         <div class="tg-access-banner ${accessLevel.class}">
             <div class="tg-access-icon">${accessLevel.icon}</div>
             <div class="tg-access-info">
-                <div class="tg-access-level">${this.getAccessLevelLabel(accessLevel.level, currentLang)}</div>
-                <div class="tg-access-desc">${this.getAccessLevelDesc(accessLevel.level, currentLang)}</div>
+                <div class="tg-access-level" data-level-key="${accessLevel.levelKey}">${this.getAccessLevelLabel(accessLevel.level, currentLang)}</div>
+                <div class="tg-access-desc" data-desc-key="${accessLevel.descKey}">${this.getAccessLevelDesc(accessLevel.level, currentLang)}</div>
             </div>
         </div>
 
         <!-- Action Bar -->
         <div class="tg-action-bar" id="actionBar">
+            <!-- Language Toggle -->
+            <button class="tg-action-btn tg-action-lang" onclick="toggleGuideLanguage()" title="Switch Language">
+                <span id="langFlag">${isRTL ? '🇬🇧' : '🇮🇱'}</span>
+            </button>
             ${locationPoints.length > 0 ? `
             <div class="tg-action-dropdown">
                 <button class="tg-action-btn tg-action-navigate" onclick="toggleNavDropdown(event)">
-                    🧭 ${t('navigateToStart')}
+                    🧭 <span data-i18n="navigateToStart">${t('navigateToStart')}</span>
                 </button>
                 <div id="navDropdown" class="tg-dropdown-content">
                     <a href="https://www.google.com/maps/dir/?api=1&destination=${locationPoints[0].coords.lat},${locationPoints[0].coords.lng}&travelmode=driving" target="_blank" rel="noopener" onclick="closeNavDropdown()">
-                        📍 ${t('googleMaps')}
+                        📍 <span data-i18n="googleMaps">${t('googleMaps')}</span>
                     </a>
                     <a href="https://waze.com/ul?ll=${locationPoints[0].coords.lat},${locationPoints[0].coords.lng}&navigate=yes" target="_blank" rel="noopener" onclick="closeNavDropdown()">
-                        🚗 ${t('waze')}
+                        🚗 <span data-i18n="waze">${t('waze')}</span>
                     </a>
                 </div>
             </div>
             ` : ''}
             <button class="tg-action-btn tg-action-pdf" id="pdfBtn" onclick="downloadPDF()">
-                📥 ${t('downloadPdf')}
+                📥 <span data-i18n="downloadPdf">${t('downloadPdf')}</span>
             </button>
             <button class="tg-action-btn tg-action-details" onclick="closeNavDropdown(); document.getElementById('surveyDetails').classList.toggle('show')">
-                📋 ${t('fullSurveyDetails')}
+                📋 <span data-i18n="fullSurveyDetails">${t('fullSurveyDetails')}</span>
             </button>
         </div>
         
@@ -415,6 +419,53 @@ export class TrailGuideGeneratorV2 {
     
     <!-- PDF Download Script -->
     <script>
+        // Embedded translations for standalone functionality
+        const guideTranslations = ${JSON.stringify(TrailGuideGeneratorV2.translations)};
+        
+        // Current language state
+        let currentGuideLang = '${currentLang}';
+        
+        // Language toggle function
+        function toggleGuideLanguage() {
+            currentGuideLang = currentGuideLang === 'en' ? 'he' : 'en';
+            const isRTL = currentGuideLang === 'he';
+            
+            // Update document direction
+            document.documentElement.lang = currentGuideLang;
+            document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+            
+            // Update flag button
+            const flagBtn = document.getElementById('langFlag');
+            if (flagBtn) {
+                flagBtn.textContent = isRTL ? '🇬🇧' : '🇮🇱';
+            }
+            
+            // Update all data-i18n elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const translation = guideTranslations[currentGuideLang]?.[key] || guideTranslations['en']?.[key] || key;
+                el.textContent = translation;
+            });
+            
+            // Update accessibility level text
+            const accessLevel = document.querySelector('.tg-access-level');
+            const accessDesc = document.querySelector('.tg-access-desc');
+            if (accessLevel) {
+                const levelKey = accessLevel.getAttribute('data-level-key');
+                if (levelKey) {
+                    accessLevel.textContent = guideTranslations[currentGuideLang]?.[levelKey] || accessLevel.textContent;
+                }
+            }
+            if (accessDesc) {
+                const descKey = accessDesc.getAttribute('data-desc-key');
+                if (descKey) {
+                    accessDesc.textContent = guideTranslations[currentGuideLang]?.[descKey] || accessDesc.textContent;
+                }
+            }
+            
+            console.log('Trail guide language switched to:', currentGuideLang);
+        }
+        
         // Navigation dropdown handlers
         function toggleNavDropdown(event) {
             event.stopPropagation();
@@ -447,7 +498,7 @@ export class TrailGuideGeneratorV2 {
             if (overlay) overlay.style.display = 'flex';
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = '⏳ Generating...';
+                btn.innerHTML = '⏳ ' + (guideTranslations[currentGuideLang]?.generatingPdf || 'Generating...');
             }
             
             // Close any open dropdowns
@@ -486,7 +537,7 @@ export class TrailGuideGeneratorV2 {
                 if (surveyPanel) surveyPanel.classList.remove('show');
                 if (overlay) overlay.style.display = 'none';
                 if (btn) {
-                    btn.innerHTML = '📥 Download PDF';
+                    btn.innerHTML = '📥 ' + (guideTranslations[currentGuideLang]?.downloadPdf || 'Download PDF');
                     btn.disabled = false;
                 }
             }).catch(err => {
@@ -495,7 +546,7 @@ export class TrailGuideGeneratorV2 {
                 if (surveyPanel) surveyPanel.classList.remove('show');
                 if (overlay) overlay.style.display = 'none';
                 if (btn) {
-                    btn.innerHTML = '📥 Download PDF';
+                    btn.innerHTML = '📥 ' + (guideTranslations[currentGuideLang]?.downloadPdf || 'Download PDF');
                     btn.disabled = false;
                 }
                 alert('PDF generation failed. Please try again or use Print to PDF.');
@@ -517,26 +568,34 @@ export class TrailGuideGeneratorV2 {
       return {
         class: 'fully',
         icon: '♿',
-        level: 'fully'
+        level: 'fully',
+        levelKey: 'fullyAccessible',
+        descKey: 'suitableForMost'
       };
     } else if (checkValue.toLowerCase().includes('partial') || checkValue.toLowerCase().includes('assistance')) {
       return {
         class: 'partial',
         icon: '⚠️',
-        level: 'partial'
+        level: 'partial',
+        levelKey: 'partiallyAccessible',
+        descKey: 'someBarriers'
       };
     } else if (checkValue.toLowerCase().includes('not')) {
       return {
         class: 'not',
         icon: '🚫',
-        level: 'not'
+        level: 'not',
+        levelKey: 'limitedAccessibility',
+        descKey: 'majorBarriers'
       };
     }
     
     return {
       class: 'unknown',
       icon: '❓',
-      level: 'unknown'
+      level: 'unknown',
+      levelKey: 'notAssessed',
+      descKey: 'assessmentNeeded'
     };
   }
 
@@ -2089,6 +2148,16 @@ export class TrailGuideGeneratorV2 {
         
         .tg-action-details:hover {
             background: #7c3aed;
+        }
+        
+        .tg-action-lang {
+            background: #64748b;
+            padding: 10px 12px;
+            font-size: 1.2rem;
+        }
+        
+        .tg-action-lang:hover {
+            background: #475569;
         }
         
         /* Dropdown */
