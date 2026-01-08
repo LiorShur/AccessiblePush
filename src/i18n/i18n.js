@@ -3,7 +3,7 @@
 // Multi-language support with RTL handling
 // 
 // File: src/i18n/i18n.js
-// Version: 1.0
+// Version: 2.0 - Enhanced with dynamic content refresh
 // ==============================================
 
 class I18nManager {
@@ -12,6 +12,7 @@ class I18nManager {
     this.translations = {};
     this.loadedLanguages = new Set();
     this.listeners = new Set();
+    this.refreshCallbacks = new Map(); // For dynamic components that need re-rendering
     this.initialized = false;
     
     // Supported languages
@@ -167,10 +168,44 @@ class I18nManager {
     // Notify listeners
     if (prevLang !== lang) {
       this.notifyListeners(lang, prevLang);
+      // Refresh all dynamic content
+      this.refreshAllDynamicContent();
     }
 
     console.log(`🌐 Language set to: ${lang} (dir: ${dir})`);
     return true;
+  }
+
+  /**
+   * Register a component for refresh on language change
+   * @param {string} id - Unique identifier for the component
+   * @param {Function} refreshCallback - Function to call to refresh the component
+   */
+  registerForRefresh(id, refreshCallback) {
+    this.refreshCallbacks.set(id, refreshCallback);
+    console.log(`🌐 Registered component for i18n refresh: ${id}`);
+  }
+
+  /**
+   * Unregister a component from refresh
+   */
+  unregisterForRefresh(id) {
+    this.refreshCallbacks.delete(id);
+  }
+
+  /**
+   * Refresh all registered dynamic content
+   */
+  refreshAllDynamicContent() {
+    console.log(`🌐 Refreshing ${this.refreshCallbacks.size} dynamic components...`);
+    this.refreshCallbacks.forEach((callback, id) => {
+      try {
+        callback(this.currentLang, this.isRTL());
+        console.log(`🌐 Refreshed: ${id}`);
+      } catch (e) {
+        console.error(`🌐 Failed to refresh ${id}:`, e);
+      }
+    });
   }
 
   /**
@@ -310,6 +345,14 @@ class I18nManager {
       }
     });
 
+    // Translate innerHTML (for elements with embedded HTML)
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      const key = el.getAttribute('data-i18n-html');
+      if (key) {
+        el.innerHTML = this.t(key);
+      }
+    });
+
     // Translate placeholders
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
       const key = el.getAttribute('data-i18n-placeholder');
@@ -332,6 +375,24 @@ class I18nManager {
       if (key) {
         el.setAttribute('title', this.t(key));
       }
+    });
+
+    // Translate value attributes (for buttons)
+    document.querySelectorAll('[data-i18n-value]').forEach(el => {
+      const key = el.getAttribute('data-i18n-value');
+      if (key) {
+        el.value = this.t(key);
+      }
+    });
+
+    // Translate select options
+    document.querySelectorAll('[data-i18n-options]').forEach(select => {
+      select.querySelectorAll('option[data-i18n]').forEach(opt => {
+        const key = opt.getAttribute('data-i18n');
+        if (key) {
+          opt.textContent = this.t(key);
+        }
+      });
     });
 
     console.log('🌐 Page translated');
