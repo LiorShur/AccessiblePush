@@ -87,6 +87,59 @@ html[dir="rtl"] .global-nav-item * {
   text-align: center !important;
 }
 
+/* ========== TRACKER PAGE CONTROLS - EXCLUDED FROM RTL ========== */
+/* Control bars and buttons must stay LTR for consistent UX */
+
+html[dir="rtl"] #topControlBar,
+html[dir="rtl"] #secondRowControls,
+html[dir="rtl"] #headingDisplay,
+html[dir="rtl"] #elevationDisplay,
+html[dir="rtl"] #accessibilitySurveyBtn,
+html[dir="rtl"] #compass,
+html[dir="rtl"] .tracker-controls,
+html[dir="rtl"] .map-controls,
+html[dir="rtl"] .floating-action-buttons {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+/* All children of tracker controls stay LTR */
+html[dir="rtl"] #topControlBar *,
+html[dir="rtl"] #secondRowControls *,
+html[dir="rtl"] #headingDisplay *,
+html[dir="rtl"] #elevationDisplay *,
+html[dir="rtl"] #accessibilitySurveyBtn * {
+  direction: ltr !important;
+}
+
+/* Keep control bar flex direction */
+html[dir="rtl"] #topControlBar,
+html[dir="rtl"] #secondRowControls {
+  flex-direction: row !important;
+}
+
+/* Keep timer and distance displays centered */
+html[dir="rtl"] #timer,
+html[dir="rtl"] #distance,
+html[dir="rtl"] #elevationValue,
+html[dir="rtl"] #headingValue {
+  text-align: center !important;
+  direction: ltr !important;
+}
+
+/* Compass should never flip */
+html[dir="rtl"] #compass,
+html[dir="rtl"] #compass-needle-new {
+  transform: none;
+}
+
+/* Map layer controls */
+html[dir="rtl"] .leaflet-control,
+html[dir="rtl"] .leaflet-control-zoom,
+html[dir="rtl"] .leaflet-control-layers {
+  direction: ltr !important;
+}
+
 /* ========== Logical Properties Override ========== */
 /* Use CSS logical properties for automatic RTL support */
 
