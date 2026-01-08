@@ -8,6 +8,7 @@
  * - Collapsible sections with completion indicators
  * - Better mobile layout
  * - Same data structure as original
+ * - i18n support for English and Hebrew
  * 
  * Access Nature - Phase 2 Redesign
  * Created: December 2025
@@ -16,27 +17,579 @@
 import { toast } from '../utils/toast.js';
 import { userService } from '../services/userService.js';
 
+/**
+ * Translations for accessibility form
+ */
+const formTranslations = {
+  en: {
+    // Header
+    formTitle: "Comprehensive Trail Accessibility Survey",
+    formSubtitle: "Help create detailed accessibility information for outdoor spaces",
+    sectionsComplete: "of 7 sections complete",
+    
+    // Buttons
+    cancel: "Cancel",
+    saveSurvey: "Save Survey ✓",
+    tapToExpand: "Tap to expand",
+    required: "Required",
+    filled: "filled",
+    
+    // Section titles
+    basicInfo: "Basic Trail Information",
+    mobilityAccess: "Mobility Accessibility",
+    trailSurface: "Trail Surface & Quality",
+    visualEnv: "Visual & Environmental",
+    facilities: "Facilities & Amenities",
+    signage: "Signage & Navigation",
+    additionalInfo: "Additional Information",
+    
+    // Basic info fields
+    trailName: "Trail Name",
+    trailNamePlaceholder: "e.g., Riverside Nature Path",
+    location: "Location/Address",
+    locationPlaceholder: "e.g., Central Park, NYC",
+    trailLength: "Trail Length (km)",
+    estimatedDuration: "Estimated Duration",
+    selectDuration: "Select duration",
+    under15: "Under 15 minutes",
+    mins15to30: "15-30 minutes",
+    mins30to60: "30-60 minutes",
+    hours1to2: "1-2 hours",
+    over2hours: "Over 2 hours",
+    
+    // Wheelchair access
+    wheelchairAccess: "Wheelchair Accessibility Level",
+    fullyAccessible: "Fully Accessible",
+    fullyAccessibleDesc: "Independent wheelchair use throughout",
+    partiallyAccessible: "Partially Accessible",
+    partiallyAccessibleDesc: "Some sections require assistance",
+    limitedAccess: "Limited Access",
+    limitedAccessDesc: "Major barriers, alternative routes exist",
+    notAccessible: "Not Accessible",
+    notAccessibleDesc: "Not suitable for wheelchair users",
+    
+    // Surface
+    surfaceTypes: "Trail Surface Types (select all that apply)",
+    asphalt: "Asphalt",
+    concrete: "Concrete",
+    gravel: "Gravel",
+    dirt: "Dirt/Earth",
+    grass: "Grass",
+    sand: "Sand",
+    woodDeck: "Wood Deck",
+    boardwalk: "Boardwalk",
+    
+    // Surface quality
+    surfaceQuality: "Overall Surface Quality",
+    smooth: "Smooth",
+    smoothDesc: "Even, well-maintained",
+    fairQuality: "Fair",
+    fairQualityDesc: "Minor imperfections",
+    roughQuality: "Rough",
+    roughQualityDesc: "Significant unevenness",
+    poorQuality: "Poor",
+    poorQualityDesc: "Major obstacles",
+    
+    // Width
+    pathWidth: "Typical Path Width",
+    wide: "Wide (2m+)",
+    wideDesc: "Easy passing",
+    standardWidth: "Standard (1-2m)",
+    standardWidthDesc: "Single wheelchair",
+    narrow: "Narrow (0.5-1m)",
+    narrowDesc: "Tight fit",
+    veryNarrow: "Very Narrow (<0.5m)",
+    veryNarrowDesc: "Walking only",
+    
+    // Slope
+    maxSlope: "Maximum Trail Slope",
+    flat: "Flat (0-2%)",
+    flatDesc: "No noticeable incline",
+    gentleSlope: "Gentle (2-5%)",
+    gentleSlopeDesc: "Slight incline",
+    moderateSlope: "Moderate (5-8%)",
+    moderateSlopeDesc: "Noticeable but manageable",
+    steepSlope: "Steep (8-12%)",
+    steepSlopeDesc: "May need assistance",
+    verySteep: "Very Steep (>12%)",
+    verySteepDesc: "Significant challenge",
+    
+    // Steps
+    steps: "Steps or Curbs",
+    noSteps: "None",
+    noStepsDesc: "Completely step-free",
+    fewSteps: "Few (1-3)",
+    fewStepsDesc: "Minor obstacles",
+    someSteps: "Some (4-10)",
+    someStepsDesc: "Multiple obstacles",
+    manySteps: "Many (>10)",
+    manyStepsDesc: "Frequent obstacles",
+    
+    // Obstacles
+    obstacles: "Obstacles on Trail",
+    noObstacles: "None",
+    fewObstacles: "Few",
+    someObstacles: "Some",
+    manyObstacles: "Many",
+    
+    // Handrails
+    handrails: "Handrails Available",
+    handrailsBoth: "Both sides",
+    handrailsOne: "One side",
+    handrailsNone: "None",
+    handrailsNA: "Not needed",
+    
+    // Visual & Environmental
+    lighting: "Trail Lighting",
+    wellLit: "Well lit",
+    partialLight: "Partial lighting",
+    noLighting: "No lighting",
+    daylightOnly: "Daylight only",
+    
+    shade: "Shade Coverage",
+    fullShade: "Mostly shaded",
+    partialShade: "Partial shade",
+    noShade: "No shade/exposed",
+    
+    hazards: "Potential Hazards",
+    hazardsPlaceholder: "e.g., uneven surfaces, low branches, water crossings...",
+    
+    // Facilities
+    parking: "Accessible Parking",
+    parkingYes: "Available",
+    parkingNearby: "Nearby",
+    parkingNo: "Not available",
+    
+    restrooms: "Accessible Restrooms",
+    restroomsYes: "Available",
+    restroomsNearby: "Nearby",
+    restroomsNo: "Not available",
+    
+    benches: "Rest Areas/Benches",
+    benchesYes: "Available",
+    benchesFew: "Few",
+    benchesNo: "None",
+    
+    water: "Water Fountains",
+    waterYes: "Available",
+    waterNo: "Not available",
+    
+    // Signage
+    signageQuality: "Trail Signage Quality",
+    signageExcellent: "Excellent",
+    signageGood: "Good",
+    signageFair: "Fair",
+    signagePoor: "Poor/None",
+    
+    brailleSignage: "Braille Signage",
+    brailleYes: "Available",
+    brailleNo: "Not available",
+    
+    audioGuide: "Audio Guide/Description",
+    audioYes: "Available",
+    audioNo: "Not available",
+    
+    // Additional
+    additionalNotes: "Additional Notes",
+    additionalNotesPlaceholder: "Any other accessibility information, tips, or warnings...",
+    bestTimeToVisit: "Best Time to Visit",
+    bestTimePlaceholder: "e.g., Early morning for shade, avoid weekends...",
+    emergencyInfo: "Emergency Information",
+    emergencyPlaceholder: "Nearest hospital, emergency contact, etc.",
+    
+    // Trip types
+    tripType: "Trip Type",
+    beach: "Beach",
+    stream: "Stream",
+    park: "Park",
+    forest: "Forest",
+    urban: "Urban",
+    scenic: "Scenic",
+    
+    // Route types
+    routeType: "Route Type",
+    circular: "Circular Loop",
+    roundTrip: "Round Trip",
+    
+    // Mobility section
+    disabledParking: "Disabled Parking",
+    parkingAvailable: "Accessible parking available",
+    parkingSpaces: "Number of accessible parking spaces:",
+    withAssistance: "With Assistance",
+    
+    // Surface section  
+    stone: "Stone",
+    mixedSurfaces: "Mixed Surfaces",
+    excellent: "Excellent",
+    fair: "Fair",
+    poor: "Poor",
+    overgrown: "Overgrown",
+    
+    // Slopes
+    trailSlopes: "Trail Slopes",
+    flatMild: "Flat/Mild (<5%)",
+    moderate: "Moderate (5-10%)",
+    steep: "Steep (>10%)",
+    
+    // Visual section
+    visualAdaptations: "Visual Impairment Adaptations (select all that apply)",
+    raisedBorders: "Raised borders",
+    tactileSurfaces: "Tactile surfaces",
+    colorContrast: "Color contrast",
+    shadeCoverage: "Shade Coverage on Trail",
+    plentyShade: "Plenty of shade",
+    intermittent: "Intermittent",
+    trailLit: "💡 Trail is lit in darkness",
+    
+    // Facilities section
+    accessibleFountains: "Accessible Water Fountains",
+    none: "None",
+    one: "One",
+    multiple: "Multiple",
+    accessibleSeating: "Accessible Seating (select all that apply)",
+    noBenches: "No benches",
+    oneBench: "One bench",
+    multipleBenches: "Multiple benches",
+    withoutHandrails: "Without handrails",
+    accessiblePicnic: "🧺 Accessible picnic areas available",
+    numberOfAreas: "Number of areas",
+    inShade: "In shade",
+    inSun: "In sun",
+    accessibleViewpoint: "🏔️ Accessible viewpoint available",
+    accessibleRestrooms: "Accessible Restrooms",
+    unisex: "Unisex",
+    separateMF: "Separate M/F",
+    
+    // Signage section
+    availableSignage: "Available Signage (select all that apply)",
+    routeMap: "🗺️ Route map",
+    directionalSigns: "➡️ Directional signs",
+    distanceMarkers: "📏 Distance markers",
+    accessibilityInfo: "♿ Accessibility info",
+    audioDescAvailable: "🔊 Audio description available"
+  },
+  he: {
+    // Header
+    formTitle: "סקר נגישות מקיף לשביל",
+    formSubtitle: "עזור ליצור מידע נגישות מפורט לשטחים פתוחים",
+    sectionsComplete: "מתוך 7 קטעים הושלמו",
+    
+    // Buttons
+    cancel: "ביטול",
+    saveSurvey: "שמור סקר ✓",
+    tapToExpand: "הקש להרחבה",
+    required: "חובה",
+    filled: "מולאו",
+    
+    // Section titles
+    basicInfo: "מידע בסיסי על השביל",
+    mobilityAccess: "נגישות לניידות",
+    trailSurface: "משטח ואיכות השביל",
+    visualEnv: "סביבה חזותית",
+    facilities: "מתקנים ושירותים",
+    signage: "שילוט וניווט",
+    additionalInfo: "מידע נוסף",
+    
+    // Basic info fields
+    trailName: "שם השביל",
+    trailNamePlaceholder: "לדוגמה: שביל הנחל",
+    location: "מיקום/כתובת",
+    locationPlaceholder: "לדוגמה: פארק הירקון, תל אביב",
+    trailLength: "אורך השביל (ק״מ)",
+    estimatedDuration: "משך משוער",
+    selectDuration: "בחר משך",
+    under15: "פחות מ-15 דקות",
+    mins15to30: "15-30 דקות",
+    mins30to60: "30-60 דקות",
+    hours1to2: "1-2 שעות",
+    over2hours: "מעל 2 שעות",
+    
+    // Wheelchair access
+    wheelchairAccess: "רמת נגישות לכיסא גלגלים",
+    fullyAccessible: "נגיש לחלוטין",
+    fullyAccessibleDesc: "שימוש עצמאי בכיסא גלגלים לאורך כל הדרך",
+    partiallyAccessible: "נגיש חלקית",
+    partiallyAccessibleDesc: "חלק מהקטעים דורשים סיוע",
+    limitedAccess: "גישה מוגבלת",
+    limitedAccessDesc: "מכשולים משמעותיים, קיימים מסלולים חלופיים",
+    notAccessible: "לא נגיש",
+    notAccessibleDesc: "לא מתאים למשתמשי כיסא גלגלים",
+    
+    // Surface
+    surfaceTypes: "סוגי משטח השביל (בחר את כל המתאימים)",
+    asphalt: "אספלט",
+    concrete: "בטון",
+    gravel: "חצץ",
+    dirt: "עפר/אדמה",
+    grass: "דשא",
+    sand: "חול",
+    woodDeck: "דק עץ",
+    boardwalk: "שביל עץ מוגבה",
+    
+    // Surface quality
+    surfaceQuality: "איכות משטח כללית",
+    smooth: "חלק",
+    smoothDesc: "אחיד ומתוחזק",
+    fairQuality: "סביר",
+    fairQualityDesc: "פגמים קלים",
+    roughQuality: "מחוספס",
+    roughQualityDesc: "אי-אחידות משמעותית",
+    poorQuality: "גרוע",
+    poorQualityDesc: "מכשולים גדולים",
+    
+    // Width
+    pathWidth: "רוחב שביל טיפוסי",
+    wide: "רחב (2 מ׳+)",
+    wideDesc: "מעבר קל",
+    standardWidth: "סטנדרטי (1-2 מ׳)",
+    standardWidthDesc: "כיסא גלגלים בודד",
+    narrow: "צר (0.5-1 מ׳)",
+    narrowDesc: "צפוף",
+    veryNarrow: "צר מאוד (<0.5 מ׳)",
+    veryNarrowDesc: "הליכה בלבד",
+    
+    // Slope
+    maxSlope: "שיפוע מקסימלי",
+    flat: "שטוח (0-2%)",
+    flatDesc: "ללא שיפוע מורגש",
+    gentleSlope: "מתון (2-5%)",
+    gentleSlopeDesc: "שיפוע קל",
+    moderateSlope: "בינוני (5-8%)",
+    moderateSlopeDesc: "מורגש אך ניתן לניהול",
+    steepSlope: "תלול (8-12%)",
+    steepSlopeDesc: "עשוי לדרוש סיוע",
+    verySteep: "תלול מאוד (>12%)",
+    verySteepDesc: "אתגר משמעותי",
+    
+    // Steps
+    steps: "מדרגות או מדרכות",
+    noSteps: "ללא",
+    noStepsDesc: "ללא מדרגות לחלוטין",
+    fewSteps: "מעט (1-3)",
+    fewStepsDesc: "מכשולים קלים",
+    someSteps: "כמה (4-10)",
+    someStepsDesc: "מספר מכשולים",
+    manySteps: "הרבה (>10)",
+    manyStepsDesc: "מכשולים תכופים",
+    
+    // Obstacles
+    obstacles: "מכשולים בשביל",
+    noObstacles: "ללא",
+    fewObstacles: "מעט",
+    someObstacles: "כמה",
+    manyObstacles: "הרבה",
+    
+    // Handrails
+    handrails: "מעקות זמינים",
+    handrailsBoth: "משני הצדדים",
+    handrailsOne: "צד אחד",
+    handrailsNone: "ללא",
+    handrailsNA: "לא נדרש",
+    
+    // Visual & Environmental
+    lighting: "תאורת השביל",
+    wellLit: "מואר היטב",
+    partialLight: "תאורה חלקית",
+    noLighting: "ללא תאורה",
+    daylightOnly: "אור יום בלבד",
+    
+    shade: "כיסוי צל",
+    fullShade: "מוצל ברובו",
+    partialShade: "צל חלקי",
+    noShade: "ללא צל/חשוף",
+    
+    hazards: "סכנות פוטנציאליות",
+    hazardsPlaceholder: "לדוגמה: משטחים לא אחידים, ענפים נמוכים, מעברי מים...",
+    
+    // Facilities
+    parking: "חניית נכים",
+    parkingYes: "זמינה",
+    parkingNearby: "בקרבת מקום",
+    parkingNo: "לא זמינה",
+    
+    restrooms: "שירותים נגישים",
+    restroomsYes: "זמינים",
+    restroomsNearby: "בקרבת מקום",
+    restroomsNo: "לא זמינים",
+    
+    benches: "אזורי מנוחה/ספסלים",
+    benchesYes: "זמינים",
+    benchesFew: "מעט",
+    benchesNo: "ללא",
+    
+    water: "ברזיות מים",
+    waterYes: "זמינות",
+    waterNo: "לא זמינות",
+    
+    // Signage
+    signageQuality: "איכות שילוט השביל",
+    signageExcellent: "מצוין",
+    signageGood: "טוב",
+    signageFair: "סביר",
+    signagePoor: "גרוע/ללא",
+    
+    brailleSignage: "שילוט ברייל",
+    brailleYes: "זמין",
+    brailleNo: "לא זמין",
+    
+    audioGuide: "מדריך קולי/תיאור",
+    audioYes: "זמין",
+    audioNo: "לא זמין",
+    
+    // Additional
+    additionalNotes: "הערות נוספות",
+    additionalNotesPlaceholder: "מידע נגישות נוסף, טיפים או אזהרות...",
+    bestTimeToVisit: "הזמן הטוב ביותר לביקור",
+    bestTimePlaceholder: "לדוגמה: בוקר מוקדם לצל, להימנע מסופי שבוע...",
+    emergencyInfo: "מידע חירום",
+    emergencyPlaceholder: "בית חולים קרוב, איש קשר לחירום וכו׳",
+    
+    // Trip types
+    tripType: "סוג טיול",
+    beach: "חוף",
+    stream: "נחל",
+    park: "פארק",
+    forest: "יער",
+    urban: "עירוני",
+    scenic: "נופי",
+    
+    // Route types
+    routeType: "סוג מסלול",
+    circular: "מעגלי",
+    roundTrip: "הלוך ושוב",
+    
+    // Mobility section
+    disabledParking: "חניית נכים",
+    parkingAvailable: "חניה נגישה זמינה",
+    parkingSpaces: "מספר מקומות חניה נגישים:",
+    withAssistance: "עם ליווי",
+    
+    // Surface section  
+    stone: "אבן",
+    mixedSurfaces: "משטחים מעורבים",
+    excellent: "מצוין",
+    fair: "סביר",
+    poor: "גרוע",
+    overgrown: "צמחייה פרועה",
+    
+    // Slopes
+    trailSlopes: "שיפועי שביל",
+    flatMild: "שטוח/קל (<5%)",
+    moderate: "בינוני (5-10%)",
+    steep: "תלול (>10%)",
+    
+    // Visual section
+    visualAdaptations: "התאמות ללקויי ראייה (בחר את כל המתאימים)",
+    raisedBorders: "גבולות בולטים",
+    tactileSurfaces: "משטחים מישושיים",
+    colorContrast: "ניגודיות צבעים",
+    shadeCoverage: "כיסוי צל בשביל",
+    plentyShade: "הרבה צל",
+    intermittent: "לסירוגין",
+    noShade: "ללא צל",
+    trailLit: "💡 השביל מואר בחושך",
+    
+    // Facilities section
+    accessibleFountains: "ברזיות מים נגישות",
+    none: "ללא",
+    one: "אחת",
+    multiple: "מספר",
+    accessibleSeating: "ישיבה נגישה (בחר את כל המתאימים)",
+    noBenches: "ללא ספסלים",
+    oneBench: "ספסל אחד",
+    multipleBenches: "מספר ספסלים",
+    withoutHandrails: "ללא מעקות",
+    accessiblePicnic: "🧺 אזורי פיקניק נגישים זמינים",
+    numberOfAreas: "מספר אזורים",
+    inShade: "בצל",
+    inSun: "בשמש",
+    accessibleViewpoint: "🏔️ נקודת תצפית נגישה זמינה",
+    accessibleRestrooms: "שירותים נגישים",
+    unisex: "יוניסקס",
+    separateMF: "נפרדים ג׳/נ׳",
+    
+    // Signage section
+    availableSignage: "שילוט זמין (בחר את כל המתאימים)",
+    routeMap: "🗺️ מפת מסלול",
+    directionalSigns: "➡️ שילוט כיווני",
+    distanceMarkers: "📏 סימוני מרחק",
+    accessibilityInfo: "♿ מידע נגישות",
+    audioDescAvailable: "🔊 תיאור קולי זמין"
+  }
+};
+
 export class AccessibilityFormV2Full {
   constructor() {
     this.isOpen = false;
     this.currentCallback = null;
     this.formData = {};
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
     this.sections = [
-      { id: 'basic', icon: '🗺️', title: 'Basic Trail Information', required: true },
-      { id: 'mobility', icon: '♿', title: 'Mobility Accessibility', required: false },
-      { id: 'surface', icon: '🛤️', title: 'Trail Surface & Quality', required: false },
-      { id: 'visual', icon: '👁️', title: 'Visual & Environmental', required: false },
-      { id: 'facilities', icon: '🚰', title: 'Facilities & Amenities', required: false },
-      { id: 'signage', icon: '🪧', title: 'Signage & Navigation', required: false },
-      { id: 'additional', icon: '📝', title: 'Additional Information', required: false }
+      { id: 'basic', icon: '🗺️', titleKey: 'basicInfo', required: true },
+      { id: 'mobility', icon: '♿', titleKey: 'mobilityAccess', required: false },
+      { id: 'surface', icon: '🛤️', titleKey: 'trailSurface', required: false },
+      { id: 'visual', icon: '👁️', titleKey: 'visualEnv', required: false },
+      { id: 'facilities', icon: '🚰', titleKey: 'facilities', required: false },
+      { id: 'signage', icon: '🪧', titleKey: 'signage', required: false },
+      { id: 'additional', icon: '📝', titleKey: 'additionalInfo', required: false }
     ];
     this.expandedSection = 'basic';
+  }
+
+  /**
+   * Get translation for key
+   */
+  t(key) {
+    return formTranslations[this.lang]?.[key] || formTranslations['en']?.[key] || key;
+  }
+
+  /**
+   * Update language and refresh form
+   */
+  updateLanguage(newLang) {
+    this.lang = newLang;
+    // Re-render form if it exists
+    const overlay = document.getElementById('af2f-overlay');
+    if (overlay) {
+      // Save current form data before re-rendering
+      const savedData = { ...this.formData };
+      this.loadFormHTML();
+      this.setupEventListeners();
+      // Restore form data
+      this.formData = savedData;
+      this.restoreFormData();
+    }
+  }
+
+  /**
+   * Restore form data after language change
+   */
+  restoreFormData() {
+    // Restore input values
+    Object.entries(this.formData).forEach(([key, value]) => {
+      if (typeof value === 'string' || typeof value === 'number') {
+        const input = document.querySelector(`[name="${key}"]`);
+        if (input) input.value = value;
+      }
+    });
   }
 
   initialize() {
     this.injectStyles();
     this.loadFormHTML();
     this.setupEventListeners();
+    
+    // Register for i18n refresh
+    if (window.i18n) {
+      window.i18n.registerForRefresh('accessibilityFormV2Full', (lang) => {
+        this.updateLanguage(lang);
+      });
+    }
+    
+    // Also listen for languageChanged event as backup
+    window.addEventListener('languageChanged', (e) => {
+      this.updateLanguage(e.detail.newLang);
+    });
   }
 
   injectStyles() {
@@ -576,13 +1129,13 @@ export class AccessibilityFormV2Full {
       <div class="af2f-container">
         <!-- Header -->
         <div class="af2f-header">
-          <h1>🌲 Comprehensive Trail Accessibility Survey</h1>
-          <p>Help create detailed accessibility information for outdoor spaces</p>
+          <h1>🌲 ${this.t('formTitle')}</h1>
+          <p>${this.t('formSubtitle')}</p>
           <button class="af2f-close" onclick="window.closeAccessibilityFormV2Full()">×</button>
           <div class="af2f-progress-bar">
             <div class="af2f-progress-fill" id="af2f-progress"></div>
           </div>
-          <div class="af2f-progress-text" id="af2f-progress-text">0 of 7 sections complete</div>
+          <div class="af2f-progress-text" id="af2f-progress-text">0 ${this.t('sectionsComplete')}</div>
         </div>
         
         <!-- Form Body -->
@@ -592,8 +1145,8 @@ export class AccessibilityFormV2Full {
         
         <!-- Footer -->
         <div class="af2f-footer">
-          <button class="af2f-btn af2f-btn-secondary" onclick="window.closeAccessibilityFormV2Full()">Cancel</button>
-          <button class="af2f-btn af2f-btn-primary" onclick="window.af2fSave()">Save Survey ✓</button>
+          <button class="af2f-btn af2f-btn-secondary" onclick="window.closeAccessibilityFormV2Full()">${this.t('cancel')}</button>
+          <button class="af2f-btn af2f-btn-primary" onclick="window.af2fSave()">${this.t('saveSurvey')}</button>
         </div>
       </div>
     `;
@@ -602,18 +1155,19 @@ export class AccessibilityFormV2Full {
   renderSection(section) {
     const isExpanded = section.id === this.expandedSection;
     const content = this.getSectionContent(section.id);
+    const sectionTitle = this.t(section.titleKey);
     
     return `
       <div class="af2f-section ${isExpanded ? 'expanded' : ''}" data-section="${section.id}">
         <div class="af2f-section-header" onclick="window.af2fToggleSection('${section.id}')">
           <div class="af2f-section-icon">${section.icon}</div>
           <div class="af2f-section-info">
-            <div class="af2f-section-title">${section.title}</div>
-            <div class="af2f-section-subtitle" id="af2f-subtitle-${section.id}">Tap to expand</div>
+            <div class="af2f-section-title">${sectionTitle}</div>
+            <div class="af2f-section-subtitle" id="af2f-subtitle-${section.id}">${this.t('tapToExpand')}</div>
           </div>
           <div class="af2f-section-status">
-            ${section.required ? '<span class="af2f-section-badge required">Required</span>' : ''}
-            <span class="af2f-section-badge incomplete" id="af2f-badge-${section.id}">0 filled</span>
+            ${section.required ? `<span class="af2f-section-badge required">${this.t('required')}</span>` : ''}
+            <span class="af2f-section-badge incomplete" id="af2f-badge-${section.id}">0 ${this.t('filled')}</span>
           </div>
           <span class="af2f-section-arrow">▼</span>
         </div>
@@ -625,61 +1179,61 @@ export class AccessibilityFormV2Full {
   }
 
   getSectionContent(sectionId) {
+    const t = (key) => this.t(key);
+    
     switch (sectionId) {
       case 'basic':
         return `
           <div class="af2f-row">
             <div class="af2f-field">
-              <label class="af2f-label">Trail Name <span class="required">*</span></label>
-              <input type="text" class="af2f-input" name="trailName" placeholder="e.g., Riverside Nature Path" required>
+              <label class="af2f-label">${t('trailName')} <span class="required">*</span></label>
+              <input type="text" class="af2f-input" name="trailName" placeholder="${t('trailNamePlaceholder')}" required>
             </div>
             <div class="af2f-field">
-              <label class="af2f-label">Location/Address <span class="required">*</span></label>
-              <input type="text" class="af2f-input" name="location" placeholder="e.g., Central Park, NYC" required>
+              <label class="af2f-label">${t('location')} <span class="required">*</span></label>
+              <input type="text" class="af2f-input" name="location" placeholder="${t('locationPlaceholder')}" required>
             </div>
           </div>
           
           <div class="af2f-row">
             <div class="af2f-field">
-              <label class="af2f-label">Trail Length (km)</label>
-              <input type="number" class="af2f-input" name="trailLength" step="0.1" min="0" placeholder="e.g., 2.5">
+              <label class="af2f-label">${t('trailLength')}</label>
+              <input type="number" class="af2f-input" name="trailLength" step="0.1" min="0" placeholder="2.5">
             </div>
             <div class="af2f-field">
-              <label class="af2f-label">Estimated Duration</label>
+              <label class="af2f-label">${t('estimatedDuration')}</label>
               <select class="af2f-select" name="estimatedTime">
-                <option value="">Select duration</option>
-                <option value="Under 30 minutes">Under 30 minutes</option>
-                <option value="30-60 minutes">30-60 minutes</option>
-                <option value="1-2 hours">1-2 hours</option>
-                <option value="2-4 hours">2-4 hours</option>
-                <option value="Half day">Half day</option>
-                <option value="Full day">Full day</option>
+                <option value="">${t('selectDuration')}</option>
+                <option value="Under 30 minutes">${t('under15')}</option>
+                <option value="30-60 minutes">${t('mins30to60')}</option>
+                <option value="1-2 hours">${t('hours1to2')}</option>
+                <option value="2-4 hours">${t('over2hours')}</option>
               </select>
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">Trip Type</label>
+            <label class="af2f-label">${t('tripType')}</label>
             <div class="af2f-chip-grid" data-field="tripType" data-type="single">
-              <div class="af2f-chip" data-value="Beach Promenade">🏖️ Beach</div>
-              <div class="af2f-chip" data-value="Stream Path">🌊 Stream</div>
-              <div class="af2f-chip" data-value="Park Route">🌳 Park</div>
-              <div class="af2f-chip" data-value="Forest Trail">🌲 Forest</div>
-              <div class="af2f-chip" data-value="Urban Route">🏙️ Urban</div>
-              <div class="af2f-chip" data-value="Scenic Drive">🚗 Scenic</div>
+              <div class="af2f-chip" data-value="Beach Promenade">🏖️ ${t('beach')}</div>
+              <div class="af2f-chip" data-value="Stream Path">🌊 ${t('stream')}</div>
+              <div class="af2f-chip" data-value="Park Route">🌳 ${t('park')}</div>
+              <div class="af2f-chip" data-value="Forest Trail">🌲 ${t('forest')}</div>
+              <div class="af2f-chip" data-value="Urban Route">🏙️ ${t('urban')}</div>
+              <div class="af2f-chip" data-value="Scenic Drive">🚗 ${t('scenic')}</div>
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">Route Type</label>
+            <label class="af2f-label">${t('routeType')}</label>
             <div class="af2f-card-grid" data-field="routeType" data-type="single">
               <div class="af2f-select-card" data-value="Circular">
                 <span class="card-icon">🔄</span>
-                <span class="card-label">Circular Loop</span>
+                <span class="card-label">${t('circular')}</span>
               </div>
               <div class="af2f-select-card" data-value="Round Trip">
                 <span class="card-icon">↔️</span>
-                <span class="card-label">Round Trip</span>
+                <span class="card-label">${t('roundTrip')}</span>
               </div>
             </div>
           </div>
@@ -688,38 +1242,38 @@ export class AccessibilityFormV2Full {
       case 'mobility':
         return `
           <div class="af2f-field">
-            <label class="af2f-label">Wheelchair Accessibility Level</label>
+            <label class="af2f-label">${t('wheelchairAccess')}</label>
             <div class="af2f-card-grid cols-4" data-field="wheelchairAccess" data-type="single">
               <div class="af2f-select-card" data-value="Fully accessible">
                 <span class="card-icon">♿</span>
-                <span class="card-label">Fully Accessible</span>
+                <span class="card-label">${t('fullyAccessible')}</span>
               </div>
               <div class="af2f-select-card" data-value="Partially accessible">
                 <span class="card-icon">⚠️</span>
-                <span class="card-label">Partially</span>
+                <span class="card-label">${t('partiallyAccessible')}</span>
               </div>
               <div class="af2f-select-card" data-value="Accessible with assistance">
                 <span class="card-icon">🤝</span>
-                <span class="card-label">With Assistance</span>
+                <span class="card-label">${t('withAssistance')}</span>
               </div>
               <div class="af2f-select-card" data-value="Not accessible">
                 <span class="card-icon">🚫</span>
-                <span class="card-label">Not Accessible</span>
+                <span class="card-label">${t('notAccessible')}</span>
               </div>
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">Disabled Parking</label>
+            <label class="af2f-label">${t('disabledParking')}</label>
             <div class="af2f-checkbox" data-field="disabledParking" data-value="Available">
               <span class="check-box">✓</span>
-              <span class="check-label">Accessible parking available</span>
+              <span class="check-label">${t('parkingAvailable')}</span>
             </div>
           </div>
           
           <div class="af2f-field">
             <div class="af2f-number-row">
-              <label class="af2f-label" style="margin-bottom:0">Number of accessible parking spaces:</label>
+              <label class="af2f-label" style="margin-bottom:0">${t('parkingSpaces')}</label>
               <input type="number" class="af2f-number-input" name="parkingSpaces" min="0" value="0">
             </div>
           </div>
@@ -728,54 +1282,54 @@ export class AccessibilityFormV2Full {
       case 'surface':
         return `
           <div class="af2f-field">
-            <label class="af2f-label">Trail Surface Types (select all that apply)</label>
+            <label class="af2f-label">${t('surfaceTypes')}</label>
             <div class="af2f-chip-grid" data-field="trailSurface" data-type="multi">
-              <div class="af2f-chip" data-value="Asphalt">🛣️ Asphalt</div>
-              <div class="af2f-chip" data-value="Concrete">⬜ Concrete</div>
-              <div class="af2f-chip" data-value="Stone">🪨 Stone</div>
-              <div class="af2f-chip" data-value="Wood/Plastic Deck">🪵 Wood/Deck</div>
-              <div class="af2f-chip" data-value="Compacted Gravel">⚪ Compacted Gravel</div>
-              <div class="af2f-chip" data-value="Mixed Surfaces">🔀 Mixed</div>
-              <div class="af2f-chip" data-value="Grass">🌿 Grass</div>
+              <div class="af2f-chip" data-value="Asphalt">🛣️ ${t('asphalt')}</div>
+              <div class="af2f-chip" data-value="Concrete">⬜ ${t('concrete')}</div>
+              <div class="af2f-chip" data-value="Stone">🪨 ${t('stone')}</div>
+              <div class="af2f-chip" data-value="Wood/Plastic Deck">🪵 ${t('woodDeck')}</div>
+              <div class="af2f-chip" data-value="Compacted Gravel">⚪ ${t('gravel')}</div>
+              <div class="af2f-chip" data-value="Mixed Surfaces">🔀 ${t('mixedSurfaces')}</div>
+              <div class="af2f-chip" data-value="Grass">🌿 ${t('grass')}</div>
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">Surface Quality</label>
+            <label class="af2f-label">${t('surfaceQuality')}</label>
             <div class="af2f-card-grid" data-field="surfaceQuality" data-type="single">
               <div class="af2f-select-card" data-value="Excellent - smooth and well maintained">
                 <span class="card-icon">✨</span>
-                <span class="card-label">Excellent</span>
+                <span class="card-label">${t('excellent')}</span>
               </div>
               <div class="af2f-select-card" data-value="Fair - minor disruptions, rough patches, bumps, cracks">
                 <span class="card-icon">👍</span>
-                <span class="card-label">Fair</span>
+                <span class="card-label">${t('fair')}</span>
               </div>
               <div class="af2f-select-card" data-value="Poor - serious disruptions, protruding stones, large grooves">
                 <span class="card-icon">⚠️</span>
-                <span class="card-label">Poor</span>
+                <span class="card-label">${t('poor')}</span>
               </div>
               <div class="af2f-select-card" data-value="Vegetation blocks passage">
                 <span class="card-icon">🌿</span>
-                <span class="card-label">Overgrown</span>
+                <span class="card-label">${t('overgrown')}</span>
               </div>
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">Trail Slopes</label>
+            <label class="af2f-label">${t('trailSlopes')}</label>
             <div class="af2f-card-grid cols-3" data-field="trailSlopes" data-type="single">
               <div class="af2f-select-card" data-value="No slopes to mild slopes (up to 5%)">
                 <span class="card-icon">➡️</span>
-                <span class="card-label">Flat/Mild (&lt;5%)</span>
+                <span class="card-label">${t('flatMild')}</span>
               </div>
               <div class="af2f-select-card" data-value="Moderate slopes - assistance recommended (5%-10%)">
                 <span class="card-icon">📐</span>
-                <span class="card-label">Moderate (5-10%)</span>
+                <span class="card-label">${t('moderate')}</span>
               </div>
               <div class="af2f-select-card" data-value="Steep slopes - not accessible (over 10%)">
                 <span class="card-icon">⛰️</span>
-                <span class="card-label">Steep (&gt;10%)</span>
+                <span class="card-label">${t('steep')}</span>
               </div>
             </div>
           </div>
@@ -784,28 +1338,28 @@ export class AccessibilityFormV2Full {
       case 'visual':
         return `
           <div class="af2f-field">
-            <label class="af2f-label">Visual Impairment Adaptations (select all that apply)</label>
+            <label class="af2f-label">${t('visualAdaptations')}</label>
             <div class="af2f-chip-grid" data-field="visualAdaptations" data-type="multi">
-              <div class="af2f-chip" data-value="Raised/protruding borders">Raised borders</div>
-              <div class="af2f-chip" data-value="Texture/tactile differences">Tactile surfaces</div>
-              <div class="af2f-chip" data-value="Color contrast differences">Color contrast</div>
+              <div class="af2f-chip" data-value="Raised/protruding borders">${t('raisedBorders')}</div>
+              <div class="af2f-chip" data-value="Texture/tactile differences">${t('tactileSurfaces')}</div>
+              <div class="af2f-chip" data-value="Color contrast differences">${t('colorContrast')}</div>
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">Shade Coverage on Trail</label>
+            <label class="af2f-label">${t('shadeCoverage')}</label>
             <div class="af2f-card-grid cols-3" data-field="shadeCoverage" data-type="single">
               <div class="af2f-select-card" data-value="Plenty of shade">
                 <span class="card-icon">🌳</span>
-                <span class="card-label">Plenty of shade</span>
+                <span class="card-label">${t('plentyShade')}</span>
               </div>
               <div class="af2f-select-card" data-value="Intermittent shade">
                 <span class="card-icon">⛅</span>
-                <span class="card-label">Intermittent</span>
+                <span class="card-label">${t('intermittent')}</span>
               </div>
               <div class="af2f-select-card" data-value="No shade">
                 <span class="card-icon">☀️</span>
-                <span class="card-label">No shade</span>
+                <span class="card-label">${t('noShade')}</span>
               </div>
             </div>
           </div>
@@ -813,7 +1367,7 @@ export class AccessibilityFormV2Full {
           <div class="af2f-field">
             <div class="af2f-checkbox" data-field="lighting" data-value="Trail is lit in darkness">
               <span class="check-box">✓</span>
-              <span class="check-label">💡 Trail is lit in darkness</span>
+              <span class="check-label">${t('trailLit')}</span>
             </div>
           </div>
         `;
@@ -821,52 +1375,52 @@ export class AccessibilityFormV2Full {
       case 'facilities':
         return `
           <div class="af2f-field">
-            <label class="af2f-label">Accessible Water Fountains</label>
+            <label class="af2f-label">${t('accessibleFountains')}</label>
             <div class="af2f-card-grid cols-3" data-field="waterFountains" data-type="single">
               <div class="af2f-select-card" data-value="None">
                 <span class="card-icon">🚫</span>
-                <span class="card-label">None</span>
+                <span class="card-label">${t('none')}</span>
               </div>
               <div class="af2f-select-card" data-value="One accessible fountain">
                 <span class="card-icon">🚰</span>
-                <span class="card-label">One</span>
+                <span class="card-label">${t('one')}</span>
               </div>
               <div class="af2f-select-card" data-value="Multiple fountains along route">
                 <span class="card-icon">🚰🚰</span>
-                <span class="card-label">Multiple</span>
+                <span class="card-label">${t('multiple')}</span>
               </div>
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">Accessible Seating (select all that apply)</label>
+            <label class="af2f-label">${t('accessibleSeating')}</label>
             <div class="af2f-chip-grid" data-field="seating" data-type="multi">
-              <div class="af2f-chip" data-value="No accessible benches">No benches</div>
-              <div class="af2f-chip" data-value="One accessible bench">One bench</div>
-              <div class="af2f-chip" data-value="Multiple benches along route">Multiple benches</div>
-              <div class="af2f-chip" data-value="Benches without handrails">Without handrails</div>
+              <div class="af2f-chip" data-value="No accessible benches">${t('noBenches')}</div>
+              <div class="af2f-chip" data-value="One accessible bench">${t('oneBench')}</div>
+              <div class="af2f-chip" data-value="Multiple benches along route">${t('multipleBenches')}</div>
+              <div class="af2f-chip" data-value="Benches without handrails">${t('withoutHandrails')}</div>
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">Accessible Picnic Areas</label>
+            <label class="af2f-label">${t('benches')}</label>
             <div class="af2f-checkbox" data-field="picnicAreas" data-value="Available">
               <span class="check-box">✓</span>
-              <span class="check-label">🧺 Accessible picnic areas available</span>
+              <span class="check-label">${t('accessiblePicnic')}</span>
             </div>
           </div>
           
           <div class="af2f-row af2f-row-3">
             <div class="af2f-field">
-              <label class="af2f-label">Number of areas</label>
+              <label class="af2f-label">${t('numberOfAreas')}</label>
               <input type="number" class="af2f-input" name="picnicCount" min="0" value="0">
             </div>
             <div class="af2f-field">
-              <label class="af2f-label">In shade</label>
+              <label class="af2f-label">${t('inShade')}</label>
               <input type="number" class="af2f-input" name="picnicShade" min="0" value="0">
             </div>
             <div class="af2f-field">
-              <label class="af2f-label">In sun</label>
+              <label class="af2f-label">${t('inSun')}</label>
               <input type="number" class="af2f-input" name="picnicSun" min="0" value="0">
             </div>
           </div>
@@ -874,24 +1428,24 @@ export class AccessibilityFormV2Full {
           <div class="af2f-field">
             <div class="af2f-checkbox" data-field="accessibleViewpoint" data-value="Available">
               <span class="check-box">✓</span>
-              <span class="check-label">🏔️ Accessible viewpoint available</span>
+              <span class="check-label">${t('accessibleViewpoint')}</span>
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">Accessible Restrooms</label>
+            <label class="af2f-label">${t('accessibleRestrooms')}</label>
             <div class="af2f-card-grid cols-3" data-field="restrooms" data-type="single">
               <div class="af2f-select-card" data-value="None">
                 <span class="card-icon">🚫</span>
-                <span class="card-label">None</span>
+                <span class="card-label">${t('none')}</span>
               </div>
               <div class="af2f-select-card" data-value="One unisex accessible restroom">
                 <span class="card-icon">🚻</span>
-                <span class="card-label">Unisex</span>
+                <span class="card-label">${t('unisex')}</span>
               </div>
               <div class="af2f-select-card" data-value="Separate accessible restrooms for men and women">
                 <span class="card-icon">🚹🚺</span>
-                <span class="card-label">Separate M/F</span>
+                <span class="card-label">${t('separateMF')}</span>
               </div>
             </div>
           </div>
@@ -900,20 +1454,20 @@ export class AccessibilityFormV2Full {
       case 'signage':
         return `
           <div class="af2f-field">
-            <label class="af2f-label">Available Signage (select all that apply)</label>
+            <label class="af2f-label">${t('availableSignage')}</label>
             <div class="af2f-chip-grid" data-field="signage" data-type="multi">
-              <div class="af2f-chip" data-value="Route map available">🗺️ Route map</div>
-              <div class="af2f-chip" data-value="Clear directional signage">➡️ Directional signs</div>
-              <div class="af2f-chip" data-value="Simple language signage">📖 Simple language</div>
-              <div class="af2f-chip" data-value="Large, high-contrast accessible signage">🔤 High contrast</div>
-              <div class="af2f-chip" data-value="Audio explanation compatible with T-mode hearing devices">🔊 Audio/T-mode</div>
+              <div class="af2f-chip" data-value="Route map available">${t('routeMap')}</div>
+              <div class="af2f-chip" data-value="Clear directional signage">${t('directionalSigns')}</div>
+              <div class="af2f-chip" data-value="Simple language signage">📖 ${this.lang === 'he' ? 'שפה פשוטה' : 'Simple language'}</div>
+              <div class="af2f-chip" data-value="Large, high-contrast accessible signage">🔤 ${this.lang === 'he' ? 'ניגודיות גבוהה' : 'High contrast'}</div>
+              <div class="af2f-chip" data-value="Audio explanation compatible with T-mode hearing devices">${t('audioDescAvailable')}</div>
             </div>
           </div>
           
           <div class="af2f-field">
             <div class="af2f-checkbox" data-field="qrCode" data-value="Available">
               <span class="check-box">✓</span>
-              <span class="check-label">📱 QR code with site information available</span>
+              <span class="check-label">📱 ${this.lang === 'he' ? 'קוד QR עם מידע על האתר זמין' : 'QR code with site information available'}</span>
             </div>
           </div>
         `;
@@ -921,35 +1475,35 @@ export class AccessibilityFormV2Full {
       case 'additional':
         return `
           <div class="af2f-field">
-            <label class="af2f-label">Additional accessibility notes</label>
-            <textarea class="af2f-textarea" name="additionalNotes" placeholder="Please provide additional details about accessibility features, challenges, or recommendations..."></textarea>
+            <label class="af2f-label">${t('additionalNotes')}</label>
+            <textarea class="af2f-textarea" name="additionalNotes" placeholder="${t('additionalNotesPlaceholder')}"></textarea>
           </div>
           
           <div class="af2f-row">
             <div class="af2f-field">
-              <label class="af2f-label">Surveyor Name (Optional)</label>
-              <input type="text" class="af2f-input" name="surveyorName" placeholder="Your name">
+              <label class="af2f-label">${this.lang === 'he' ? 'שם הסוקר (אופציונלי)' : 'Surveyor Name (Optional)'}</label>
+              <input type="text" class="af2f-input" name="surveyorName" placeholder="${this.lang === 'he' ? 'השם שלך' : 'Your name'}">
             </div>
             <div class="af2f-field">
-              <label class="af2f-label">Survey Date</label>
+              <label class="af2f-label">${this.lang === 'he' ? 'תאריך הסקר' : 'Survey Date'}</label>
               <input type="date" class="af2f-input" name="surveyDate">
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">Overall Accessibility Summary</label>
+            <label class="af2f-label">${this.lang === 'he' ? 'סיכום נגישות כללי' : 'Overall Accessibility Summary'}</label>
             <div class="af2f-card-grid cols-3" data-field="accessibilitySummary" data-type="single">
               <div class="af2f-select-card" data-value="Accessible">
                 <span class="card-icon">✅</span>
-                <span class="card-label">Accessible</span>
+                <span class="card-label">${this.lang === 'he' ? 'נגיש' : 'Accessible'}</span>
               </div>
               <div class="af2f-select-card" data-value="Partially accessible">
                 <span class="card-icon">⚠️</span>
-                <span class="card-label">Partial</span>
+                <span class="card-label">${this.lang === 'he' ? 'נגיש חלקית' : 'Partial'}</span>
               </div>
               <div class="af2f-select-card" data-value="Not accessible">
                 <span class="card-icon">❌</span>
-                <span class="card-label">Not Accessible</span>
+                <span class="card-label">${t('notAccessible')}</span>
               </div>
             </div>
           </div>
