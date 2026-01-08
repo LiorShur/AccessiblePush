@@ -725,12 +725,12 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 64px;
+      height: 60px;
       background: #000;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
-      padding: 0 24px;
+      padding: 0 16px;
       z-index: 9999;
     }
     .nav-brand {
@@ -738,7 +738,7 @@
       align-items: center;
       gap: 8px;
       font-weight: 700;
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       color: #fff;
       text-decoration: none;
       margin-right: auto;
@@ -4680,19 +4680,232 @@ Generated: ${new Date().toLocaleString()}`;
   <script type="module">
     import { i18n, t } from './src/i18n/i18n.js';
     
+    /**
+     * Translate the report form modal
+     */
+    function translateReportForm() {
+      const lang = i18n.getLanguage();
+      
+      // Report form translations
+      const reportFormTranslations = {
+        en: {
+          modalTitle: "📋 Report Accessibility Issue",
+          location: "📍 Location",
+          locationHint: "Click on the map to select location, or use current location",
+          useCurrentLocation: "📍 Use My Current Location",
+          issueType: "🏷️ Issue Type *",
+          selectType: "Select issue type...",
+          sidewalkIssues: "Sidewalk Issues",
+          curbRamp: "🚧 Missing/Damaged Curb Ramp",
+          sidewalkBlocked: "⛔ Blocked Sidewalk",
+          damagedSidewalk: "💔 Damaged Sidewalk",
+          tactilePaving: "🔲 Missing Tactile Paving",
+          buildingAccess: "Building Access",
+          inaccessibleEntrance: "🚪 Inaccessible Entrance",
+          brokenElevator: "🛗 Broken Elevator/Lift",
+          heavyDoors: "🚪 Heavy/Manual Doors",
+          stairsOnly: "🪜 Stairs Only Access",
+          parking: "Parking",
+          parkingBlocked: "🅿️ Blocked Accessible Parking",
+          noParking: "🚫 No Accessible Parking",
+          damagedParking: "⚠️ Damaged Parking Space",
+          facilities: "Facilities",
+          inaccessibleRestroom: "🚻 Inaccessible Restroom",
+          inaccessibleFountain: "🚰 Inaccessible Water Fountain",
+          noSeating: "💺 No Accessible Seating",
+          trailOutdoor: "Trail/Outdoor",
+          trailObstacle: "🪨 Trail Obstacle",
+          trailErosion: "🕳️ Trail Erosion/Damage",
+          overgrown: "🌿 Overgrown Vegetation",
+          missingSign: "🪧 Missing Signage",
+          transit: "Transit",
+          busStop: "🚌 Inaccessible Bus Stop",
+          transitStation: "🚇 Inaccessible Station",
+          other: "Other",
+          otherIssue: "📝 Other Issue",
+          severity: "⚠️ Severity Level *",
+          severityHint: "Rate how much this barrier impacts accessibility (1 = minor inconvenience, 5 = completely blocks access)",
+          minor: "Minor",
+          low: "Low",
+          medium: "Medium",
+          high: "High",
+          critical: "Critical",
+          description: "📝 Description *",
+          descriptionPlaceholder: "Describe the accessibility issue in detail...",
+          photo: "📷 Photo (Optional)",
+          addPhoto: "Add Photo",
+          removePhoto: "Remove",
+          cancel: "Cancel",
+          submitReport: "📤 Submit Report"
+        },
+        he: {
+          modalTitle: "📋 דווח על בעיית נגישות",
+          location: "📍 מיקום",
+          locationHint: "לחץ על המפה לבחירת מיקום, או השתמש במיקום הנוכחי",
+          useCurrentLocation: "📍 השתמש במיקום הנוכחי שלי",
+          issueType: "🏷️ סוג הבעיה *",
+          selectType: "בחר סוג בעיה...",
+          sidewalkIssues: "בעיות מדרכה",
+          curbRamp: "🚧 רמפה חסרה/פגומה",
+          sidewalkBlocked: "⛔ מדרכה חסומה",
+          damagedSidewalk: "💔 מדרכה פגומה",
+          tactilePaving: "🔲 ריצוף מישושי חסר",
+          buildingAccess: "גישה לבניין",
+          inaccessibleEntrance: "🚪 כניסה לא נגישה",
+          brokenElevator: "🛗 מעלית מקולקלת",
+          heavyDoors: "🚪 דלתות כבדות/ידניות",
+          stairsOnly: "🪜 גישה במדרגות בלבד",
+          parking: "חניה",
+          parkingBlocked: "🅿️ חניית נכים חסומה",
+          noParking: "🚫 אין חניית נכים",
+          damagedParking: "⚠️ מקום חניה פגום",
+          facilities: "מתקנים",
+          inaccessibleRestroom: "🚻 שירותים לא נגישים",
+          inaccessibleFountain: "🚰 ברזייה לא נגישה",
+          noSeating: "💺 אין ישיבה נגישה",
+          trailOutdoor: "שביל/שטח פתוח",
+          trailObstacle: "🪨 מכשול בשביל",
+          trailErosion: "🕳️ שחיקה/נזק לשביל",
+          overgrown: "🌿 צמחייה פרועה",
+          missingSign: "🪧 שילוט חסר",
+          transit: "תחבורה ציבורית",
+          busStop: "🚌 תחנת אוטובוס לא נגישה",
+          transitStation: "🚇 תחנה לא נגישה",
+          other: "אחר",
+          otherIssue: "📝 בעיה אחרת",
+          severity: "⚠️ רמת חומרה *",
+          severityHint: "דרג כמה המכשול משפיע על הנגישות (1 = אי נוחות קלה, 5 = חוסם גישה לחלוטין)",
+          minor: "קל",
+          low: "נמוך",
+          medium: "בינוני",
+          high: "גבוה",
+          critical: "קריטי",
+          description: "📝 תיאור *",
+          descriptionPlaceholder: "תאר את בעיית הנגישות בפירוט...",
+          photo: "📷 תמונה (אופציונלי)",
+          addPhoto: "הוסף תמונה",
+          removePhoto: "הסר",
+          cancel: "ביטול",
+          submitReport: "📤 שלח דיווח"
+        }
+      };
+      
+      const tr = reportFormTranslations[lang] || reportFormTranslations['en'];
+      
+      // Update modal title
+      const modalTitle = document.querySelector('#createReportModal .modal-header h2');
+      if (modalTitle) modalTitle.textContent = tr.modalTitle;
+      
+      // Update location label
+      const locationLabel = document.querySelector('#createReportModal label[style*="Location"]');
+      if (locationLabel) locationLabel.innerHTML = tr.location;
+      
+      // Update location hint
+      const locationHint = document.getElementById('selectedLocationText');
+      if (locationHint && !locationHint.textContent.includes('📍')) {
+        locationHint.textContent = tr.locationHint;
+      }
+      
+      // Update use current location button
+      const useLocationBtn = document.getElementById('useCurrentLocationBtn');
+      if (useLocationBtn) useLocationBtn.textContent = tr.useCurrentLocation;
+      
+      // Update issue type label
+      const issueTypeLabel = document.querySelector('#createReportModal label[for="reportIssueType"]');
+      if (issueTypeLabel) issueTypeLabel.innerHTML = tr.issueType;
+      
+      // Update select options
+      const select = document.getElementById('reportIssueType');
+      if (select) {
+        const options = select.querySelectorAll('option, optgroup');
+        options.forEach(el => {
+          if (el.tagName === 'OPTION') {
+            if (el.value === '') el.textContent = tr.selectType;
+            else if (el.value === 'curb_ramp') el.textContent = tr.curbRamp;
+            else if (el.value === 'sidewalk_blocked') el.textContent = tr.sidewalkBlocked;
+            else if (el.value === 'damaged_sidewalk') el.textContent = tr.damagedSidewalk;
+            else if (el.value === 'tactile_paving') el.textContent = tr.tactilePaving;
+            else if (el.value === 'inaccessible_entrance') el.textContent = tr.inaccessibleEntrance;
+            else if (el.value === 'broken_elevator') el.textContent = tr.brokenElevator;
+            else if (el.value === 'heavy_doors') el.textContent = tr.heavyDoors;
+            else if (el.value === 'stairs_only') el.textContent = tr.stairsOnly;
+            else if (el.value === 'parking_blocked') el.textContent = tr.parkingBlocked;
+            else if (el.value === 'no_parking') el.textContent = tr.noParking;
+            else if (el.value === 'damaged_parking') el.textContent = tr.damagedParking;
+            else if (el.value === 'inaccessible_restroom') el.textContent = tr.inaccessibleRestroom;
+            else if (el.value === 'inaccessible_fountain') el.textContent = tr.inaccessibleFountain;
+            else if (el.value === 'no_seating') el.textContent = tr.noSeating;
+            else if (el.value === 'trail_obstacle') el.textContent = tr.trailObstacle;
+            else if (el.value === 'trail_erosion') el.textContent = tr.trailErosion;
+            else if (el.value === 'overgrown') el.textContent = tr.overgrown;
+            else if (el.value === 'missing_sign') el.textContent = tr.missingSign;
+            else if (el.value === 'bus_stop') el.textContent = tr.busStop;
+            else if (el.value === 'transit_station') el.textContent = tr.transitStation;
+            else if (el.value === 'other') el.textContent = tr.otherIssue;
+          } else if (el.tagName === 'OPTGROUP') {
+            const label = el.getAttribute('label');
+            if (label.includes('Sidewalk')) el.setAttribute('label', tr.sidewalkIssues);
+            else if (label.includes('Building')) el.setAttribute('label', tr.buildingAccess);
+            else if (label.includes('Parking')) el.setAttribute('label', tr.parking);
+            else if (label.includes('Facilities')) el.setAttribute('label', tr.facilities);
+            else if (label.includes('Trail')) el.setAttribute('label', tr.trailOutdoor);
+            else if (label.includes('Transit')) el.setAttribute('label', tr.transit);
+            else if (label.includes('Other')) el.setAttribute('label', tr.other);
+          }
+        });
+      }
+      
+      // Update severity labels
+      const severityLabels = document.querySelectorAll('#createReportModal .severity-option span:last-child');
+      const severityTexts = [tr.minor, tr.low, tr.medium, tr.high, tr.critical];
+      severityLabels.forEach((label, idx) => {
+        if (severityTexts[idx]) label.textContent = severityTexts[idx];
+      });
+      
+      // Update severity hint
+      const severityHint = document.querySelector('#createReportModal .severity-scale')?.previousElementSibling;
+      if (severityHint && severityHint.tagName === 'P') {
+        severityHint.textContent = tr.severityHint;
+      }
+      
+      // Update description label and placeholder
+      const descLabel = document.querySelector('#createReportModal label[for="reportDescription"]');
+      if (descLabel) descLabel.innerHTML = tr.description;
+      
+      const descTextarea = document.getElementById('reportDescription');
+      if (descTextarea) descTextarea.placeholder = tr.descriptionPlaceholder;
+      
+      // Update buttons
+      const cancelBtn = document.getElementById('cancelReportBtn');
+      if (cancelBtn) cancelBtn.textContent = tr.cancel;
+      
+      const submitBtn = document.getElementById('submitReportBtn');
+      if (submitBtn && !submitBtn.disabled) submitBtn.textContent = tr.submitReport;
+      
+      console.log('🌐 Report form translated to', lang);
+    }
+    
     // Initialize i18n
     try {
       await i18n.init();
       i18n.translatePage();
+      translateReportForm();
+      
+      // Register for i18n refresh
+      i18n.registerForRefresh('reportForm', () => {
+        translateReportForm();
+      });
       
       // Listen for language changes
       i18n.onLanguageChange((newLang) => {
         i18n.translatePage();
+        translateReportForm();
       });
       
       // Make available globally
       window.i18n = i18n;
       window.t = t;
+      window.translateReportForm = translateReportForm;
     } catch (e) {
       console.warn('🌐 i18n initialization failed:', e);
       // Apply direction from saved preference
