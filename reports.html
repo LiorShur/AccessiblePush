@@ -2305,20 +2305,20 @@
           <h4 style="margin: 0 0 12px 0; font-size: 0.9rem; color: #374151;">📋 ${tr.submitToAuthorities || 'Submit to Authorities'}</h4>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button onclick="window.printReport('${report.id}')" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 12px;">
-              🖨️ Print Report
+              🖨️ ${tr.printReport || 'Print Report'}
             </button>
             <button onclick="window.downloadReport('${report.id}')" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 12px;">
-              📥 Download PDF
+              📥 ${tr.downloadPdf || 'Download PDF'}
             </button>
             <button onclick="window.export311Email('${report.id}')" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 12px;">
-              ✉️ Email Template
+              ✉️ ${tr.emailTemplate || 'Email Template'}
             </button>
             <button onclick="window.export311Text('${report.id}')" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 12px;">
-              📄 Copy Text
+              📄 ${tr.copyText || 'Copy Text'}
             </button>
           </div>
           <p style="font-size: 0.75rem; color: #9ca3af; margin: 8px 0 0 0;">
-            Print or download this report to submit to your local 311 service or accessibility office.
+            ${tr.printHint || 'Print or download this report to submit to your local 311 service or accessibility office.'}
           </p>
         </div>
       `;
@@ -4931,7 +4931,12 @@ Generated: ${new Date().toLocaleString()}`;
           showOnMap: 'Show on Map',
           navigate: 'Navigate',
           submitToAuthorities: 'Submit to Authorities',
-          cannotVerifyOwn: 'Cannot verify your own report'
+          cannotVerifyOwn: 'Cannot verify your own report',
+          printReport: 'Print Report',
+          downloadPdf: 'Download PDF',
+          emailTemplate: 'Email Template',
+          copyText: 'Copy Text',
+          printHint: 'Print or download this report to submit to your local 311 service or accessibility office.'
         },
         he: {
           new: 'חדש',
@@ -4969,7 +4974,12 @@ Generated: ${new Date().toLocaleString()}`;
           showOnMap: 'הצג במפה',
           navigate: 'נווט',
           submitToAuthorities: 'שלח לרשויות',
-          cannotVerifyOwn: 'לא ניתן לאמת דיווח משלך'
+          cannotVerifyOwn: 'לא ניתן לאמת דיווח משלך',
+          printReport: 'הדפס דיווח',
+          downloadPdf: 'הורד PDF',
+          emailTemplate: 'תבנית דוא״ל',
+          copyText: 'העתק טקסט',
+          printHint: 'הדפס או הורד דיווח זה להגשה לשירות 311 המקומי או משרד הנגישות.'
         }
       };
       
