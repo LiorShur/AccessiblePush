@@ -1005,7 +1005,7 @@
 </head>
 <body>
   <!-- Skip to main content link for keyboard users -->
-  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <a href="#main-content" class="skip-link" data-i18n="common.skipToMain">Skip to main content</a>
 
   <!-- Navigation -->
   <nav class="top-nav" role="navigation" aria-label="Main navigation">
@@ -1057,19 +1057,19 @@
     <div class="map-section-fullwidth">
       <div id="reportMap" class="reports-map"></div>
       <div class="map-controls-overlay">
-        <button class="map-fab-btn" id="centerMapBtn" title="Center on my location" aria-label="Center map on my location">
+        <button class="map-fab-btn" id="centerMapBtn" data-i18n-title="reports.centerMap" title="Center on my location" aria-label="Center map on my location">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
           </svg>
         </button>
-        <button class="map-fab-btn" id="zoomInBtn" title="Zoom in" aria-label="Zoom in">+</button>
-        <button class="map-fab-btn" id="zoomOutBtn" title="Zoom out" aria-label="Zoom out">−</button>
+        <button class="map-fab-btn" id="zoomInBtn" data-i18n-title="reports.zoomIn" title="Zoom in" aria-label="Zoom in">+</button>
+        <button class="map-fab-btn" id="zoomOutBtn" data-i18n-title="reports.zoomOut" title="Zoom out" aria-label="Zoom out">−</button>
       </div>
       <div class="map-info-bar">
-        <span id="visibleReportsCount">0 reports in view</span>
+        <span id="visibleReportsCount" data-i18n="reports.reportsInView">0 reports in view</span>
         <label class="auto-update-toggle">
           <input type="checkbox" id="autoUpdateReports" checked>
-          <span>Auto-update on pan</span>
+          <span data-i18n="reports.autoUpdateOnPan">Auto-update on pan</span>
         </label>
       </div>
     </div>
@@ -1078,26 +1078,26 @@
     <div class="quick-stats-bar">
       <div class="quick-stat">
         <span class="qs-value" id="totalReports">0</span>
-        <span class="qs-label">Total</span>
+        <span class="qs-label" data-i18n="reports.totalReports">Total</span>
       </div>
       <div class="quick-stat">
         <span class="qs-value" id="newReports">0</span>
-        <span class="qs-label">New</span>
+        <span class="qs-label" data-i18n="reports.newReports">New</span>
       </div>
       <div class="quick-stat">
         <span class="qs-value" id="resolvedReports">0</span>
-        <span class="qs-label">Resolved</span>
+        <span class="qs-label" data-i18n="reports.resolvedReports">Resolved</span>
       </div>
       <div class="quick-stat location">
         <span class="qs-value" id="yourLocation">📍</span>
-        <span class="qs-label">Your Area</span>
+        <span class="qs-label" data-i18n="reports.yourArea">Your Area</span>
       </div>
     </div>
 
     <!-- Expandable Filters -->
     <div class="filters-accordion">
       <button class="filters-toggle" id="filtersToggleBtn" aria-expanded="false" aria-controls="filtersContent">
-        <span>🔍 Filter Reports</span>
+        <span data-i18n="reports.filterReports">🔍 Filter Reports</span>
         <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
         </svg>
@@ -1105,53 +1105,53 @@
       <div class="filters-content collapsed" id="filtersContent">
         <div class="filters-grid">
           <div class="form-group">
-            <label for="statusFilter">Status</label>
+            <label for="statusFilter" data-i18n="reports.status">Status</label>
             <select id="statusFilter" class="form-select">
-              <option value="">All Statuses</option>
-              <option value="new">New</option>
-              <option value="acknowledged">Acknowledged</option>
-              <option value="in_progress">In Progress</option>
-              <option value="resolved">Resolved</option>
+              <option value="" data-i18n="reports.allStatuses">All Statuses</option>
+              <option value="new" data-i18n="reports.statusNew">New</option>
+              <option value="acknowledged" data-i18n="reports.statusAcknowledged">Acknowledged</option>
+              <option value="in_progress" data-i18n="reports.inProgress">In Progress</option>
+              <option value="resolved" data-i18n="reports.statusResolved">Resolved</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="severityFilter">Severity</label>
+            <label for="severityFilter" data-i18n="reports.severity">Severity</label>
             <select id="severityFilter" class="form-select">
-              <option value="">All Severities</option>
-              <option value="5,critical">⚠️ 5 - Critical</option>
-              <option value="4,high">⚠️ 4 - High</option>
-              <option value="3,medium">⚠️ 3 - Medium</option>
-              <option value="2,low">⚠️ 2 - Low</option>
-              <option value="1,minor">⚠️ 1 - Minor</option>
+              <option value="" data-i18n="reports.allSeverities">All Severities</option>
+              <option value="5,critical" data-i18n="reports.severityCritical">⚠️ 5 - Critical</option>
+              <option value="4,high" data-i18n="reports.severityHigh">⚠️ 4 - High</option>
+              <option value="3,medium" data-i18n="reports.severityMedium">⚠️ 3 - Medium</option>
+              <option value="2,low" data-i18n="reports.severityLow">⚠️ 2 - Low</option>
+              <option value="1,minor" data-i18n="reports.severityMinor">⚠️ 1 - Minor</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="typeFilter">Issue Type</label>
+            <label for="typeFilter" data-i18n="reports.issueType">Issue Type</label>
             <select id="typeFilter" class="form-select">
-              <option value="">All Types</option>
-              <option value="curb_ramp">Missing/Damaged Curb Ramp</option>
-              <option value="sidewalk_blocked">Blocked Sidewalk</option>
-              <option value="damaged_sidewalk">Damaged Sidewalk</option>
-              <option value="inaccessible_entrance">Inaccessible Entrance</option>
-              <option value="broken_elevator">Broken Elevator/Lift</option>
-              <option value="parking_blocked">Blocked Accessible Parking</option>
-              <option value="trail_obstacle">Trail Obstacle</option>
-              <option value="other">Other</option>
+              <option value="" data-i18n="reports.allTypes">All Types</option>
+              <option value="curb_ramp" data-i18n="reportForm.curbRamp">Missing/Damaged Curb Ramp</option>
+              <option value="sidewalk_blocked" data-i18n="reportForm.sidewalkBlocked">Blocked Sidewalk</option>
+              <option value="damaged_sidewalk" data-i18n="reportForm.damagedSidewalk">Damaged Sidewalk</option>
+              <option value="inaccessible_entrance" data-i18n="reportForm.inaccessibleEntrance">Inaccessible Entrance</option>
+              <option value="broken_elevator" data-i18n="reportForm.brokenElevator">Broken Elevator/Lift</option>
+              <option value="parking_blocked" data-i18n="reportForm.parkingBlocked">Blocked Accessible Parking</option>
+              <option value="trail_obstacle" data-i18n="reportForm.trailObstacle">Trail Obstacle</option>
+              <option value="other" data-i18n="common.other">Other</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="durationFilter">Duration</label>
+            <label for="durationFilter" data-i18n="reports.duration">Duration</label>
             <select id="durationFilter" class="form-select">
-              <option value="">All Types</option>
-              <option value="permanent">🏗️ Permanent</option>
-              <option value="temporary">⏳ Temporary</option>
+              <option value="" data-i18n="reports.allTypes">All Types</option>
+              <option value="permanent" data-i18n="reports.permanent">🏗️ Permanent</option>
+              <option value="temporary" data-i18n="reports.temporary">⏳ Temporary</option>
             </select>
           </div>
         </div>
         <div class="filter-actions">
-          <button class="btn btn-primary" id="applyFiltersBtn">Apply</button>
-          <button class="btn btn-secondary" id="resetFiltersBtn">Reset</button>
-          <button class="btn btn-secondary" id="exportAllBtn" title="Export to CSV">📊 Export</button>
+          <button class="btn btn-primary" id="applyFiltersBtn" data-i18n="common.apply">Apply</button>
+          <button class="btn btn-secondary" id="resetFiltersBtn" data-i18n="common.reset">Reset</button>
+          <button class="btn btn-secondary" id="exportAllBtn" title="Export to CSV" data-i18n="common.export">📊 Export</button>
         </div>
       </div>
     </div>
@@ -1159,17 +1159,17 @@
     <!-- Reports List -->
     <div class="reports-list-section">
       <div class="reports-list-header">
-        <h2>📋 Reports</h2>
-        <span id="listReportsCount">Loading...</span>
+        <h2 data-i18n="reports.reportsList">📋 Reports</h2>
+        <span id="listReportsCount" data-i18n="common.loading">Loading...</span>
       </div>
       <div id="reportTimeline" class="reports-timeline">
-        <div class="loading-spinner">Loading reports...</div>
+        <div class="loading-spinner" data-i18n="reports.loadingReports">Loading reports...</div>
       </div>
     </div>
   </main>
 
   <!-- FAB -->
-  <button class="report-fab" id="reportFabBtn" title="Report an issue" aria-label="Create new report">
+  <button class="report-fab" id="reportFabBtn" data-i18n-title="reports.createReport" title="Report an issue" aria-label="Create new report">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
     </svg>
@@ -1179,7 +1179,7 @@
   <div id="reportDetailModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="modalTitle">Report Details</h2>
+        <h2 id="modalTitle" data-i18n="reports.reportDetails">Report Details</h2>
         <button class="modal-close" id="closeModalBtn" aria-label="Close modal">&times;</button>
       </div>
       <div class="modal-body" id="modalBody">
@@ -1192,7 +1192,7 @@
   <div id="createReportModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="createReportTitle" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100000; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 16px;">
     <div class="modal-content" style="background: white; border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
-        <h2 id="createReportTitle">📋 Report Accessibility Issue</h2>
+        <h2 id="createReportTitle" data-i18n="reportForm.title">📋 Report Accessibility Issue</h2>
         <button class="modal-close" id="closeCreateModalBtn" aria-label="Close modal">&times;</button>
       </div>
       <div class="modal-body" style="padding: 24px;">

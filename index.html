@@ -61,20 +61,20 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 56px;
+      height: 60px;
       background: #000;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
-      padding: 0 12px;
+      padding: 0 16px;
       z-index: 9999;
     }
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 1.15rem;
       color: #fff;
       text-decoration: none;
       flex-shrink: 0;
@@ -541,48 +541,48 @@
     <div class="modal-backdrop" onclick="closeTrailBrowser()"></div>
     <div class="modal-container trail-browser">
       <div class="modal-header">
-        <h2>🔍 Browse Accessible Trails</h2>
-        <button class="modal-close" onclick="closeTrailBrowser()">✕</button>
+        <h2 data-i18n="trailBrowser.title">🔍 Browse Accessible Trails</h2>
+        <button class="modal-close" onclick="closeTrailBrowser()" aria-label="Close">✕</button>
       </div>
       
       <div class="modal-content">
         <!-- Search and Filters -->
         <div class="search-section" role="search" aria-label="Trail search">
           <div class="search-bar">
-            <label for="trailSearch" class="visually-hidden">Search trail names and locations</label>
-            <input type="text" id="trailSearch" placeholder="Search trail names, locations..." maxlength="100" aria-label="Search trail names and locations">
-            <button onclick="searchTrails()" class="search-button" aria-label="Search trails">🔍 Search</button>
+            <label for="trailSearch" class="visually-hidden" data-i18n="trailBrowser.searchLabel">Search trail names and locations</label>
+            <input type="text" id="trailSearch" data-i18n-placeholder="trailBrowser.searchPlaceholder" placeholder="Search trail names, locations..." maxlength="100" aria-label="Search trail names and locations">
+            <button onclick="searchTrails()" class="search-button" aria-label="Search trails" data-i18n="common.search">🔍 Search</button>
           </div>
           
           <div class="filters-section">
-            <h4 id="filterHeading">🎯 Filter by Accessibility</h4>
+            <h4 id="filterHeading" data-i18n="trailBrowser.filterByAccessibility">🎯 Filter by Accessibility</h4>
             <div class="filter-grid" role="group" aria-labelledby="filterHeading">
-              <label for="wheelchairFilter" class="visually-hidden">Filter by wheelchair access</label>
+              <label for="wheelchairFilter" class="visually-hidden" data-i18n="trailBrowser.wheelchairAccess">Filter by wheelchair access</label>
               <select id="wheelchairFilter" aria-label="Filter by wheelchair access">
-                <option value="">Wheelchair Access</option>
-                <option value="Fully Accessible">Fully Accessible</option>
-                <option value="Partially Accessible">Partially Accessible</option>
-                <option value="Not Accessible">Not Accessible</option>
+                <option value="" data-i18n="trailBrowser.wheelchairAccess">Wheelchair Access</option>
+                <option value="Fully Accessible" data-i18n="index.fullyAccessible">Fully Accessible</option>
+                <option value="Partially Accessible" data-i18n="trailBrowser.partiallyAccessible">Partially Accessible</option>
+                <option value="Not Accessible" data-i18n="trailBrowser.notAccessible">Not Accessible</option>
               </select>
               
-              <label for="difficultyFilter" class="visually-hidden">Filter by difficulty level</label>
+              <label for="difficultyFilter" class="visually-hidden" data-i18n="trailBrowser.difficultyLevel">Filter by difficulty level</label>
               <select id="difficultyFilter" aria-label="Filter by difficulty level">
-                <option value="">Difficulty Level</option>
-                <option value="Easy">Easy</option>
-                <option value="Moderate">Moderate</option>
-                <option value="Difficult">Difficult</option>
+                <option value="" data-i18n="trailBrowser.difficultyLevel">Difficulty Level</option>
+                <option value="Easy" data-i18n="trailBrowser.easy">Easy</option>
+                <option value="Moderate" data-i18n="trailBrowser.moderate">Moderate</option>
+                <option value="Difficult" data-i18n="trailBrowser.difficult">Difficult</option>
               </select>
               
-              <label for="distanceFilter" class="visually-hidden">Filter by distance</label>
+              <label for="distanceFilter" class="visually-hidden" data-i18n="trailBrowser.distance">Filter by distance</label>
               <select id="distanceFilter" aria-label="Filter by distance">
-                <option value="">Distance</option>
+                <option value="" data-i18n="trailBrowser.distance">Distance</option>
                 <option value="0-2">0-2 km</option>
                 <option value="2-5">2-5 km</option>
                 <option value="5-10">5-10 km</option>
                 <option value="10+">10+ km</option>
               </select>
               
-              <button onclick="applyFilters()" class="filter-apply-btn" aria-label="Apply selected filters">Apply Filters</button>
+              <button onclick="applyFilters()" class="filter-apply-btn" aria-label="Apply selected filters" data-i18n="trailBrowser.applyFilters">Apply Filters</button>
             </div>
           </div>
         </div>
@@ -590,8 +590,8 @@
         <!-- Results -->
         <div class="results-section" aria-live="polite">
           <div class="results-header">
-            <h4>📍 Trail Results</h4>
-            <span id="resultsCount" aria-live="polite">0 trails found</span>
+            <h4 data-i18n="trailBrowser.trailResults">📍 Trail Results</h4>
+            <span id="resultsCount" aria-live="polite" data-i18n="trailBrowser.noTrailsFound">0 trails found</span>
           </div>
           
           <div id="trailResults" class="trail-results-grid" role="list" aria-label="Trail search results">
@@ -599,7 +599,7 @@
           </div>
           
           <div class="results-pagination">
-            <button id="loadMoreBtn" onclick="loadMoreResults()" class="load-more-btn hidden">
+            <button id="loadMoreBtn" onclick="loadMoreResults()" class="load-more-btn hidden" data-i18n="index.loadMore">
               Load More Trails
             </button>
           </div>
@@ -613,40 +613,40 @@
     <div class="modal-backdrop" onclick="closeTrackModal()"></div>
     <div class="modal-container track-modal">
       <div class="modal-header">
-        <h2>📍 Map a New Trail</h2>
-        <button class="modal-close" onclick="closeTrackModal()">✕</button>
+        <h2 data-i18n="trackModal.title">📍 Map a New Trail</h2>
+        <button class="modal-close" onclick="closeTrackModal()" aria-label="Close">✕</button>
       </div>
       
       <div class="modal-content">
-        <p class="modal-description">Use GPS tracking to document accessible routes. Record accessibility features, take photos, and create trail guides for the community.</p>
+        <p class="modal-description" data-i18n="trackModal.description">Use GPS tracking to document accessible routes. Record accessibility features, take photos, and create trail guides for the community.</p>
         
         <div class="feature-list">
           <div class="feature-item">
             <span class="feature-icon">📱</span>
             <div class="feature-text">
-              <strong>GPS Tracking</strong>
-              <span>Record your route with real-time location</span>
+              <strong data-i18n="trackModal.gps">GPS Tracking</strong>
+              <span data-i18n="trackModal.gpsDesc">Record your route with real-time location</span>
             </div>
           </div>
           <div class="feature-item">
             <span class="feature-icon">📝</span>
             <div class="feature-text">
-              <strong>Accessibility Survey</strong>
-              <span>Document surface, slope, and obstacles</span>
+              <strong data-i18n="trackModal.survey">Accessibility Survey</strong>
+              <span data-i18n="trackModal.surveyDesc">Document surface, slope, and obstacles</span>
             </div>
           </div>
           <div class="feature-item">
             <span class="feature-icon">📷</span>
             <div class="feature-text">
-              <strong>Photo Documentation</strong>
-              <span>Add photos with accessibility notes</span>
+              <strong data-i18n="trackModal.photos">Photo Documentation</strong>
+              <span data-i18n="trackModal.photosDesc">Add photos with accessibility notes</span>
             </div>
           </div>
           <div class="feature-item">
             <span class="feature-icon">☁️</span>
             <div class="feature-text">
-              <strong>Cloud Sync</strong>
-              <span>Save and access trails from any device</span>
+              <strong data-i18n="trackModal.sync">Cloud Sync</strong>
+              <span data-i18n="trackModal.syncDesc">Save and access trails from any device</span>
             </div>
           </div>
         </div>
@@ -654,15 +654,15 @@
         <div class="modal-stats" id="trackModalStats">
           <div class="modal-stat">
             <span class="stat-value" id="modalTotalRoutes">0</span>
-            <span class="stat-label">Routes Mapped</span>
+            <span class="stat-label" data-i18n="trackModal.routesMapped">Routes Mapped</span>
           </div>
           <div class="modal-stat">
             <span class="stat-value" id="modalTotalDistance">0</span>
-            <span class="stat-label">km Documented</span>
+            <span class="stat-label" data-i18n="trackModal.kmDocumented">km Documented</span>
           </div>
         </div>
         
-        <button class="modal-action-btn primary" onclick="window.location.href='tracker.html'">
+        <button class="modal-action-btn primary" onclick="window.location.href='tracker.html'" data-i18n="trackModal.startTracking">
           📍 Start Tracking Now
         </button>
       </div>
@@ -674,7 +674,7 @@
     <div class="auth-modal-backdrop" onclick="closeAuthModal()"></div>
     <div class="auth-modal-container">
       <div class="auth-modal-header">
-        <h2 id="authModalTitle">Welcome to Accessible</h2>
+        <h2 id="authModalTitle" data-i18n="authModal.welcome">Welcome to Accessible</h2>
         <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close authentication modal">✕</button>
       </div>
       
@@ -682,70 +682,70 @@
         <!-- Login Form -->
         <div id="loginForm" class="auth-form active">
           <div class="auth-form-header">
-            <h3>Sign In to Your Account</h3>
-            <p>Continue your accessibility mapping journey</p>
+            <h3 data-i18n="authModal.signInTitle">Sign In to Your Account</h3>
+            <p data-i18n="authModal.signInSubtitle">Continue your accessibility mapping journey</p>
           </div>
           
           <form class="auth-inputs" id="loginFormElement" aria-label="Sign in form">
             <div class="input-group">
-              <label for="loginEmail" class="visually-hidden">Email address</label>
-              <input type="email" id="loginEmail" placeholder="Email address" aria-label="Email address" required autocomplete="email">
+              <label for="loginEmail" class="visually-hidden" data-i18n="auth.email">Email address</label>
+              <input type="email" id="loginEmail" data-i18n-placeholder="auth.emailPlaceholder" placeholder="Email address" aria-label="Email address" required autocomplete="email">
               <span class="input-icon" aria-hidden="true">📧</span>
             </div>
             
             <div class="input-group password-group">
-              <label for="loginPassword" class="visually-hidden">Password</label>
-              <input type="password" id="loginPassword" placeholder="Password" aria-label="Password" required autocomplete="current-password">
+              <label for="loginPassword" class="visually-hidden" data-i18n="auth.password">Password</label>
+              <input type="password" id="loginPassword" data-i18n-placeholder="auth.passwordPlaceholder" placeholder="Password" aria-label="Password" required autocomplete="current-password">
               <span class="input-icon" aria-hidden="true">🔒</span>
               <button type="button" class="password-toggle" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Show password">👁️</button>
             </div>
             
             <button type="submit" id="loginBtn" class="auth-submit-btn">
-              <span class="btn-text">Sign In</span>
+              <span class="btn-text" data-i18n="auth.signIn">Sign In</span>
               <span class="btn-spinner hidden" aria-hidden="true">⏳</span>
             </button>
           </form>
           
           <div class="auth-switch">
-            <p>Don't have an account? <button type="button" onclick="switchToSignup()" class="switch-btn">Sign up</button></p>
+            <p><span data-i18n="auth.noAccount">Don't have an account?</span> <button type="button" onclick="switchToSignup()" class="switch-btn" data-i18n="auth.signUp">Sign up</button></p>
           </div>
         </div>
 
         <!-- Signup Form -->
         <div id="signupForm" class="auth-form">
           <div class="auth-form-header">
-            <h3>Create Your Account</h3>
-            <p>Join the community making nature accessible</p>
+            <h3 data-i18n="authModal.createTitle">Create Your Account</h3>
+            <p data-i18n="authModal.createSubtitle">Join the community making nature accessible</p>
           </div>
           
           <form class="auth-inputs" id="signupFormElement" aria-label="Create account form">
             <div class="input-group">
-              <label for="signupName" class="visually-hidden">Full name</label>
-              <input type="text" id="signupName" placeholder="Full name" aria-label="Full name" required autocomplete="name">
+              <label for="signupName" class="visually-hidden" data-i18n="authModal.fullName">Full name</label>
+              <input type="text" id="signupName" data-i18n-placeholder="authModal.fullName" placeholder="Full name" aria-label="Full name" required autocomplete="name">
               <span class="input-icon" aria-hidden="true">👤</span>
             </div>
             
             <div class="input-group">
-              <label for="signupEmail" class="visually-hidden">Email address</label>
-              <input type="email" id="signupEmail" placeholder="Email address" aria-label="Email address" required autocomplete="email">
+              <label for="signupEmail" class="visually-hidden" data-i18n="auth.email">Email address</label>
+              <input type="email" id="signupEmail" data-i18n-placeholder="auth.emailPlaceholder" placeholder="Email address" aria-label="Email address" required autocomplete="email">
               <span class="input-icon" aria-hidden="true">📧</span>
             </div>
             
             <div class="input-group password-group">
-              <label for="signupPassword" class="visually-hidden">Create password</label>
-              <input type="password" id="signupPassword" placeholder="Create password" aria-label="Create password" required autocomplete="new-password">
+              <label for="signupPassword" class="visually-hidden" data-i18n="authModal.createPassword">Create password</label>
+              <input type="password" id="signupPassword" data-i18n-placeholder="authModal.createPassword" placeholder="Create password" aria-label="Create password" required autocomplete="new-password">
               <span class="input-icon" aria-hidden="true">🔒</span>
               <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signupPassword', this)" aria-label="Show password">👁️</button>
             </div>
             
             <button type="submit" id="signupBtn" class="auth-submit-btn">
-              <span class="btn-text">Create Account</span>
+              <span class="btn-text" data-i18n="authModal.createAccount">Create Account</span>
               <span class="btn-spinner hidden" aria-hidden="true">⏳</span>
             </button>
           </form>
           
           <div class="auth-switch">
-            <p>Already have an account? <button type="button" onclick="switchToLogin()" class="switch-btn">Sign in</button></p>
+            <p><span data-i18n="auth.hasAccount">Already have an account?</span> <button type="button" onclick="switchToLogin()" class="switch-btn" data-i18n="auth.signIn">Sign in</button></p>
           </div>
         </div>
       </div>
@@ -996,6 +996,40 @@
   if (action === 'search-trails') {
     setTimeout(() => window.openTrailBrowser?.(), 1000);
   }
+  
+  // Screen reader announcer for important updates
+  (function() {
+    // Create live region for screen reader announcements
+    const announcer = document.createElement('div');
+    announcer.id = 'sr-announcer';
+    announcer.setAttribute('aria-live', 'polite');
+    announcer.setAttribute('aria-atomic', 'true');
+    announcer.className = 'sr-only';
+    announcer.style.cssText = 'position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;';
+    document.body.appendChild(announcer);
+    
+    // Global function to announce to screen readers
+    window.announceToScreenReader = function(message) {
+      const announcer = document.getElementById('sr-announcer');
+      if (announcer) {
+        announcer.textContent = '';
+        setTimeout(() => {
+          announcer.textContent = message;
+        }, 100);
+      }
+    };
+    
+    // Announce page load after a brief delay
+    setTimeout(() => {
+      window.announceToScreenReader('Accessible app home page loaded. Press Tab to navigate.');
+    }, 1000);
+    
+    // Debug: Log focusable elements
+    console.log('🔍 Screen Reader Debug:');
+    const focusable = document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    console.log('  Focusable elements:', focusable.length);
+    console.log('  First focusable:', focusable[0]?.tagName, focusable[0]?.textContent?.substring(0, 30));
+  })();
 </script>
 </body>
 </html>
