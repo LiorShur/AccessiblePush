@@ -126,6 +126,28 @@ const toastTranslations = {
     photoAdded: "Photo added",
     noteAdded: "Note added",
     
+    // Media capture
+    startTrackingForPhotos: "Start tracking first to capture photos",
+    startTrackingForNotes: "Start tracking first to add notes",
+    photoCaptured: "Photo captured and saved!",
+    photoCaptureFailed: "Failed to capture photo",
+    noteAddedSuccess: "Note added successfully!",
+    noteAddFailed: "Failed to add note",
+    noStoredPhotos: "No stored photos found.",
+    allPhotosDeleted: "All photos deleted.",
+    
+    // GPS/Location
+    waitingForGps: "Please wait for GPS location",
+    gpsNotAvailable: "Location not available. Please wait for GPS.",
+    enableGps: "Unable to get your location. Please enable GPS.",
+    noGpsData: "No GPS data available. Record a route with GPS points first.",
+    noGpsPoints: "No GPS location points found in route data",
+    gpxExported: "GPX file exported successfully!",
+    gpxExportFailed: "GPX export failed",
+    noRouteDataToExport: "No route data available to export. Start tracking or load a saved route first.",
+    pdfExportFailed: "PDF export failed",
+    pdfLibraryRequired: "PDF export not available. jsPDF library required.",
+    
     // Close button
     close: "Close"
   },
@@ -244,6 +266,28 @@ const toastTranslations = {
     waypointAdded: "נקודת ציון נוספה",
     photoAdded: "תמונה נוספה",
     noteAdded: "הערה נוספה",
+    
+    // Media capture
+    startTrackingForPhotos: "התחל הקלטה כדי לצלם תמונות",
+    startTrackingForNotes: "התחל הקלטה כדי להוסיף הערות",
+    photoCaptured: "התמונה צולמה ונשמרה!",
+    photoCaptureFailed: "צילום התמונה נכשל",
+    noteAddedSuccess: "ההערה נוספה בהצלחה!",
+    noteAddFailed: "הוספת ההערה נכשלה",
+    noStoredPhotos: "לא נמצאו תמונות שמורות.",
+    allPhotosDeleted: "כל התמונות נמחקו.",
+    
+    // GPS/Location
+    waitingForGps: "אנא המתן לאיתור GPS",
+    gpsNotAvailable: "המיקום לא זמין. אנא המתן ל-GPS.",
+    enableGps: "לא ניתן לקבל את מיקומך. אנא אפשר GPS.",
+    noGpsData: "אין נתוני GPS. הקלט מסלול עם נקודות GPS קודם.",
+    noGpsPoints: "לא נמצאו נקודות מיקום GPS בנתוני המסלול",
+    gpxExported: "קובץ GPX יוצא בהצלחה!",
+    gpxExportFailed: "ייצוא GPX נכשל",
+    noRouteDataToExport: "אין נתוני מסלול לייצוא. התחל הקלטה או טען מסלול שמור.",
+    pdfExportFailed: "ייצוא PDF נכשל",
+    pdfLibraryRequired: "ייצוא PDF לא זמין. נדרשת ספריית jsPDF.",
     
     // Close button
     close: "סגור"
