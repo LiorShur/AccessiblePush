@@ -82,7 +82,7 @@ async initialize() {
   } catch (error) {
     console.error('❌ App initialization failed:', error);
     showError(error);
-    toast.error('Please refresh the page to try again.', { duration: 0 });
+    toast.errorKey('refreshRequired', { duration: 0 });
   }
 }
 
@@ -222,7 +222,7 @@ Would you like to restore it?`;
         this.showRestoreSuccessMessage(backupData);
         return true;
       } else {
-        toast.error('Failed to restore route. Starting fresh.');
+        toast.errorKey('restoreFailed');
         this.controllers.state.clearRouteBackup();
         return false;
       }
@@ -243,7 +243,7 @@ This action cannot be undone!`;
       
       if (confirmDiscard) {
         this.controllers.state.clearRouteBackup();
-        toast.success('Route data discarded. Starting fresh.');
+        toast.successKey('dataDiscarded');
         return false;
       } else {
         // User changed their mind, try restore again
@@ -349,11 +349,11 @@ async saveRestoredRoute() {
       const defaultName = `Restored Route ${new Date().toLocaleDateString()}`;
       const routeName = await modal.prompt('Enter a name for this restored route:', 'Name Your Route', defaultName) || defaultName;
       await this.controllers.state.saveSession(routeName);
-      toast.success(`Route saved as "${routeName}"`);
+      toast.successKey('routeSaved');
     }
   } catch (error) {
     console.error('❌ Failed to save restored route:', error);
-    toast.error('Failed to save route: ' + error.message);
+    toast.errorKey('saveError');
   }
 }
 
@@ -466,7 +466,7 @@ showError(message) {
           await this.controllers.tracking.start();
         } catch (error) {
           console.error('Failed to start tracking:', error);
-          toast.error('Failed to start tracking: ' + error.message);
+          toast.errorKey('trackingFailed');
         }
       });
     }
@@ -664,7 +664,7 @@ window.loadMyTrailGuides = () => {
     auth.loadMyTrailGuides();
   } else {
     console.error('Auth controller or method not available');
-    toast.error('Auth controller not available. Please refresh the page.');
+    toast.errorKey('authNotAvailable');
   }
 };
 

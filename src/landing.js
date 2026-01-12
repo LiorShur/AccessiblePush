@@ -175,7 +175,7 @@ class LandingPageController {
       // Check if we actually got data
       if (totalItems === 0 && warnings.length > 0) {
         console.warn('⚠️ All queries returned 0 items - likely offline or empty cache');
-        toast.warning('Unable to load data. Check your connection.');
+        toast.warningKey('dataLoadFailed');
       } else if (totalItems > 0) {
         console.log(`✅ All data loaded successfully (${totalItems} items)`);
       } else {
@@ -201,7 +201,7 @@ class LandingPageController {
       
       // Show defaults on final failure
       this.hideLoadingIndicators();
-      toast.error('Some data failed to load. Pull to refresh.');
+      toast.errorKey('someDataFailed');
     }
   }
 
@@ -417,7 +417,7 @@ class LandingPageController {
     const searchTerm = searchInput?.value?.trim();
     
     if (!searchTerm) {
-      toast.warning('Please enter a search term');
+      toast.warningKey('enterSearchTerm');
       return;
     }
 
@@ -602,7 +602,7 @@ async searchTrails() {
       const guideSnap = await getDoc(guideRef);
       
       if (!guideSnap.exists()) {
-        toast.error('Trail guide not found');
+        toast.errorKey('trailNotFound');
         return;
       }
       
@@ -613,7 +613,7 @@ async searchTrails() {
       const canView = guideData.isPublic || (currentUser && currentUser.uid === guideData.userId);
       
       if (!canView) {
-        toast.error('This trail guide is private');
+        toast.errorKey('trailPrivate');
         return;
       }
       
@@ -632,12 +632,12 @@ async searchTrails() {
       if (guideData.htmlContent) {
         this.showTrailGuide(guideData);
       } else {
-        toast.error('Trail guide content not available');
+        toast.errorKey('trailContentUnavailable');
       }
       
     } catch (error) {
       console.error('❌ Failed to view trail guide:', error);
-      toast.error('Failed to load trail guide');
+      toast.errorKey('trailLoadFailed');
     }
   }
 
@@ -1079,7 +1079,7 @@ updateLoadMoreButton() {
       // Check auth
       const { auth, db } = await import('../firebase-setup.js');
       if (!auth.currentUser) {
-        toast.info('Please sign in to like trails');
+        toast.infoKey('signInToLike');
         return;
       }
 
@@ -1141,7 +1141,7 @@ updateLoadMoreButton() {
 
     } catch (error) {
       console.error('Failed to like trail:', error);
-      toast.error('Failed to update like. Please try again.');
+      toast.errorKey('likeFailed');
       // Revert UI on error
       this.displayFeaturedBatch();
     }
@@ -1162,7 +1162,7 @@ updateLoadMoreButton() {
           text: shareText,
           url: shareUrl
         });
-        toast.success('Trail shared!');
+        toast.successKey('trailShared');
         return;
       } catch (err) {
         if (err.name !== 'AbortError') {
@@ -1174,7 +1174,7 @@ updateLoadMoreButton() {
     // Fallback to clipboard
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success('Link copied to clipboard!');
+      toast.successKey('linkCopied');
     } catch (err) {
       // Final fallback - show modal with link
       this.showShareModal(shareUrl, decodeURIComponent(trailName));
@@ -1913,7 +1913,7 @@ Happy trail mapping! 🥾`);
    */
   showMyTrailGuides() {
     if (!this.myTrailGuides || this.myTrailGuides.length === 0) {
-      toast.warning('No trail guides found. Record a trail first!');
+      toast.warningKey('noTrailGuides');
       return;
     }
     
@@ -2037,7 +2037,7 @@ Happy trail mapping! 🥾`);
       setTimeout(() => this.showTrailGuide(guide), 150);
     } else {
       console.error('📚 Guide not found at index:', index);
-      toast.error('Guide not found');
+      toast.errorKey('guideNotFound');
     }
   }
 
@@ -2187,7 +2187,7 @@ Happy trail mapping! 🥾`);
       
     } catch (error) {
       console.error('Failed to display trail guide:', error);
-      toast.error('Failed to display trail guide');
+      toast.errorKey('displayGuideFailed');
     }
   }
 
@@ -2208,7 +2208,7 @@ Happy trail mapping! 🥾`);
       // Check if user is signed in
       const authStatus = await this.checkLandingAuth();
       if (!authStatus.isSignedIn) {
-        toast.error('Please sign in first to view your trail guides');
+        toast.errorKey('signInToViewGuides');
         return;
       }
 
@@ -2236,7 +2236,7 @@ Happy trail mapping! 🥾`);
       console.log(`Found ${guides.length} trail guides`);
       
       if (guides.length === 0) {
-        toast.error('No trail guides found.\n\nTo create trail guides:\n• Record a route in the tracker\n• Save it to cloud\n• Trail guide will be auto-generated');
+        toast.errorKey('noGuidesCreated');
         return;
       }
       
@@ -2244,7 +2244,7 @@ Happy trail mapping! 🥾`);
       
     } catch (error) {
       console.error('Failed to load trail guides:', error);
-      toast.error('Failed to load trail guides: ' + error.message);
+      toast.errorKey('loadGuidesFailed');
     }
   }
 
@@ -2693,22 +2693,46 @@ async function initAccessReport() {
   });
 }
 
+/**
+ * Apply language direction from saved preference
+ */
+function applyLanguageDirection() {
+  const savedLang = localStorage.getItem('accessNature_language') || 'en';
+  const isHebrew = savedLang === 'he';
+  
+  if (isHebrew) {
+    document.documentElement.setAttribute('dir', 'rtl');
+    document.documentElement.setAttribute('lang', 'he');
+    document.body.setAttribute('dir', 'rtl');
+    document.documentElement.classList.add('rtl');
+    document.body.classList.add('rtl');
+  }
+  
+  console.log(`🌐 Language direction applied: ${isHebrew ? 'RTL' : 'LTR'}`);
+}
+
 // Initialize landing page when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('📄 DOM Content Loaded - starting landing page init');
   try {
     // Initialize i18n (language support) first
     console.log('🌐 Initializing i18n...');
-    await i18n.init();
-    i18n.createLanguageToggle('langToggleContainer');
-    i18n.translatePage();
-    
-    // Listen for language changes to retranslate
-    i18n.onLanguageChange((newLang, prevLang) => {
-      console.log(`🌐 Language changed: ${prevLang} → ${newLang}`);
-      // Retranslate the page
+    try {
+      await i18n.init();
+      // Language toggle is now handled by topToolbarUI
       i18n.translatePage();
-    });
+      
+      // Listen for language changes to retranslate
+      i18n.onLanguageChange((newLang, prevLang) => {
+        console.log(`🌐 Language changed: ${prevLang} → ${newLang}`);
+        i18n.translatePage();
+      });
+      console.log('🌐 i18n initialized successfully');
+    } catch (i18nError) {
+      console.warn('🌐 i18n initialization failed:', i18nError);
+      // Apply direction from saved preference
+      applyLanguageDirection();
+    }
     
     // Initialize landing page controller
     const landingController = new LandingPageController();
@@ -2764,10 +2788,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Reload data
         await landingController.loadDataWithRetry();
         
-        toast.success('Data refreshed!');
+        toast.successKey('dataRefreshed');
       } catch (error) {
         console.error('Refresh failed:', error);
-        toast.error('Refresh failed. Please try again.');
+        toast.errorKey('refreshFailed');
       }
     };
     
