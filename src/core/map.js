@@ -97,7 +97,36 @@ export class MapController {
   }
 
   async getCurrentLocation() {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      toast.error('Geolocation not supported by this browser');
+      return null;
+    }
+
+    // Check permission status first (if Permissions API available)
+    if (navigator.permissions) {
+      try {
+        const status = await navigator.permissions.query({ name: 'geolocation' });
+        console.log('📍 Geolocation permission status:', status.state);
+        
+        if (status.state === 'denied') {
+          toast.error('Location access denied. Please enable it in browser settings.');
+          console.warn('📍 Location permission denied - user needs to enable in browser settings');
+          return null;
+        }
+        
+        // Listen for permission changes
+        status.onchange = () => {
+          console.log('📍 Geolocation permission changed to:', status.state);
+          if (status.state === 'granted') {
+            toast.success('Location access granted!');
+            this.getCurrentLocation(); // Retry
+          }
+        };
+      } catch (e) {
+        // Permissions API not fully supported, continue with regular request
+        console.log('📍 Permissions API not available, requesting directly');
+      }
+    }
 
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
@@ -108,12 +137,30 @@ export class MapController {
           };
           this.map.setView([userLocation.lat, userLocation.lng], 17);
           this.marker.setLatLng([userLocation.lat, userLocation.lng]);
+          console.log('📍 Got user location:', userLocation);
           resolve(userLocation);
         },
         (error) => {
-          console.warn('Geolocation failed:', error);
+          console.warn('📍 Geolocation failed:', error.message, '(code:', error.code, ')');
+          
+          // Provide user-friendly error messages
+          switch (error.code) {
+            case 1: // PERMISSION_DENIED
+              toast.error('Location access denied. Please enable in browser settings.');
+              break;
+            case 2: // POSITION_UNAVAILABLE
+              toast.warning('Location unavailable. GPS signal may be weak.');
+              break;
+            case 3: // TIMEOUT
+              toast.warning('Location request timed out. Please try again.');
+              break;
+            default:
+              toast.warning('Could not get location: ' + error.message);
+          }
+          
           resolve(null);
-        }
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
       );
     });
   }

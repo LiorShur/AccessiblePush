@@ -33,6 +33,26 @@ async start() {
 
   console.log('🚀 Starting GPS tracking...');
 
+  // Check permission status first (if Permissions API available)
+  if (navigator.permissions) {
+    try {
+      const status = await navigator.permissions.query({ name: 'geolocation' });
+      console.log('📍 Geolocation permission status:', status.state);
+      
+      if (status.state === 'denied') {
+        toast.error('Location access is denied. Please enable it in your browser settings and refresh the page.', { duration: 8000 });
+        throw new Error('Location permission denied. Enable in browser settings.');
+      }
+      
+      if (status.state === 'prompt') {
+        toast.info('Please allow location access when prompted', { duration: 5000 });
+      }
+    } catch (e) {
+      // Permissions API not fully supported, continue anyway
+      console.log('📍 Permissions API check failed, proceeding with location request');
+    }
+  }
+
   // FIXED: Check if we're resuming a restored route
   const currentElapsed = this.appState.getElapsedTime();
   const isResuming = currentElapsed > 0 && this.appState.getRouteData().length > 0;

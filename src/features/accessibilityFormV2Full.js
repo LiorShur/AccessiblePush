@@ -732,6 +732,16 @@ export class AccessibilityFormV2Full {
         background: #f8f9fa;
       }
       
+      .af2f-section-header:focus {
+        outline: none;
+        background: #f0f5f0;
+      }
+      
+      .af2f-section-header:focus-visible {
+        outline: 2px solid #4a7c59;
+        outline-offset: -2px;
+      }
+      
       .af2f-section-icon {
         font-size: 1.5rem;
         width: 40px;
@@ -925,6 +935,17 @@ export class AccessibilityFormV2Full {
         background: #f8fff8;
       }
       
+      .af2f-select-card:focus {
+        outline: none;
+        border-color: #4a7c59;
+        box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.3);
+      }
+      
+      .af2f-select-card:focus-visible {
+        outline: 2px solid #4a7c59;
+        outline-offset: 2px;
+      }
+      
       .af2f-select-card.selected {
         border-color: #4a7c59;
         background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
@@ -965,6 +986,17 @@ export class AccessibilityFormV2Full {
         border-color: #4a7c59;
       }
       
+      .af2f-chip:focus {
+        outline: none;
+        border-color: #4a7c59;
+        box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.3);
+      }
+      
+      .af2f-chip:focus-visible {
+        outline: 2px solid #4a7c59;
+        outline-offset: 2px;
+      }
+      
       .af2f-chip.selected {
         border-color: #4a7c59;
         background: #4a7c59;
@@ -986,6 +1018,17 @@ export class AccessibilityFormV2Full {
       
       .af2f-checkbox:hover {
         border-color: #4a7c59;
+      }
+      
+      .af2f-checkbox:focus {
+        outline: none;
+        border-color: #4a7c59;
+        box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.3);
+      }
+      
+      .af2f-checkbox:focus-visible {
+        outline: 2px solid #4a7c59;
+        outline-offset: 2px;
       }
       
       .af2f-checkbox.checked {
@@ -1522,45 +1565,71 @@ export class AccessibilityFormV2Full {
     const overlay = document.getElementById('af2f-overlay');
     if (!overlay) return;
     
+    // Add accessibility attributes to all custom controls
+    this.addAccessibilityAttributes(overlay);
+    
     // Close on overlay click
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) this.close();
     });
     
-    // Card selections
+    // Close on Escape key
+    overlay.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.close();
+      }
+    });
+    
+    // Card selections (click)
     overlay.addEventListener('click', (e) => {
       const card = e.target.closest('.af2f-select-card');
       if (card) {
-        const grid = card.closest('[data-field]');
-        if (grid) {
-          const type = grid.dataset.type;
-          if (type === 'single') {
-            grid.querySelectorAll('.af2f-select-card').forEach(c => c.classList.remove('selected'));
-          }
-          card.classList.toggle('selected');
-          this.updateProgress();
-        }
+        this.handleCardSelection(card);
       }
       
       // Chip selections
       const chip = e.target.closest('.af2f-chip');
       if (chip) {
-        const grid = chip.closest('[data-field]');
-        if (grid) {
-          const type = grid.dataset.type;
-          if (type === 'single') {
-            grid.querySelectorAll('.af2f-chip').forEach(c => c.classList.remove('selected'));
-          }
-          chip.classList.toggle('selected');
-          this.updateProgress();
-        }
+        this.handleChipSelection(chip);
       }
       
       // Checkbox toggle
       const checkbox = e.target.closest('.af2f-checkbox');
       if (checkbox) {
-        checkbox.classList.toggle('checked');
-        this.updateProgress();
+        this.handleCheckboxToggle(checkbox);
+      }
+    });
+    
+    // Keyboard handlers for custom controls
+    overlay.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const card = e.target.closest('.af2f-select-card');
+        if (card) {
+          e.preventDefault();
+          this.handleCardSelection(card);
+        }
+        
+        const chip = e.target.closest('.af2f-chip');
+        if (chip) {
+          e.preventDefault();
+          this.handleChipSelection(chip);
+        }
+        
+        const checkbox = e.target.closest('.af2f-checkbox');
+        if (checkbox) {
+          e.preventDefault();
+          this.handleCheckboxToggle(checkbox);
+        }
+        
+        // Section headers
+        const header = e.target.closest('.af2f-section-header');
+        if (header) {
+          e.preventDefault();
+          const section = header.closest('.af2f-section');
+          if (section) {
+            this.toggleSection(section.dataset.section);
+          }
+        }
       }
     });
     
@@ -1568,6 +1637,105 @@ export class AccessibilityFormV2Full {
     overlay.addEventListener('input', () => {
       this.updateProgress();
     });
+  }
+
+  /**
+   * Add accessibility attributes to all custom controls
+   */
+  addAccessibilityAttributes(overlay) {
+    // Select cards - act like radio buttons
+    overlay.querySelectorAll('.af2f-select-card').forEach(card => {
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('role', 'radio');
+      card.setAttribute('aria-checked', card.classList.contains('selected') ? 'true' : 'false');
+      const label = card.querySelector('.card-label')?.textContent || card.dataset.value;
+      card.setAttribute('aria-label', label);
+    });
+    
+    // Chips - act like radio/checkbox depending on type
+    overlay.querySelectorAll('.af2f-chip').forEach(chip => {
+      chip.setAttribute('tabindex', '0');
+      const grid = chip.closest('[data-field]');
+      const isMulti = grid?.dataset.type === 'multi';
+      chip.setAttribute('role', isMulti ? 'checkbox' : 'radio');
+      chip.setAttribute('aria-checked', chip.classList.contains('selected') ? 'true' : 'false');
+      // Use text content as label (strip emoji)
+      const label = chip.textContent.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() || chip.dataset.value;
+      chip.setAttribute('aria-label', label);
+    });
+    
+    // Checkboxes
+    overlay.querySelectorAll('.af2f-checkbox').forEach(checkbox => {
+      checkbox.setAttribute('tabindex', '0');
+      checkbox.setAttribute('role', 'checkbox');
+      checkbox.setAttribute('aria-checked', checkbox.classList.contains('checked') ? 'true' : 'false');
+      const label = checkbox.querySelector('.check-label')?.textContent || '';
+      checkbox.setAttribute('aria-label', label);
+    });
+    
+    // Section headers - act like buttons
+    overlay.querySelectorAll('.af2f-section-header').forEach(header => {
+      header.setAttribute('tabindex', '0');
+      header.setAttribute('role', 'button');
+      const section = header.closest('.af2f-section');
+      const isExpanded = section?.classList.contains('expanded');
+      header.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+      const title = header.querySelector('.af2f-section-title')?.textContent || '';
+      header.setAttribute('aria-label', `${title}, ${isExpanded ? 'expanded' : 'collapsed'}`);
+    });
+    
+    // Close button
+    const closeBtn = overlay.querySelector('.af2f-close');
+    if (closeBtn) {
+      closeBtn.setAttribute('aria-label', 'Close accessibility survey');
+    }
+  }
+
+  /**
+   * Handle card selection with ARIA update
+   */
+  handleCardSelection(card) {
+    const grid = card.closest('[data-field]');
+    if (grid) {
+      const type = grid.dataset.type;
+      if (type === 'single') {
+        grid.querySelectorAll('.af2f-select-card').forEach(c => {
+          c.classList.remove('selected');
+          c.setAttribute('aria-checked', 'false');
+        });
+      }
+      card.classList.toggle('selected');
+      card.setAttribute('aria-checked', card.classList.contains('selected') ? 'true' : 'false');
+      this.updateProgress();
+    }
+  }
+
+  /**
+   * Handle chip selection with ARIA update
+   */
+  handleChipSelection(chip) {
+    const grid = chip.closest('[data-field]');
+    if (grid) {
+      const type = grid.dataset.type;
+      if (type === 'single') {
+        grid.querySelectorAll('.af2f-chip').forEach(c => {
+          c.classList.remove('selected');
+          c.setAttribute('aria-checked', 'false');
+        });
+      }
+      chip.classList.toggle('selected');
+      chip.setAttribute('aria-checked', chip.classList.contains('selected') ? 'true' : 'false');
+      this.updateProgress();
+    }
+  }
+
+  /**
+   * Handle checkbox toggle with ARIA update
+   */
+  handleCheckboxToggle(checkbox) {
+    checkbox.classList.toggle('checked');
+    checkbox.setAttribute('aria-checked', checkbox.classList.contains('checked') ? 'true' : 'false');
+    this.updateProgress();
   }
 
   toggleSection(sectionId) {
