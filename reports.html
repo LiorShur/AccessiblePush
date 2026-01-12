@@ -2099,28 +2099,33 @@
         console.error('Report not found:', reportId);
         return;
       }
+      
+      // Get translations
+      const tr = window.getReportDetailsTranslations ? window.getReportDetailsTranslations() : {};
+      const lang = i18n?.getLanguage() || localStorage.getItem('accessNature_language') || 'en';
+      const dateLocale = lang === 'he' ? 'he-IL' : 'en-US';
 
       const modal = document.getElementById('reportDetailModal');
       const modalBody = document.getElementById('modalBody');
       document.getElementById('modalTitle').textContent = report.title;
 
-      const date = report.createdAt?.toDate ? report.createdAt.toDate().toLocaleString() : 'Unknown date';
+      const date = report.createdAt?.toDate ? report.createdAt.toDate().toLocaleString(dateLocale) : (tr.unknownDate || 'Unknown date');
       const lat = report.latitude || report.location?.latitude;
       const lng = report.longitude || report.location?.longitude;
-      const location = report.address || report.location?.placeDescription || (lat && lng ? `${lat.toFixed(6)}, ${lng.toFixed(6)}` : 'Unknown location');
+      const location = report.address || report.location?.placeDescription || (lat && lng ? `${lat.toFixed(6)}, ${lng.toFixed(6)}` : (tr.unknownLocation || 'Unknown location'));
       const severity = report.severity || 3;
       const severityColor = severityColors[severity] || severityColors[3];
       const severityLabel = severityLabels[severity] || 'Medium';
       const isTemporary = report.isTemporary || report.durationType === 'temporary';
-      const expectedResolution = report.expectedResolution?.toDate ? report.expectedResolution.toDate().toLocaleDateString() : null;
+      const expectedResolution = report.expectedResolution?.toDate ? report.expectedResolution.toDate().toLocaleDateString(dateLocale) : null;
 
-      // Status workflow configuration
+      // Status workflow configuration with translations
       const statusConfig = {
-        new: { label: 'New', icon: '🆕', color: '#6b7280', bgColor: '#f3f4f6', nextStatus: 'acknowledged' },
-        acknowledged: { label: 'Acknowledged', icon: '👀', color: '#0369a1', bgColor: '#e0f2fe', nextStatus: 'in_progress' },
-        in_progress: { label: 'In Progress', icon: '🔧', color: '#d97706', bgColor: '#fef3c7', nextStatus: 'resolved' },
-        resolved: { label: 'Resolved', icon: '✅', color: '#059669', bgColor: '#d1fae5', nextStatus: null },
-        closed: { label: 'Closed', icon: '📁', color: '#374151', bgColor: '#e5e7eb', nextStatus: null }
+        new: { label: tr.new || 'New', icon: '🆕', color: '#6b7280', bgColor: '#f3f4f6', nextStatus: 'acknowledged' },
+        acknowledged: { label: tr.acknowledged || 'Acknowledged', icon: '👀', color: '#0369a1', bgColor: '#e0f2fe', nextStatus: 'in_progress' },
+        in_progress: { label: tr.in_progress || 'In Progress', icon: '🔧', color: '#d97706', bgColor: '#fef3c7', nextStatus: 'resolved' },
+        resolved: { label: tr.resolved || 'Resolved', icon: '✅', color: '#059669', bgColor: '#d1fae5', nextStatus: null },
+        closed: { label: tr.closed || 'Closed', icon: '📁', color: '#374151', bgColor: '#e5e7eb', nextStatus: null }
       };
       
       const currentStatus = report.status || 'new';
@@ -2136,7 +2141,7 @@
               ${statusInfo.icon} ${statusInfo.label}
             </span>
             <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: ${severityColor}; color: white;">${severityLabel}</span>
-            ${isTemporary ? '<span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: #3b82f6; color: white;">⏳ TEMPORARY</span>' : ''}
+            ${isTemporary ? `<span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: #3b82f6; color: white;">⏳ ${tr.temporary || 'TEMPORARY'}</span>` : ''}
           </div>
           
           <!-- Status Progress Bar -->
@@ -2157,35 +2162,35 @@
             }).join('')}
           </div>
           <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: #9ca3af;">
-            <span>New</span>
-            <span>Acknowledged</span>
-            <span>In Progress</span>
-            <span>Resolved</span>
+            <span>${statusConfig.new.label}</span>
+            <span>${statusConfig.acknowledged.label}</span>
+            <span>${statusConfig.in_progress.label}</span>
+            <span>${statusConfig.resolved.label}</span>
           </div>
         </div>
         
         ${isTemporary && expectedResolution ? `
           <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;">
-            <strong>📅 Expected Resolution:</strong> ${expectedResolution}
+            <strong>📅 ${tr.expectedResolution || 'Expected Resolution'}:</strong> ${expectedResolution}
           </div>
         ` : ''}
-        <p style="color: #6b7280; margin-bottom: 16px;">${escapeHtml(report.description || 'No description provided')}</p>
+        <p style="color: #6b7280; margin-bottom: 16px;">${escapeHtml(report.description || tr.noDescription || 'No description provided')}</p>
         <div style="background: #f9fafb; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>📍 Location:</strong> ${escapeHtml(location)}</p>
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>📅 Reported:</strong> ${date}</p>
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>🕐 Type:</strong> ${isTemporary ? 'Temporary (construction, seasonal, etc.)' : 'Permanent (structural issue)'}</p>
-          <p style="margin: 0; font-size: 14px;"><strong>👤 Reporter:</strong> ${escapeHtml(report.userName || report.userEmail || 'Anonymous')}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>📍 ${tr.location || 'Location'}:</strong> ${escapeHtml(location)}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>📅 ${tr.reported || 'Reported'}:</strong> ${date}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>🕐 ${tr.type || 'Type'}:</strong> ${isTemporary ? (tr.temporaryType || 'Temporary (construction, seasonal, etc.)') : (tr.permanentType || 'Permanent (structural issue)')}</p>
+          <p style="margin: 0; font-size: 14px;"><strong>👤 ${tr.reporter || 'Reporter'}:</strong> ${escapeHtml(report.userName || report.userEmail || tr.anonymous || 'Anonymous')}</p>
         </div>
         
         ${report.municipalTrackingId ? `
         <!-- Municipal Tracking Info -->
         <div style="background: #ede9fe; border: 1px solid #c4b5fd; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
           <h4 style="margin: 0 0 8px 0; font-size: 0.9rem; color: #5b21b6; display: flex; align-items: center; gap: 6px;">
-            <span>🏛️</span> Municipal Tracking
+            <span>🏛️</span> ${tr.municipalTracking || 'Municipal Tracking'}
           </h4>
-          <p style="margin: 0 0 4px 0; font-size: 14px;"><strong>Reference ID:</strong> <span style="font-family: monospace; background: #f5f3ff; padding: 2px 6px; border-radius: 4px;">${escapeHtml(report.municipalTrackingId)}</span></p>
-          ${report.scheduledRepairDate ? `<p style="margin: 4px 0 0 0; font-size: 14px;"><strong>Scheduled:</strong> ${new Date(report.scheduledRepairDate).toLocaleDateString()}</p>` : ''}
-          ${report.resolvedAt ? `<p style="margin: 4px 0 0 0; font-size: 14px;"><strong>Resolved:</strong> ${report.resolvedAt.toDate ? report.resolvedAt.toDate().toLocaleDateString() : new Date(report.resolvedAt).toLocaleDateString()}</p>` : ''}
+          <p style="margin: 0 0 4px 0; font-size: 14px;"><strong>${tr.referenceId || 'Reference ID'}:</strong> <span style="font-family: monospace; background: #f5f3ff; padding: 2px 6px; border-radius: 4px;">${escapeHtml(report.municipalTrackingId)}</span></p>
+          ${report.scheduledRepairDate ? `<p style="margin: 4px 0 0 0; font-size: 14px;"><strong>${tr.scheduled || 'Scheduled'}:</strong> ${new Date(report.scheduledRepairDate).toLocaleDateString(dateLocale)}</p>` : ''}
+          ${report.resolvedAt ? `<p style="margin: 4px 0 0 0; font-size: 14px;"><strong>${tr.resolved || 'Resolved'}:</strong> ${report.resolvedAt.toDate ? report.resolvedAt.toDate().toLocaleDateString(dateLocale) : new Date(report.resolvedAt).toLocaleDateString(dateLocale)}</p>` : ''}
         </div>
         ` : ''}
         
@@ -2193,11 +2198,11 @@
         ${statusHistory.length > 0 ? `
           <div style="margin-bottom: 16px;">
             <h4 style="margin: 0 0 8px 0; font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
-              <span>📋</span> Status History
+              <span>📋</span> ${tr.statusHistory || 'Status History'}
             </h4>
             <div style="background: #f9fafb; border-radius: 8px; padding: 12px;">
               ${statusHistory.slice(-5).reverse().map(entry => {
-                const entryDate = entry.timestamp?.toDate ? entry.timestamp.toDate().toLocaleString() : 'Unknown';
+                const entryDate = entry.timestamp?.toDate ? entry.timestamp.toDate().toLocaleString(dateLocale) : (tr.unknownDate || 'Unknown');
                 const entryStatus = statusConfig[entry.status] || statusConfig.new;
                 return `
                   <div style="display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
@@ -2217,14 +2222,14 @@
         <!-- Status Update (for report owner) -->
         ${isOwner && statusInfo.nextStatus ? `
           <div style="background: #fef3c7; border: 1px solid #fcd34d; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-            <h4 style="margin: 0 0 8px 0; font-size: 0.9rem;">🔄 Update Status</h4>
-            <p style="font-size: 0.85rem; color: #92400e; margin-bottom: 12px;">As the report owner, you can update the status when there's progress.</p>
+            <h4 style="margin: 0 0 8px 0; font-size: 0.9rem;">🔄 ${tr.updateStatus || 'Update Status'}</h4>
+            <p style="font-size: 0.85rem; color: #92400e; margin-bottom: 12px;">${tr.updateStatusHint || 'As the report owner, you can update the status when there\'s progress.'}</p>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button onclick="window.updateReportStatus('${report.id}', '${statusInfo.nextStatus}')" class="btn btn-primary" style="font-size: 0.85rem; padding: 8px 16px;">
-                ${statusConfig[statusInfo.nextStatus].icon} Mark as ${statusConfig[statusInfo.nextStatus].label}
+                ${statusConfig[statusInfo.nextStatus].icon} ${tr.markAs || 'Mark as'} ${statusConfig[statusInfo.nextStatus].label}
               </button>
               <button onclick="window.showStatusUpdateModal('${report.id}')" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 16px;">
-                ✏️ Add Note
+                ✏️ ${tr.addNote || 'Add Note'}
               </button>
             </div>
           </div>
@@ -2246,7 +2251,7 @@
           
           return `
             <div style="margin-bottom: 16px;">
-              <h4 style="margin-bottom: 8px;">📷 Photos (${photoUrls.length})</h4>
+              <h4 style="margin-bottom: 8px;">📷 ${tr.photos || 'Photos'} (${photoUrls.length})</h4>
               <div class="photo-grid" data-report-id="${report.id}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
                 ${photoUrls.map((photoUrl, index) => `
                   <img src="${photoUrl}" 
@@ -2266,38 +2271,38 @@
           <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
             <div>
               <span style="font-weight: 600; color: #374151;">
-                ${(report.verificationCount || 0) >= 3 ? '✅ Community Verified' : '🔍 Community Verification'}
+                ${(report.verificationCount || 0) >= 3 ? `✅ ${tr.communityVerified || 'Community Verified'}` : `🔍 ${tr.communityVerification || 'Community Verification'}`}
               </span>
               <span style="font-size: 0.85rem; color: #6b7280; margin-left: 8px;">
-                ${report.verificationCount || 0} ${(report.verificationCount || 0) === 1 ? 'user has' : 'users have'} verified this report
+                ${report.verificationCount || 0} ${(report.verificationCount || 0) === 1 ? (tr.userVerified || 'user has verified this report') : (tr.usersVerified || 'users have verified this report')}
               </span>
             </div>
             <button onclick="window.verifyReport('${report.id}')" 
                     class="btn btn-secondary" 
                     style="font-size: 0.85rem; padding: 6px 12px;"
                     ${(report.verifiedBy || []).includes(currentUser?.uid) ? 'disabled style="opacity: 0.6; cursor: not-allowed;"' : ''}
-                    ${report.userId === currentUser?.uid ? 'disabled title="Cannot verify your own report" style="opacity: 0.6; cursor: not-allowed;"' : ''}>
-              ${(report.verifiedBy || []).includes(currentUser?.uid) ? '✓ Verified' : '✓ Verify Accuracy'}
+                    ${report.userId === currentUser?.uid ? `disabled title="${tr.cannotVerifyOwn || 'Cannot verify your own report'}" style="opacity: 0.6; cursor: not-allowed;"` : ''}>
+              ${(report.verifiedBy || []).includes(currentUser?.uid) ? `✓ ${tr.verified || 'Verified'}` : `✓ ${tr.verifyAccuracy || 'Verify Accuracy'}`}
             </button>
           </div>
           ${(report.verificationCount || 0) < 3 ? `
             <p style="font-size: 0.75rem; color: #9ca3af; margin: 8px 0 0 0;">
-              Help confirm this report is accurate. Reports verified by 3+ users get a "Community Verified" badge.
+              ${tr.verificationHint || 'Help confirm this report is accurate. Reports verified by 3+ users get a "Community Verified" badge.'}
             </p>
           ` : ''}
         </div>
         
         <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
-          <button onclick="window.upvoteReport('${report.id}')" class="btn btn-secondary" style="flex: 1; min-width: 120px;">👍 Upvote (${report.upvotes || 0})</button>
+          <button onclick="window.upvoteReport('${report.id}')" class="btn btn-secondary" style="flex: 1; min-width: 120px;">👍 ${tr.upvote || 'Upvote'} (${report.upvotes || 0})</button>
           ${lat && lng ? `
-            <button onclick="window.zoomToReport(${lat}, ${lng})" class="btn btn-primary" style="flex: 1; min-width: 120px;">📍 Show on Map</button>
-            <button onclick="window.navigateToLocation(${lat}, ${lng})" class="btn" style="flex: 1; min-width: 120px; background: #10b981; color: white;">🧭 Navigate</button>
+            <button onclick="window.zoomToReport(${lat}, ${lng})" class="btn btn-primary" style="flex: 1; min-width: 120px;">📍 ${tr.showOnMap || 'Show on Map'}</button>
+            <button onclick="window.navigateToLocation(${lat}, ${lng})" class="btn" style="flex: 1; min-width: 120px; background: #10b981; color: white;">🧭 ${tr.navigate || 'Navigate'}</button>
           ` : ''}
         </div>
         
         <!-- 311 Export Options -->
         <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-          <h4 style="margin: 0 0 12px 0; font-size: 0.9rem; color: #374151;">📋 Submit to Authorities</h4>
+          <h4 style="margin: 0 0 12px 0; font-size: 0.9rem; color: #374151;">📋 ${tr.submitToAuthorities || 'Submit to Authorities'}</h4>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button onclick="window.printReport('${report.id}')" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 12px;">
               🖨️ Print Report
@@ -4884,6 +4889,95 @@ Generated: ${new Date().toLocaleString()}`;
       
       console.log('🌐 Report form translated to', lang);
     }
+    
+    // Report details translations
+    function getReportDetailsTranslations() {
+      const lang = i18n?.getLanguage() || localStorage.getItem('accessNature_language') || 'en';
+      
+      const translations = {
+        en: {
+          new: 'New',
+          acknowledged: 'Acknowledged',
+          in_progress: 'In Progress',
+          resolved: 'Resolved',
+          closed: 'Closed',
+          temporary: 'TEMPORARY',
+          expectedResolution: 'Expected Resolution',
+          noDescription: 'No description provided',
+          location: 'Location',
+          reported: 'Reported',
+          type: 'Type',
+          temporaryType: 'Temporary (construction, seasonal, etc.)',
+          permanentType: 'Permanent (structural issue)',
+          reporter: 'Reporter',
+          anonymous: 'Anonymous',
+          municipalTracking: 'Municipal Tracking',
+          referenceId: 'Reference ID',
+          scheduled: 'Scheduled',
+          statusHistory: 'Status History',
+          updateStatus: 'Update Status',
+          updateStatusHint: 'As the report owner, you can update the status when there\'s progress.',
+          markAs: 'Mark as',
+          addNote: 'Add Note',
+          photos: 'Photos',
+          communityVerified: 'Community Verified',
+          communityVerification: 'Community Verification',
+          usersVerified: 'users have verified this report',
+          userVerified: 'user has verified this report',
+          verified: 'Verified',
+          verifyAccuracy: 'Verify Accuracy',
+          verificationHint: 'Help confirm this report is accurate. Reports verified by 3+ users get a "Community Verified" badge.',
+          upvote: 'Upvote',
+          showOnMap: 'Show on Map',
+          navigate: 'Navigate',
+          submitToAuthorities: 'Submit to Authorities',
+          cannotVerifyOwn: 'Cannot verify your own report'
+        },
+        he: {
+          new: 'חדש',
+          acknowledged: 'אושר',
+          in_progress: 'בטיפול',
+          resolved: 'טופל',
+          closed: 'נסגר',
+          temporary: 'זמני',
+          expectedResolution: 'פתרון צפוי',
+          noDescription: 'לא ניתן תיאור',
+          location: 'מיקום',
+          reported: 'דווח',
+          type: 'סוג',
+          temporaryType: 'זמני (בנייה, עונתי וכו׳)',
+          permanentType: 'קבוע (בעיה מבנית)',
+          reporter: 'מדווח',
+          anonymous: 'אנונימי',
+          municipalTracking: 'מעקב עירוני',
+          referenceId: 'מספר הפניה',
+          scheduled: 'מתוכנן',
+          statusHistory: 'היסטוריית סטטוס',
+          updateStatus: 'עדכן סטטוס',
+          updateStatusHint: 'כבעל הדיווח, באפשרותך לעדכן את הסטטוס כאשר יש התקדמות.',
+          markAs: 'סמן כ',
+          addNote: 'הוסף הערה',
+          photos: 'תמונות',
+          communityVerified: 'אומת על ידי הקהילה',
+          communityVerification: 'אימות קהילתי',
+          usersVerified: 'משתמשים אימתו דיווח זה',
+          userVerified: 'משתמש אימת דיווח זה',
+          verified: 'אומת',
+          verifyAccuracy: 'אמת דיוק',
+          verificationHint: 'עזור לאשר שהדיווח מדויק. דיווחים שאומתו על ידי 3+ משתמשים מקבלים תג "אומת על ידי הקהילה".',
+          upvote: 'הצבע בעד',
+          showOnMap: 'הצג במפה',
+          navigate: 'נווט',
+          submitToAuthorities: 'שלח לרשויות',
+          cannotVerifyOwn: 'לא ניתן לאמת דיווח משלך'
+        }
+      };
+      
+      return translations[lang] || translations['en'];
+    }
+    
+    // Make translations available globally
+    window.getReportDetailsTranslations = getReportDetailsTranslations;
     
     // Initialize i18n
     try {

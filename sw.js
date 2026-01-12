@@ -9,7 +9,7 @@
  * - Images: Cache First
  */
 
-const CACHE_VERSION = 'v2.9.31-i18n-auth-toast';
+const CACHE_VERSION = 'v2.9.33-i18n-trailguide';
 const APP_CACHE = `access-nature-app-${CACHE_VERSION}`;
 const DATA_CACHE = `access-nature-data-${CACHE_VERSION}`;
 const MAP_CACHE = `access-nature-maps-${CACHE_VERSION}`;
