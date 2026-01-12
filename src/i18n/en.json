@@ -140,7 +140,13 @@
     "trailsFound": "{n} trails found",
     "loadMore": "Load More Trails",
     "noResults": "No trails match your criteria",
-    "tryDifferentFilters": "Try different filters or search terms"
+    "tryDifferentFilters": "Try different filters or search terms",
+    "by": "by",
+    "km": "km",
+    "gpsPoints": "GPS Points",
+    "views": "views",
+    "photos": "photos",
+    "notes": "notes"
   },
   "reports": {
     "pageTitle": "Accessibility Reports",
@@ -296,6 +302,30 @@
     "contactOptional": "Optional - for follow-up",
     "email": "Email",
     "phone": "Phone",
+    
+    "durationType": "Duration Type",
+    "permanent": "Permanent",
+    "permanentDesc": "Structural issue requiring construction",
+    "longTerm": "Long-term",
+    "longTermDesc": "Likely months to fix",
+    "temporary": "Temporary",
+    "temporaryDesc": "Days to weeks to resolve",
+    "intermittent": "Intermittent",
+    "intermittentDesc": "Comes and goes",
+    
+    "reportTitle": "Title",
+    "reportTitlePlaceholder": "Brief description of the issue",
+    "photos": "Photos",
+    "addPhotos": "Add Photos",
+    "addressOptional": "Address (optional)",
+    "addressPlaceholder": "e.g., 123 Main St, City",
+    "cancel": "Cancel",
+    
+    "severityMinorDesc": "Minor (1): Small inconvenience, most users can navigate around it.",
+    "severityLowDesc": "Low (2): Noticeable barrier, may slow down or inconvenience users.",
+    "severityMediumDesc": "Medium (3): Significant barrier that makes the area difficult to use for people with mobility needs.",
+    "severityHighDesc": "High (4): Major barrier that prevents independent access for most mobility device users.",
+    "severityCriticalDesc": "Critical (5): Complete barrier - area is completely inaccessible.",
     
     "submitReport": "Submit Report",
     "updateReport": "Update Report",
@@ -770,6 +800,14 @@
     },
     "myTrailGuides": "My Trail Guides",
     "allPrivateGuides": "All your private trail guides",
+    "yourTrailGuides": "Your Trail Guides",
+    "selectGuideToManage": "Select a guide to manage:",
+    "viewGuide": "View",
+    "makePrivate": "Make Private",
+    "makePublic": "Make Public",
+    "deleteGuide": "Delete",
+    "guidePublic": "Public",
+    "guidePrivate": "Private",
     "dataPrivacy": "Data & Privacy",
     "exportMyData": "Export My Data",
     "exportDataDesc": "Download all your data",
@@ -811,5 +849,13 @@
     "totalRoutes": "Total Routes",
     "totalReports": "Total Reports",
     "recentActivity": "Recent Activity"
+  },
+  "footer": {
+    "about": "About",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact",
+    "betaGuide": "Beta Guide",
+    "copyright": "Making trails accessible for all abilities."
   }
 }

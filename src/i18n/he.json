@@ -140,7 +140,13 @@
     "trailsFound": "{n} שבילים נמצאו",
     "loadMore": "טען עוד שבילים",
     "noResults": "אין שבילים התואמים לקריטריונים שלך",
-    "tryDifferentFilters": "נסה סינון או חיפוש אחר"
+    "tryDifferentFilters": "נסה סינון או חיפוש אחר",
+    "by": "מאת",
+    "km": "ק״מ",
+    "gpsPoints": "נקודות GPS",
+    "views": "צפיות",
+    "photos": "תמונות",
+    "notes": "הערות"
   },
   "reports": {
     "pageTitle": "דיווחי נגישות",
@@ -296,6 +302,30 @@
     "contactOptional": "אופציונלי - למעקב",
     "email": "דוא״ל",
     "phone": "טלפון",
+    
+    "durationType": "סוג משך",
+    "permanent": "קבוע",
+    "permanentDesc": "בעיה מבנית הדורשת בנייה",
+    "longTerm": "לטווח ארוך",
+    "longTermDesc": "צפוי להימשך חודשים",
+    "temporary": "זמני",
+    "temporaryDesc": "ימים עד שבועות לפתרון",
+    "intermittent": "לסירוגין",
+    "intermittentDesc": "מופיע ונעלם",
+    
+    "reportTitle": "כותרת",
+    "reportTitlePlaceholder": "תיאור קצר של הבעיה",
+    "photos": "תמונות",
+    "addPhotos": "הוסף תמונות",
+    "addressOptional": "כתובת (אופציונלי)",
+    "addressPlaceholder": "לדוגמה: רחוב הרצל 123, תל אביב",
+    "cancel": "ביטול",
+    
+    "severityMinorDesc": "קל (1): אי נוחות קטנה, רוב המשתמשים יכולים לעקוף.",
+    "severityLowDesc": "נמוך (2): מכשול מורגש, עלול להאט או להפריע למשתמשים.",
+    "severityMediumDesc": "בינוני (3): מכשול משמעותי שמקשה על השימוש באזור לאנשים עם צרכי ניידות.",
+    "severityHighDesc": "גבוה (4): מכשול עיקרי שמונע גישה עצמאית לרוב משתמשי אמצעי ניידות.",
+    "severityCriticalDesc": "קריטי (5): חסימה מוחלטת - האזור לא נגיש בכלל.",
     
     "submitReport": "שלח דיווח",
     "updateReport": "עדכן דיווח",
@@ -770,6 +800,14 @@
     },
     "myTrailGuides": "מדריכי השבילים שלי",
     "allPrivateGuides": "כל מדריכי השבילים הפרטיים שלך",
+    "yourTrailGuides": "מדריכי השבילים שלך",
+    "selectGuideToManage": "בחר מדריך לניהול:",
+    "viewGuide": "צפה",
+    "makePrivate": "הפוך לפרטי",
+    "makePublic": "הפוך לציבורי",
+    "deleteGuide": "מחק",
+    "guidePublic": "ציבורי",
+    "guidePrivate": "פרטי",
     "dataPrivacy": "נתונים ופרטיות",
     "exportMyData": "ייצא את המידע שלי",
     "exportDataDesc": "הורד את כל המידע שלך",
@@ -811,5 +849,13 @@
     "totalRoutes": "סה״כ מסלולים",
     "totalReports": "סה״כ דיווחים",
     "recentActivity": "פעילות אחרונה"
+  },
+  "footer": {
+    "about": "אודות",
+    "privacy": "מדיניות פרטיות",
+    "terms": "תנאי שימוש",
+    "contact": "צור קשר",
+    "betaGuide": "מדריך בטא",
+    "copyright": "הנגשת שבילים לכל היכולות."
   }
 }
