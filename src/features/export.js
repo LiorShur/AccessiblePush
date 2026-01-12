@@ -3,6 +3,7 @@ import { toast } from '../utils/toast.js';
 import { modal } from '../utils/modal.js';
 import { userService } from '../services/userService.js';
 import { trailGuideGeneratorV2 } from './trailGuideGeneratorV2.js';
+import { t } from '../i18n/i18n.js';
 
 export class ExportController {
   constructor(appState) {
@@ -48,7 +49,7 @@ export class ExportController {
     const currentRouteData = this.appState.getRouteData();
     const savedSessions = this.appState.getSessions();
     
-    let message = '📦 Export Options:\n\n';
+    let message = `📦 ${t('trackerUI.export.exportOptions')}:\n\n`;
     let options = [];
 
     // Option 1: Current route data
@@ -57,19 +58,19 @@ export class ExportController {
       const photos = currentRouteData.filter(p => p.type === 'photo').length;
       const notes = currentRouteData.filter(p => p.type === 'text').length;
       
-      message += `1. Current Route (${locationPoints} GPS points, ${photos} photos, ${notes} notes)\n`;
+      message += `1. ${t('trackerUI.export.currentRoute')} (${locationPoints} ${t('trackerUI.export.gpsPoints')}, ${photos} ${t('trackerUI.tracking.photos')}, ${notes} ${t('trackerUI.tracking.notes')})\n`;
       options.push('current');
     }
 
     // Option 2: Saved routes
     if (savedSessions && savedSessions.length > 0) {
-      message += `2. Saved Routes (${savedSessions.length} available)\n`;
+      message += `2. ${t('trackerUI.export.savedRoutes')} (${savedSessions.length} ${t('trackerUI.export.available')})\n`;
       options.push('saved');
     }
 
     // Option 3: All routes
     if (savedSessions && savedSessions.length > 0) {
-      options.push({ label: '📂 All Saved Routes', value: 'all' });
+      options.push({ label: `📂 ${t('trackerUI.export.allSavedRoutes')}`, value: 'all' });
     }
 
     if (options.length === 0) {
@@ -77,7 +78,7 @@ export class ExportController {
       return;
     }
 
-    const choice = await modal.choice('Select which route(s) to export:', '📤 Export Route', options);
+    const choice = await modal.choice(t('trackerUI.export.selectRoute'), `📤 ${t('trackerUI.export.exportRoute')}`, options);
     
     if (choice) {
       switch (choice) {
@@ -118,7 +119,7 @@ export class ExportController {
   async showSavedRoutesForExport() {
     const sessions = this.appState.getSessions();
     if (!sessions || sessions.length === 0) {
-      toast.info('No saved routes available');
+      toast.info(t('trackerUI.export.noSavedRoutes'));
       return;
     }
 
@@ -133,9 +134,9 @@ export class ExportController {
       };
     });
     
-    choices.push({ label: '❌ Cancel', value: 'cancel' });
+    choices.push({ label: `❌ ${t('trackerUI.export.cancel')}`, value: 'cancel' });
     
-    const choice = await modal.choice('Select a route to export:', '📂 Export Saved Route', choices);
+    const choice = await modal.choice(t('trackerUI.export.selectRouteToExport'), `📂 ${t('trackerUI.export.exportSavedRoute')}`, choices);
     
     if (choice !== null && choice !== 'cancel') {
       this.exportSavedRoute(sessions[choice]);
@@ -199,10 +200,10 @@ export class ExportController {
     
     // Determine what data to export
     if (currentRouteData && currentRouteData.length > 0) {
-      const choice = await modal.choice('Which route would you like to export to GPX?', '📤 Export GPX', [
-        { label: '📍 Current Route', value: 'current' },
-        { label: '📂 Choose from Saved Routes', value: 'saved' },
-        { label: '❌ Cancel', value: 'cancel' }
+      const choice = await modal.choice(t('trackerUI.export.whichRouteGpx'), `📤 ${t('trackerUI.export.exportGpx')}`, [
+        { label: `📍 ${t('trackerUI.export.currentRoute')}`, value: 'current' },
+        { label: `📂 ${t('trackerUI.export.savedRoutes')}`, value: 'saved' },
+        { label: `❌ ${t('trackerUI.export.cancel')}`, value: 'cancel' }
       ]);
       
       if (choice === 'current') {
@@ -262,16 +263,16 @@ export class ExportController {
     
     // Determine what data to export
     if (currentRouteData && currentRouteData.length > 0) {
-      const choice = await modal.choice('Which route would you like to export to PDF?', '📤 Export PDF', [
-        { label: '📍 Current Route', value: 'current' },
-        { label: '📂 Choose from Saved Routes', value: 'saved' },
-        { label: '❌ Cancel', value: 'cancel' }
+      const choice = await modal.choice(t('trackerUI.export.whichRoutePdf'), `📤 ${t('trackerUI.export.exportPdf')}`, [
+        { label: `📍 ${t('trackerUI.export.currentRoute')}`, value: 'current' },
+        { label: `📂 ${t('trackerUI.export.savedRoutes')}`, value: 'saved' },
+        { label: `❌ ${t('trackerUI.export.cancel')}`, value: 'cancel' }
       ]);
       
       if (choice === 'current') {
         routeDataToExport = currentRouteData;
         routeInfo = {
-          name: 'Current Route',
+          name: t('trackerUI.export.currentRoute'),
           totalDistance: this.appState.getTotalDistance(),
           elapsedTime: this.appState.getElapsedTime(),
           date: new Date().toISOString()
@@ -292,7 +293,7 @@ export class ExportController {
         routeInfo = selectedRoute;
       }
     } else {
-      toast.warning('No route data available to export to PDF');
+      toast.warning(t('trackerUI.export.noRouteData'));
       return;
     }
     
@@ -302,7 +303,7 @@ export class ExportController {
       this.generatePDFReport(routeDataToExport, routeInfo);
     } catch (error) {
       console.error('PDF export failed:', error);
-      toast.error('PDF export failed: ' + error.message);
+      toast.error(t('trackerUI.export.exportFailed') + ': ' + error.message);
     }
   }
 
