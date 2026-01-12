@@ -13,6 +13,58 @@
  * @version 2.0
  */
 
+// Translations for GlobalNav
+const navTranslations = {
+  en: {
+    // Navigation labels
+    home: "Home",
+    add: "Add",
+    search: "Search",
+    profile: "Profile",
+    signIn: "Sign In",
+    
+    // Action sheet titles
+    contribute: "Contribute",
+    discover: "Discover",
+    
+    // Contribute options
+    recordTrail: "Record Trail",
+    recordTrailDesc: "Track and document an accessible route",
+    reportIssue: "Report Issue",
+    reportIssueDesc: "Report an accessibility barrier",
+    
+    // Discover options
+    findTrails: "Find Trails",
+    findTrailsDesc: "Search accessible trail guides",
+    findReports: "Find Reports",
+    findReportsDesc: "Browse accessibility reports near you"
+  },
+  he: {
+    // Navigation labels
+    home: "בית",
+    add: "הוסף",
+    search: "חיפוש",
+    profile: "פרופיל",
+    signIn: "התחבר",
+    
+    // Action sheet titles
+    contribute: "תרומה",
+    discover: "גילוי",
+    
+    // Contribute options
+    recordTrail: "הקלט שביל",
+    recordTrailDesc: "עקוב ותעד מסלול נגיש",
+    reportIssue: "דווח על בעיה",
+    reportIssueDesc: "דווח על מכשול נגישות",
+    
+    // Discover options
+    findTrails: "מצא שבילים",
+    findTrailsDesc: "חפש מדריכי שבילים נגישים",
+    findReports: "מצא דיווחים",
+    findReportsDesc: "עיין בדיווחי נגישות בקרבתך"
+  }
+};
+
 // SVG Icons (white, 24x24)
 const ICONS = {
   home: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>`,
@@ -39,6 +91,16 @@ export class GlobalNav {
     
     // Action sheet state
     this.activeSheet = null;
+    
+    // Language
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+  }
+  
+  /**
+   * Get translation for key
+   */
+  t(key) {
+    return navTranslations[this.lang]?.[key] || navTranslations['en']?.[key] || key;
   }
 
   /**
@@ -86,36 +148,42 @@ export class GlobalNav {
    * Render the navigation bar
    */
   render() {
+    // Refresh language
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    
     // Create nav container
     const nav = document.createElement('nav');
     nav.className = 'global-bottom-nav';
     nav.id = 'globalBottomNav';
     nav.setAttribute('role', 'navigation');
     nav.setAttribute('aria-label', 'Main navigation');
+    // Force LTR regardless of page language
+    nav.setAttribute('dir', 'ltr');
+    nav.style.direction = 'ltr';
 
     nav.innerHTML = `
       <!-- Home -->
-      <a href="index.html" class="global-nav-item ${this.currentPage === 'home' ? 'active' : ''}" aria-label="Home" data-page="home">
+      <a href="index.html" class="global-nav-item ${this.currentPage === 'home' ? 'active' : ''}" aria-label="${this.t('home')}" data-page="home">
         <span class="nav-icon">${ICONS.home}</span>
-        <span class="nav-label">Home</span>
+        <span class="nav-label">${this.t('home')}</span>
       </a>
 
       <!-- Add (now normal nav item) -->
-      <button class="global-nav-item" id="globalNavAdd" aria-label="Add new content" aria-haspopup="true" data-page="add">
+      <button class="global-nav-item" id="globalNavAdd" aria-label="${this.t('add')}" aria-haspopup="true" data-page="add">
         <span class="nav-icon">${ICONS.add}</span>
-        <span class="nav-label">Add</span>
+        <span class="nav-label">${this.t('add')}</span>
       </button>
 
       <!-- Search (now normal nav item) -->
-      <button class="global-nav-item" id="globalNavSearch" aria-label="Search" aria-haspopup="true" data-page="search">
+      <button class="global-nav-item" id="globalNavSearch" aria-label="${this.t('search')}" aria-haspopup="true" data-page="search">
         <span class="nav-icon">${ICONS.search}</span>
-        <span class="nav-label">Search</span>
+        <span class="nav-label">${this.t('search')}</span>
       </button>
 
       <!-- Profile (button for dynamic behavior) -->
-      <button class="global-nav-item ${this.currentPage === 'profile' ? 'active' : ''}" aria-label="Profile" id="globalNavProfile" data-page="profile">
+      <button class="global-nav-item ${this.currentPage === 'profile' ? 'active' : ''}" aria-label="${this.t('profile')}" id="globalNavProfile" data-page="profile">
         <span class="nav-icon">${ICONS.profile}</span>
-        <span class="nav-label" id="profileLabel">Profile</span>
+        <span class="nav-label" id="profileLabel">${this.t('profile')}</span>
       </button>
     `;
 
@@ -139,6 +207,9 @@ export class GlobalNav {
     const overlay = document.createElement('div');
     overlay.className = 'action-sheet-overlay';
     overlay.id = 'actionSheetOverlay';
+    // Force LTR regardless of page language
+    overlay.setAttribute('dir', 'ltr');
+    overlay.style.direction = 'ltr';
     overlay.innerHTML = `
       <div class="action-sheet" role="dialog" aria-modal="true">
         <div class="action-sheet-header">
@@ -343,24 +414,27 @@ export class GlobalNav {
    * Show the "Add" action sheet
    */
   showAddSheet() {
+    // Refresh language
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    
     const options = `
       <button class="action-sheet-option trail" data-action="record-trail">
         <div class="option-icon">${ICONS.trail}</div>
         <div class="option-content">
-          <div class="option-title">Record Trail</div>
-          <div class="option-desc">Track and document an accessible route</div>
+          <div class="option-title">${this.t('recordTrail')}</div>
+          <div class="option-desc">${this.t('recordTrailDesc')}</div>
         </div>
       </button>
       <button class="action-sheet-option report" data-action="report-issue">
         <div class="option-icon">${ICONS.report}</div>
         <div class="option-content">
-          <div class="option-title">Report Issue</div>
-          <div class="option-desc">Report an accessibility barrier</div>
+          <div class="option-title">${this.t('reportIssue')}</div>
+          <div class="option-desc">${this.t('reportIssueDesc')}</div>
         </div>
       </button>
     `;
 
-    this.showActionSheet('Contribute', options);
+    this.showActionSheet(this.t('contribute'), options);
     this.activeSheet = 'add';
     
     // Bind option clicks
@@ -371,24 +445,27 @@ export class GlobalNav {
    * Show the "Search" action sheet
    */
   showSearchSheet() {
+    // Refresh language
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    
     const options = `
       <button class="action-sheet-option search-trails" data-action="find-trails">
         <div class="option-icon">${ICONS.map}</div>
         <div class="option-content">
-          <div class="option-title">Find Trails</div>
-          <div class="option-desc">Search accessible trail guides</div>
+          <div class="option-title">${this.t('findTrails')}</div>
+          <div class="option-desc">${this.t('findTrailsDesc')}</div>
         </div>
       </button>
       <button class="action-sheet-option search-reports" data-action="find-reports">
         <div class="option-icon">${ICONS.report}</div>
         <div class="option-content">
-          <div class="option-title">Find Reports</div>
-          <div class="option-desc">Browse accessibility reports near you</div>
+          <div class="option-title">${this.t('findReports')}</div>
+          <div class="option-desc">${this.t('findReportsDesc')}</div>
         </div>
       </button>
     `;
 
-    this.showActionSheet('Discover', options);
+    this.showActionSheet(this.t('discover'), options);
     this.activeSheet = 'search';
     
     // Bind option clicks
