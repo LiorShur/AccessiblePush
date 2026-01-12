@@ -1176,11 +1176,11 @@
   </button>
 
   <!-- Report Detail Modal -->
-  <div id="reportDetailModal" class="hidden">
+  <div id="reportDetailModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content">
       <div class="modal-header">
         <h2 id="modalTitle">Report Details</h2>
-        <button class="modal-close" id="closeModalBtn">&times;</button>
+        <button class="modal-close" id="closeModalBtn" aria-label="Close modal">&times;</button>
       </div>
       <div class="modal-body" id="modalBody">
         <!-- Content loaded dynamically -->
@@ -1189,11 +1189,11 @@
   </div>
 
   <!-- Create Report Modal -->
-  <div id="createReportModal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100000; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 16px;">
+  <div id="createReportModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="createReportTitle" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100000; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 16px;">
     <div class="modal-content" style="background: white; border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
-        <h2>📋 Report Accessibility Issue</h2>
-        <button class="modal-close" id="closeCreateModalBtn">&times;</button>
+        <h2 id="createReportTitle">📋 Report Accessibility Issue</h2>
+        <button class="modal-close" id="closeCreateModalBtn" aria-label="Close modal">&times;</button>
       </div>
       <div class="modal-body" style="padding: 24px;">
         <form id="createReportForm">

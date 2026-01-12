@@ -502,7 +502,7 @@ textarea:focus-visible,
 </head>
 <body class="tracker-page">
   <!-- Skip to main content link for keyboard users -->
-  <a href="#map-container" class="skip-link">Skip to map</a>
+  <a href="#map-container" class="skip-link" data-i18n="trackerUI.skipToMap">Skip to map</a>
   
   <nav class="top-nav" role="navigation" aria-label="Main navigation">
   <a href="index.html" class="nav-brand">♿ Accessible</a>
@@ -729,7 +729,7 @@ textarea:focus-visible,
     <!-- Timer -->
     <div style="display: flex; flex-direction: column; align-items: center; min-width: 65px;">
       <span id="timer" style="font-size: 16px; font-weight: 700; color: white; font-variant-numeric: tabular-nums;">00:00:00</span>
-      <span style="font-size: 9px; color: #888; text-transform: uppercase;">Time</span>
+      <span style="font-size: 9px; color: #888; text-transform: uppercase;" data-i18n="trackerUI.time">Time</span>
     </div>
     
     <!-- Separator -->
@@ -738,7 +738,7 @@ textarea:focus-visible,
     <!-- Distance -->
     <div style="display: flex; flex-direction: column; align-items: center; min-width: 60px;">
       <span id="distance" style="font-size: 16px; font-weight: 700; color: white; font-variant-numeric: tabular-nums;">0.00 km</span>
-      <span style="font-size: 9px; color: #888; text-transform: uppercase;">Dist</span>
+      <span style="font-size: 9px; color: #888; text-transform: uppercase;" data-i18n="trackerUI.dist">Dist</span>
     </div>
   </div>
 
@@ -870,7 +870,7 @@ textarea:focus-visible,
       ">
         <span style="font-size: 20px; line-height: 1;">♿</span>
       </div>
-      <span style="font-size: 13px; font-weight: 600; color: white;">Survey</span>
+      <span style="font-size: 13px; font-weight: 600; color: white;" data-i18n="trackerUI.survey">Survey</span>
     </button>
   </div>
 
@@ -1213,93 +1213,93 @@ textarea:focus-visible,
 
   <!-- LEGACY: Keep old bottom nav hidden for compatibility -->
   <div id="bottomNav" class="bottom-nav hidden" role="navigation" aria-label="Feature panels">
-    <button class="nav-button" onclick="togglePanel('exportPanel')" aria-label="Open export panel">Export</button>
-    <button class="nav-button" onclick="togglePanel('summaryPanel')" aria-label="Open routes panel">Routes</button>
-    <button class="nav-button" onclick="togglePanel('trailGuidePanel')" aria-label="Open trail guides panel">Guides</button>
-    <button class="nav-button" onclick="togglePanel('safetyPanel')" aria-label="Open safety panel">Safety</button>
+    <button class="nav-button" onclick="togglePanel('exportPanel')" aria-label="Open export panel" data-i18n="trackerUI.bottomNav.export">Export</button>
+    <button class="nav-button" onclick="togglePanel('summaryPanel')" aria-label="Open routes panel" data-i18n="trackerUI.bottomNav.routes">Routes</button>
+    <button class="nav-button" onclick="togglePanel('trailGuidePanel')" aria-label="Open trail guides panel" data-i18n="trackerUI.bottomNav.guides">Guides</button>
+    <button class="nav-button" onclick="togglePanel('safetyPanel')" aria-label="Open safety panel" data-i18n="trackerUI.bottomNav.safety">Safety</button>
   </div>
   </div>
 
   <!-- More Options Panel -->
   <div id="moreOptionsPanel" class="bottom-popup hidden" style="max-height: 60vh; overflow-y: auto;">
     <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-weight: 600; color: #fff;">More Options</span>
+      <span style="font-weight: 600; color: #fff;" data-i18n="trackerUI.moreOptions">More Options</span>
       <button onclick="togglePanel('moreOptionsPanel')" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;">✕</button>
     </div>
     
     <div style="padding: 8px;">
-      <div style="font-size: 11px; color: #888; padding: 4px 8px; margin-bottom: 4px;">VIEW</div>
-      <button id="fullscreenTogglePanelBtn" onclick="toggleFullscreenMode()">⛶ Toggle Fullscreen</button>
+      <div style="font-size: 11px; color: #888; padding: 4px 8px; margin-bottom: 4px;" data-i18n="trackerUI.panels.view">VIEW</div>
+      <button id="fullscreenTogglePanelBtn" onclick="toggleFullscreenMode()" data-i18n="trackerUI.buttons.toggleFullscreen">⛶ Toggle Fullscreen</button>
     </div>
     
     <div style="padding: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
-      <div style="font-size: 11px; color: #888; padding: 4px 8px; margin-bottom: 4px;">SAVE & EXPORT</div>
-      <button id="saveToCloudBtn" class="cloud-save-btn">☁️ Save to Cloud</button>
-      <button id="prepareAndExportBtn">📦 Export Route</button>
-      <button id="exportGPXBtn">📍 Export GPX</button>
-      <button id="exportPDFBtn">📄 Export PDF</button>
-      <button id="exportSummaryBtn">🌐 Export Trail Guide</button>
+      <div style="font-size: 11px; color: #888; padding: 4px 8px; margin-bottom: 4px;" data-i18n="trackerUI.panels.saveExport">SAVE & EXPORT</div>
+      <button id="saveToCloudBtn" class="cloud-save-btn" data-i18n="trackerUI.buttons.saveToCloud">☁️ Save to Cloud</button>
+      <button id="prepareAndExportBtn" data-i18n="trackerUI.buttons.exportRoute">📦 Export Route</button>
+      <button id="exportGPXBtn" data-i18n="trackerUI.buttons.exportGPX">📍 Export GPX</button>
+      <button id="exportPDFBtn" data-i18n="trackerUI.buttons.exportPDF">📄 Export PDF</button>
+      <button id="exportSummaryBtn" data-i18n="trackerUI.buttons.exportTrailGuide">🌐 Export Trail Guide</button>
     </div>
     
     <div style="padding: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
-      <div style="font-size: 11px; color: #888; padding: 4px 8px; margin-bottom: 4px;">MY DATA</div>
-      <button id="loadCloudRoutesBtn" class="cloud-load-btn">☁️ Load My Routes</button>
-      <button id="loadMyGuidesBtn" class="cloud-load-btn">🌐 Load My Guides</button>
-      <button onclick="offlineSync?.showPendingUploadsModal()">📦 Local Storage</button>
-      <button onclick="offlineMapsUI?.openModal()">📥 Offline Maps</button>
+      <div style="font-size: 11px; color: #888; padding: 4px 8px; margin-bottom: 4px;" data-i18n="trackerUI.panels.myData">MY DATA</div>
+      <button id="loadCloudRoutesBtn" class="cloud-load-btn" data-i18n="trackerUI.buttons.loadMyRoutes">☁️ Load My Routes</button>
+      <button id="loadMyGuidesBtn" class="cloud-load-btn" data-i18n="trackerUI.buttons.loadMyGuides">🌐 Load My Guides</button>
+      <button onclick="offlineSync?.showPendingUploadsModal()" data-i18n="trackerUI.buttons.localStorage">📦 Local Storage</button>
+      <button onclick="offlineMapsUI?.openModal()" data-i18n="trackerUI.buttons.offlineMaps">📥 Offline Maps</button>
     </div>
     
     <div style="padding: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
-      <div style="font-size: 11px; color: #888; padding: 4px 8px; margin-bottom: 4px;">TOOLS</div>
-      <button onclick="triggerImport()">📥 Import Route</button>
-      <button id="clearAllSessionsBtn">🗑️ Clear Routes</button>
+      <div style="font-size: 11px; color: #888; padding: 4px 8px; margin-bottom: 4px;" data-i18n="trackerUI.panels.tools">TOOLS</div>
+      <button onclick="triggerImport()" data-i18n="trackerUI.buttons.importRoute">📥 Import Route</button>
+      <button id="clearAllSessionsBtn" data-i18n="trackerUI.buttons.clearRoutes">🗑️ Clear Routes</button>
     </div>
   </div>
 
   <!-- Export Panel (legacy, kept for compatibility) -->
   <div id="exportPanel" class="bottom-popup hidden">
-    <button id="prepareAndExportBtn2">📦 Export Route</button>
-    <button id="exportGPXBtn2">📍 Export GPX</button>
-    <button id="exportPDFBtn2">📄 Export PDF</button>
-    <button id="exportSummaryBtn2">🌐 Export Trail Guide</button>
-    <button id="saveToCloudBtn2" class="cloud-save-btn">☁️ Save to Cloud</button>
+    <button id="prepareAndExportBtn2" data-i18n="trackerUI.buttons.exportRoute">📦 Export Route</button>
+    <button id="exportGPXBtn2" data-i18n="trackerUI.buttons.exportGPX">📍 Export GPX</button>
+    <button id="exportPDFBtn2" data-i18n="trackerUI.buttons.exportPDF">📄 Export PDF</button>
+    <button id="exportSummaryBtn2" data-i18n="trackerUI.buttons.exportTrailGuide">🌐 Export Trail Guide</button>
+    <button id="saveToCloudBtn2" class="cloud-save-btn" data-i18n="trackerUI.buttons.saveToCloud">☁️ Save to Cloud</button>
   </div>
 
   <!-- Summary Panel (legacy, kept for compatibility) -->
   <div id="summaryPanel" class="bottom-popup hidden">
-    <button id="loadCloudRoutesBtn2" class="cloud-load-btn">☁️ Load My Routes</button>
-    <button id="loadMyGuidesBtn2" class="cloud-load-btn">🌐 Load My Guides</button>
-    <button onclick="offlineSync?.showPendingUploadsModal()">📦 Local Storage</button>
-    <button id="clearAllSessionsBtn2">🗑️ Clear Routes</button>
-    <button id="clearAllAppDataBtn">🧹 Clear Everything</button>
+    <button id="loadCloudRoutesBtn2" class="cloud-load-btn" data-i18n="trackerUI.buttons.loadMyRoutes">☁️ Load My Routes</button>
+    <button id="loadMyGuidesBtn2" class="cloud-load-btn" data-i18n="trackerUI.buttons.loadMyGuides">🌐 Load My Guides</button>
+    <button onclick="offlineSync?.showPendingUploadsModal()" data-i18n="trackerUI.buttons.localStorage">📦 Local Storage</button>
+    <button id="clearAllSessionsBtn2" data-i18n="trackerUI.buttons.clearRoutes">🗑️ Clear Routes</button>
+    <button id="clearAllAppDataBtn" data-i18n="trackerUI.buttons.clearEverything">🧹 Clear Everything</button>
   </div>
   
   <!-- Safety Panel -->
   <div id="safetyPanel" class="bottom-popup hidden">
     <div style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-weight: 600; color: #fff;">🛡️ Safety Options</span>
+      <span style="font-weight: 600; color: #fff;" data-i18n="trackerUI.safetyOptions">🛡️ Safety Options</span>
       <button onclick="togglePanel('safetyPanel')" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;">✕</button>
     </div>
-    <button onclick="safetyFeatures?.openEmergencyModal()">🆘 Emergency SOS</button>
-    <button onclick="safetyFeatures?.startLifeline()">📡 Start Lifeline</button>
-    <button onclick="safetyFeatures?.manageContacts()">👥 Emergency Contacts</button>
-    <button onclick="safetyFeatures?.showCurrentWeather('weatherContainer')">🌤️ Check Weather</button>
-    <button onclick="trailConditions?.quickReportCondition()">🚧 Report Conditions</button>
-    <button onclick="trailConditions?.showNearbyConditions()">📍 Nearby Conditions</button>
-    <button onclick="trailAlerts?.showSettingsModal()">⚠️ Alert Settings</button>
+    <button onclick="safetyFeatures?.openEmergencyModal()" data-i18n="trackerUI.safety.emergencySOS">🆘 Emergency SOS</button>
+    <button onclick="safetyFeatures?.startLifeline()" data-i18n="trackerUI.safety.startLifeline">📡 Start Lifeline</button>
+    <button onclick="safetyFeatures?.manageContacts()" data-i18n="trackerUI.safety.emergencyContacts">👥 Emergency Contacts</button>
+    <button onclick="safetyFeatures?.showCurrentWeather('weatherContainer')" data-i18n="trackerUI.safety.checkWeather">🌤️ Check Weather</button>
+    <button onclick="trailConditions?.quickReportCondition()" data-i18n="trackerUI.safety.reportConditions">🚧 Report Conditions</button>
+    <button onclick="trailConditions?.showNearbyConditions()" data-i18n="trackerUI.safety.nearbyConditions">📍 Nearby Conditions</button>
+    <button onclick="trailAlerts?.showSettingsModal()" data-i18n="trackerUI.safety.alertSettings">⚠️ Alert Settings</button>
   </div>
 
   <!-- Dev Tools Panel -->
   <div id="devToolsPanel" class="bottom-popup hidden">
-    <button onclick="showStorageMonitor()">🧪 Storage Monitor</button>
-    <button onclick="triggerImport()">📥 Import Route</button>
-    <button id="resetBtn" onclick="confirmAndResetApp()">🔄 Reset App</button>
+    <button onclick="showStorageMonitor()" data-i18n="trackerUI.buttons.storageMonitor">🧪 Storage Monitor</button>
+    <button onclick="triggerImport()" data-i18n="trackerUI.buttons.importRoute">📥 Import Route</button>
+    <button id="resetBtn" onclick="confirmAndResetApp()" data-i18n="trackerUI.buttons.resetApp">🔄 Reset App</button>
   </div>
 
   <!-- Trail Guide Panel (kept for compatibility) -->
   <div id="trailGuidePanel" class="bottom-popup hidden">
-    <h3>🌐 My Trail Guides</h3>
-    <button id="loadMyGuidesBtn3">📂 Load My Guides</button>
+    <h3 data-i18n="trackerUI.trailGuides.title">🌐 My Trail Guides</h3>
+    <button id="loadMyGuidesBtn3" data-i18n="trackerUI.trailGuides.loadGuides">📂 Load My Guides</button>
     <div id="myGuidesList" class="guides-list">
       <!-- Dynamically populated -->
     </div>

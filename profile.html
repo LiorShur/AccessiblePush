@@ -86,7 +86,7 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 56px;
+      height: 60px;
       background: #000;
       color: white;
       padding: 0 16px;
@@ -97,10 +97,13 @@
     }
     
     .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       color: white;
       text-decoration: none;
-      font-weight: 600;
-      font-size: 1.1rem;
+      font-weight: 700;
+      font-size: 1.15rem;
       margin-right: auto;
     }
     
@@ -829,13 +832,10 @@
     <span class="toggle-text">High Contrast</span>
   </button>
   
-  <!-- Language Toggle -->
-  <div id="langToggleContainer" class="floating-lang-toggle"></div>
-  
   <!-- Loading Overlay -->
   <div id="loadingOverlay" class="loading-overlay" role="alert" aria-live="polite">
     <div class="loading-spinner" aria-hidden="true"></div>
-    <p>Loading profile...</p>
+    <p data-i18n="profile.loadingProfile">Loading profile...</p>
   </div>
 
   <!-- Main Content (hidden until loaded) -->
@@ -879,7 +879,7 @@
       <section class="profile-section">
         <div class="section-header">
           <h2 class="section-title">
-            <span class="icon">👤</span> Account
+            <span class="icon">👤</span> <span data-i18n="nav.profile">Account</span>
           </h2>
         </div>
         <ul class="settings-list">
@@ -887,8 +887,8 @@
             <div class="settings-item-left">
               <div class="settings-item-icon green">✏️</div>
               <div class="settings-item-text">
-                <h3>Display Name</h3>
-                <p id="currentDisplayName">Not set</p>
+                <h3 data-i18n="profile.displayName">Display Name</h3>
+                <p id="currentDisplayName" data-i18n="profile.notSet">Not set</p>
               </div>
             </div>
             <div class="settings-item-right">›</div>
@@ -897,7 +897,7 @@
             <div class="settings-item-left">
               <div class="settings-item-icon blue">📧</div>
               <div class="settings-item-text">
-                <h3>Email Address</h3>
+                <h3 data-i18n="profile.emailAddress">Email Address</h3>
                 <p id="currentEmail">Loading...</p>
               </div>
             </div>
@@ -910,13 +910,13 @@
       <section class="profile-section">
         <div class="section-header">
           <h2 class="section-title">
-            <span class="icon">♿</span> Mobility Profile
+            <span class="icon">♿</span> <span data-i18n="profile.mobilityProfile">Mobility Profile</span>
           </h2>
-          <a href="#" class="section-action" onclick="openMobilityModal(); return false;">Edit</a>
+          <a href="#" class="section-action" onclick="openMobilityModal(); return false;" data-i18n="common.edit">Edit</a>
         </div>
         <div class="section-content">
           <div class="mobility-preview" id="mobilityPreview">
-            <span class="mobility-empty">No mobility preferences set. Tap Edit to personalize your experience.</span>
+            <span class="mobility-empty" data-i18n="profile.noMobilitySet">No mobility preferences set. Tap Edit to personalize your experience.</span>
           </div>
         </div>
       </section>
@@ -925,7 +925,7 @@
       <section class="profile-section">
         <div class="section-header">
           <h2 class="section-title">
-            <span class="icon">🔒</span> Data & Privacy
+            <span class="icon">🔒</span> <span data-i18n="profile.dataPrivacy">Data & Privacy</span>
           </h2>
         </div>
         <ul class="settings-list">
@@ -933,8 +933,8 @@
             <div class="settings-item-left">
               <div class="settings-item-icon purple">📥</div>
               <div class="settings-item-text">
-                <h3>Export My Data</h3>
-                <p>Download all your data</p>
+                <h3 data-i18n="profile.exportMyData">Export My Data</h3>
+                <p data-i18n="profile.exportDataDesc">Download all your data</p>
               </div>
             </div>
             <div class="settings-item-right">›</div>
@@ -943,8 +943,8 @@
             <div class="settings-item-left">
               <div class="settings-item-icon blue">📋</div>
               <div class="settings-item-text">
-                <h3>Privacy Policy</h3>
-                <p>How we handle your data</p>
+                <h3 data-i18n="profile.privacyPolicy">Privacy Policy</h3>
+                <p data-i18n="profile.privacyPolicyDesc">How we handle your data</p>
               </div>
             </div>
             <div class="settings-item-right">›</div>
@@ -953,7 +953,7 @@
             <div class="settings-item-left">
               <div class="settings-item-icon orange">📜</div>
               <div class="settings-item-text">
-                <h3>Terms of Service</h3>
+                <h3 data-i18n="footer.terms">Terms of Service</h3>
                 <p>Usage terms and conditions</p>
               </div>
             </div>
@@ -974,8 +974,8 @@
             <div class="settings-item-left">
               <div class="settings-item-icon orange">🚪</div>
               <div class="settings-item-text">
-                <h3>Sign Out</h3>
-                <p>Sign out of your account</p>
+                <h3 data-i18n="nav.signOut">Sign Out</h3>
+                <p data-i18n="profile.signOutDesc">Sign out of your account</p>
               </div>
             </div>
             <div class="settings-item-right">›</div>
@@ -984,8 +984,8 @@
             <div class="settings-item-left">
               <div class="settings-item-icon red">🗑️</div>
               <div class="settings-item-text">
-                <h3>Delete Account</h3>
-                <p>Permanently delete your account and data</p>
+                <h3 data-i18n="profile.deleteAccount">Delete Account</h3>
+                <p data-i18n="profile.deleteAccountDesc">Permanently delete your account and data</p>
               </div>
             </div>
             <div class="settings-item-right">›</div>
@@ -996,9 +996,9 @@
       <!-- Footer -->
       <footer class="profile-footer">
         <div class="footer-links">
-          <a href="index.html">Home</a>
-          <a href="beta-guide.html">Help</a>
-          <a href="reports.html">Reports</a>
+          <a href="index.html" data-i18n="nav.home">Home</a>
+          <a href="beta-guide.html" data-i18n="profile.help">Help</a>
+          <a href="reports.html" data-i18n="nav.reports">Reports</a>
         </div>
         <p class="app-version">Accessible v1.0.0-beta</p>
       </footer>
@@ -1008,8 +1008,8 @@
   <!-- Sign In Prompt (shown when not logged in) -->
   <div id="signinPrompt" class="signin-prompt" style="display: none;">
     <div class="icon">🔐</div>
-    <h2>Sign In Required</h2>
-    <p>Please sign in to view your profile and settings.</p>
+    <h2 data-i18n="profile.signInRequired">Sign In Required</h2>
+    <p data-i18n="profile.signInPrompt">Please sign in to view your profile and settings.</p>
     <button class="btn btn-primary" onclick="window.location.href='index.html'">
       Go to Home Page
     </button>
@@ -1715,7 +1715,6 @@
     // Initialize i18n
     try {
       await i18n.init();
-      i18n.createLanguageToggle('langToggleContainer');
       i18n.translatePage();
       
       // Listen for language changes
