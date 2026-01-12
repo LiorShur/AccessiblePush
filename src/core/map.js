@@ -98,7 +98,7 @@ export class MapController {
 
   async getCurrentLocation() {
     if (!navigator.geolocation) {
-      toast.error('Geolocation not supported by this browser');
+      toast.errorKey('locationError');
       return null;
     }
 
@@ -109,7 +109,7 @@ export class MapController {
         console.log('📍 Geolocation permission status:', status.state);
         
         if (status.state === 'denied') {
-          toast.error('Location access denied. Please enable it in browser settings.');
+          toast.errorKey('locationDenied');
           console.warn('📍 Location permission denied - user needs to enable in browser settings');
           return null;
         }
@@ -118,7 +118,7 @@ export class MapController {
         status.onchange = () => {
           console.log('📍 Geolocation permission changed to:', status.state);
           if (status.state === 'granted') {
-            toast.success('Location access granted!');
+            toast.successKey('saved');
             this.getCurrentLocation(); // Retry
           }
         };
@@ -146,16 +146,16 @@ export class MapController {
           // Provide user-friendly error messages
           switch (error.code) {
             case 1: // PERMISSION_DENIED
-              toast.error('Location access denied. Please enable in browser settings.');
+              toast.errorKey('locationDenied');
               break;
             case 2: // POSITION_UNAVAILABLE
-              toast.warning('Location unavailable. GPS signal may be weak.');
+              toast.warningKey('locationUnavailable');
               break;
             case 3: // TIMEOUT
-              toast.warning('Location request timed out. Please try again.');
+              toast.warningKey('locationTimeout');
               break;
             default:
-              toast.warning('Could not get location: ' + error.message);
+              toast.warningKey('locationError');
           }
           
           resolve(null);

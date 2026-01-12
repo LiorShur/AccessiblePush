@@ -40,12 +40,12 @@ async start() {
       console.log('📍 Geolocation permission status:', status.state);
       
       if (status.state === 'denied') {
-        toast.error('Location access is denied. Please enable it in your browser settings and refresh the page.', { duration: 8000 });
+        toast.errorKey('locationDenied', { duration: 8000 });
         throw new Error('Location permission denied. Enable in browser settings.');
       }
       
       if (status.state === 'prompt') {
-        toast.info('Please allow location access when prompted', { duration: 5000 });
+        toast.infoKey('allowLocation', { duration: 5000 });
       }
     } catch (e) {
       // Permissions API not fully supported, continue anyway
@@ -250,7 +250,7 @@ showAccessibilitySurveyReminder() {
   laterBtn.addEventListener('click', () => {
     closeReminder();
     // Show a subtle toast reminder
-    toast.info('Tap the ♿ button anytime to fill the survey', { duration: 4000 });
+    toast.infoKey('surveyHint', { duration: 4000 });
   });
 
   // Auto-dismiss after 15 seconds
@@ -877,7 +877,7 @@ async saveRoute(skipSurveyPrompt = false) {
             await offlineSync.saveRoute(pendingData, null);
           }
           
-          toast.warning('Saved locally! Cloud upload failed - you can retry from Local Storage.', { duration: 6000 });
+          toast.warningKey('savedLocallyCloudFailed', { duration: 6000 });
         }
       } else {
         // User skipped cloud save - save to pending if we haven't already
@@ -935,7 +935,7 @@ async saveRoute(skipSurveyPrompt = false) {
     
   } catch (error) {
     console.error('❌ Failed to save route:', error);
-    toast.error('Failed to save route: ' + error.message);
+    toast.errorKey('saveError');
   }
 }
 
@@ -1200,9 +1200,9 @@ async saveRouteToCloud(routeData, routeInfo, accessibilityData, authController) 
       error.code === 'unavailable';
     
     if (isNetworkError) {
-      toast.warning('Network error - route saved locally. Will sync when online.', { duration: 5000 });
+      toast.warningKey('networkSavedLocally', { duration: 5000 });
     } else if (error.message.includes('too large')) {
-      toast.error('Route data too large. Try taking fewer photos.', { duration: 5000 });
+      toast.errorKey('routeDataTooLarge', { duration: 5000 });
     }
     
     throw error;
