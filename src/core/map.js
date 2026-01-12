@@ -190,7 +190,7 @@ export class MapController {
   // FIXED: Enhanced route data visualization with proper data handling
   showRouteData(routeData) {
     if (!routeData || routeData.length === 0) {
-      toast.warning('No route data to display');
+      toast.warningKey('noRouteData');
       return;
     }
 
@@ -210,7 +210,7 @@ export class MapController {
     console.log(`📍 Found ${locationPoints.length} GPS location points`);
 
     if (locationPoints.length === 0) {
-      toast.warning('No GPS location points found in route data');
+      toast.warningKey('noGpsPoints');
       return;
     }
 

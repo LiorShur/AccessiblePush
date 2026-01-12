@@ -642,23 +642,20 @@ async stop() {
   handlePositionError(error) {
     console.error('🚨 GPS error:', error);
     
-    let errorMessage = 'GPS error: ';
     switch (error.code) {
       case error.PERMISSION_DENIED:
-        errorMessage += 'Location permission denied. Please enable location access and try again.';
+        toast.errorKey('locationDenied', { duration: 6000 });
         break;
       case error.POSITION_UNAVAILABLE:
-        errorMessage += 'Location information unavailable. Please check your GPS settings.';
+        toast.errorKey('locationUnavailable', { duration: 6000 });
         break;
       case error.TIMEOUT:
-        errorMessage += 'Location request timed out. Please try again.';
+        toast.errorKey('locationTimeout', { duration: 6000 });
         break;
       default:
-        errorMessage += 'An unknown error occurred.';
+        toast.errorKey('locationError', { duration: 6000 });
         break;
     }
-
-    toast.error(errorMessage, { title: 'GPS Error', duration: 6000 });
 
     if (error.code === error.PERMISSION_DENIED) {
       this.stop(); // Stop tracking if permission denied
