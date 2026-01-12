@@ -73,7 +73,7 @@ export class ExportController {
     }
 
     if (options.length === 0) {
-      toast.warning('No route data available to export. Start tracking or load a saved route first.');
+      toast.warningKey('noRouteDataToExport');
       return;
     }
 
@@ -224,7 +224,7 @@ export class ExportController {
         filename = `${selectedRoute.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.gpx`;
       }
     } else {
-      toast.warning('No GPS data available. Record a route with GPS points first.');
+      toast.warningKey('noGpsData');
       return;
     }
     
@@ -233,17 +233,17 @@ export class ExportController {
     const locationPoints = routeDataToExport.filter(point => point.type === 'location' && point.coords);
     
     if (locationPoints.length === 0) {
-      toast.warning('No GPS location points found in selected route');
+      toast.warningKey('noGpsPoints');
       return;
     }
 
     try {
       const gpxContent = this.generateGPX(locationPoints);
       this.downloadFile(gpxContent, filename, 'application/gpx+xml');
-      toast.success(`GPX file exported with ${locationPoints.length} GPS points!`);
+      toast.successKey('gpxExported');
     } catch (error) {
       console.error('GPX export failed:', error);
-      toast.error('GPX export failed: ' + error.message);
+      toast.errorKey('gpxExportFailed');
     }
   }
 

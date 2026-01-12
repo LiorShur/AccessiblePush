@@ -34,7 +34,7 @@ export class MediaController {
 
   async capturePhoto() {
     if (!this.appState.getTrackingState().isTracking) {
-      toast.warning('Start tracking first to capture photos');
+      toast.warningKey('startTrackingForPhotos');
       return;
     }
 
@@ -65,7 +65,7 @@ export class MediaController {
         originalSize: file.size
       });
 
-      toast.success('Photo captured and saved!');
+      toast.successKey('photoCaptured');
       
       // Track photo upload for engagement
       if (userService.isInitialized) {
@@ -75,7 +75,7 @@ export class MediaController {
       }
     } catch (error) {
       console.error('Failed to capture photo:', error);
-      toast.error('Failed to capture photo: ' + error.message);
+      toast.errorKey('photoCaptureFailed');
     }
 
     event.target.value = '';
@@ -83,7 +83,7 @@ export class MediaController {
 
   async addTextNote() {
     if (!this.appState.getTrackingState().isTracking) {
-      toast.warning('Start tracking first to add notes');
+      toast.warningKey('startTrackingForNotes');
       return;
     }
 
@@ -104,10 +104,10 @@ export class MediaController {
         timestamp: Date.now()
       });
 
-      toast.success('Note added successfully!');
+      toast.successKey('noteAddedSuccess');
     } catch (error) {
       console.error('Failed to add note:', error);
-      toast.error('Failed to add note: ' + error.message);
+      toast.errorKey('noteAddFailed');
     }
   }
 
@@ -155,14 +155,14 @@ export class MediaController {
     const photos = this.getStoredPhotos();
 
     if (photos.length === 0) {
-      toast.info('No stored photos found.');
+      toast.infoKey('noStoredPhotos');
       return;
     }
 
     const shouldDelete = await modal.confirm(`Found ${photos.length} photos. Delete all to free up space?`, '🗑️ Delete Photos?');
     if (shouldDelete) {
       this.deleteAllPhotos();
-      toast.success('All photos deleted.');
+      toast.successKey('allPhotosDeleted');
     }
   }
 

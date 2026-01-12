@@ -11,6 +11,382 @@ import { toast } from '../utils/toast.js';
 import { userService } from '../services/userService.js';
 import { getProfile } from '../config/mobilityProfiles.js';
 
+/**
+ * Translations for the quick accessibility form
+ */
+const formTranslations = {
+  en: {
+    // Header
+    formTitle: "Trail Accessibility",
+    formSubtitle: "Quick survey helps others know what to expect",
+    close: "Close",
+    
+    // Phase indicators
+    phase1: "Quick Assessment",
+    phase2: "Add Details",
+    skipToSave: "Skip to Save",
+    
+    // Main questions
+    overallAccessibility: "Overall Accessibility",
+    fullyAccessible: "Fully Accessible",
+    fullyAccessibleDesc: "Suitable for all mobility devices",
+    mostlyAccessible: "Mostly Accessible",
+    mostlyAccessibleDesc: "Minor challenges in some areas",
+    partiallyAccessible: "Partially Accessible",
+    partiallyAccessibleDesc: "Some sections may be difficult",
+    notAccessible: "Not Accessible",
+    notAccessibleDesc: "Major barriers present",
+    
+    // Surface
+    surfaceType: "Main Surface Type",
+    paved: "Paved",
+    gravel: "Gravel",
+    dirt: "Dirt/Earth",
+    boardwalk: "Boardwalk",
+    mixed: "Mixed",
+    
+    // Path width
+    pathWidth: "Path Width",
+    wide: "Wide (2m+)",
+    standard: "Standard (1-2m)",
+    narrow: "Narrow (<1m)",
+    
+    // Slope
+    steepestSlope: "Steepest Section",
+    flat: "Flat",
+    gentle: "Gentle",
+    moderate: "Moderate",
+    steep: "Steep",
+    
+    // Obstacles
+    obstacles: "Obstacles on Trail",
+    noObstacles: "None",
+    fewObstacles: "Few",
+    someObstacles: "Some",
+    manyObstacles: "Many",
+    
+    // Quick notes
+    quickNotes: "Quick Notes (Optional)",
+    notesPlaceholder: "Any important tips for visitors...",
+    
+    // Buttons
+    continueToDetails: "Continue to Details",
+    saveNow: "Save Now",
+    saving: "Saving...",
+    cancel: "Cancel",
+    goBack: "Go Back",
+    saveSurvey: "Save Survey",
+    
+    // Detailed sections
+    addMoreDetails: "Add More Details",
+    optional: "Optional",
+    
+    // Categories
+    mobilityDetails: "Mobility Details",
+    surfaceDetails: "Surface & Quality",
+    visualDetails: "Visual & Environment",
+    facilitiesDetails: "Facilities",
+    signageDetails: "Signage & Navigation",
+    
+    // Mobility section
+    wheelchairAccess: "Wheelchair Accessibility",
+    disabledParking: "Accessible Parking Available",
+    parkingSpaces: "Number of spaces",
+    handrails: "Handrails on Slopes",
+    handrailsBoth: "Both sides",
+    handrailsOne: "One side",
+    handrailsNone: "None",
+    handrailsNA: "Not needed",
+    
+    // Surface section
+    surfaceQuality: "Surface Quality",
+    excellent: "Excellent",
+    fair: "Fair",
+    poor: "Poor",
+    stepsOnTrail: "Steps on Trail",
+    noSteps: "None",
+    fewSteps: "Few (1-3)",
+    someSteps: "Some (4-10)",
+    manySteps: "Many (10+)",
+    
+    // Visual section
+    shadeCoverage: "Shade Coverage",
+    mostlyShaded: "Mostly Shaded",
+    partialShade: "Partial",
+    noShade: "No Shade",
+    trailLit: "Trail is lit at night",
+    visualAdaptations: "Visual Impairment Features",
+    raisedBorders: "Raised borders",
+    tactileSurfaces: "Tactile surfaces",
+    colorContrast: "Color contrast",
+    
+    // Facilities section
+    accessibleRestrooms: "Accessible Restrooms",
+    available: "Available",
+    notAvailable: "Not Available",
+    nearby: "Nearby",
+    waterFountains: "Water Fountains",
+    restAreas: "Rest Areas / Benches",
+    none: "None",
+    few: "Few",
+    many: "Many",
+    picnicAreas: "Accessible Picnic Areas",
+    viewpoint: "Accessible Viewpoint",
+    
+    // Signage section
+    signageQuality: "Signage Quality",
+    good: "Good",
+    availableSignage: "Available Signage",
+    routeMap: "Route map",
+    directionalSigns: "Directional signs",
+    distanceMarkers: "Distance markers",
+    accessibilityInfo: "Accessibility info",
+    simpleLanguage: "Simple language",
+    audioDescription: "Audio description",
+    
+    // Phase 1 fields
+    trailName: "Trail Name",
+    trailNamePlaceholder: "e.g., Riverside Nature Path",
+    location: "Location",
+    locationPlaceholder: "e.g., Central Park, NYC",
+    trailSurface: "Trail Surface (select all that apply)",
+    concrete: "Concrete",
+    stone: "Stone",
+    overallDifficulty: "Overall Difficulty",
+    easy: "Easy",
+    challenging: "Challenging",
+    routeType: "Route Type",
+    loop: "Loop",
+    returnsToStart: "Returns to start",
+    outAndBack: "Out & Back",
+    samePathBothWays: "Same path both ways",
+    withHelp: "With Help",
+    partial: "Partial",
+    
+    // Phase 2 fields
+    tapCategoryHint: "Tap a category to add more details. All fields are optional.",
+    parking: "Parking",
+    accessibleSpaces: "Accessible spaces",
+    restrooms: "Restrooms",
+    accessibleFacilities: "Accessible facilities",
+    waterAndSeating: "Water & Seating",
+    fountainsBenches: "Fountains, benches",
+    shade: "Shade",
+    coverageVisibility: "Coverage & visibility",
+    slopes: "Slopes",
+    slopeInfo: "Inclines & steps",
+    signage: "Signage",
+    navigation: "Navigation signs",
+    
+    // More Phase 2 fields
+    surfaceQualityCategory: "Surface Quality",
+    conditionSlopes: "Condition, slopes",
+    visualAccess: "Visual Access",
+    tactileContrast: "Tactile, contrast",
+    environment: "Environment",
+    shadeLighting: "Shade, lighting",
+    mapsDirections: "Maps, directions",
+    picnicAndViews: "Picnic & Views",
+    tablesViewpoints: "Tables, viewpoints",
+    additionalNotesLabel: "Additional Notes",
+    additionalNotesPlaceholder: "Any other accessibility information, tips, or warnings...",
+    trailLength: "Trail Length (km)",
+    trailLengthPlaceholder: "e.g., 2.5",
+    estimatedDuration: "Estimated Duration",
+    selectDuration: "Select...",
+    under30: "Under 30 min",
+    mins30to60: "30-60 min",
+    hours1to2: "1-2 hours",
+    hours2to4: "2-4 hours",
+    over4hours: "4+ hours"
+  },
+  he: {
+    // Header
+    formTitle: "נגישות השביל",
+    formSubtitle: "סקר קצר עוזר לאחרים לדעת למה לצפות",
+    close: "סגור",
+    
+    // Phase indicators
+    phase1: "הערכה מהירה",
+    phase2: "הוסף פרטים",
+    skipToSave: "דלג לשמירה",
+    
+    // Main questions
+    overallAccessibility: "נגישות כללית",
+    fullyAccessible: "נגיש לחלוטין",
+    fullyAccessibleDesc: "מתאים לכל אמצעי הניידות",
+    mostlyAccessible: "נגיש ברובו",
+    mostlyAccessibleDesc: "אתגרים קלים באזורים מסוימים",
+    partiallyAccessible: "נגיש חלקית",
+    partiallyAccessibleDesc: "חלק מהקטעים עלולים להיות קשים",
+    notAccessible: "לא נגיש",
+    notAccessibleDesc: "קיימים מכשולים משמעותיים",
+    
+    // Surface
+    surfaceType: "סוג משטח עיקרי",
+    paved: "סלול",
+    gravel: "חצץ",
+    dirt: "עפר/אדמה",
+    boardwalk: "דק עץ",
+    mixed: "מעורב",
+    
+    // Path width
+    pathWidth: "רוחב השביל",
+    wide: "רחב (2 מ׳+)",
+    standard: "סטנדרטי (1-2 מ׳)",
+    narrow: "צר (<1 מ׳)",
+    
+    // Slope
+    steepestSlope: "הקטע התלול ביותר",
+    flat: "שטוח",
+    gentle: "מתון",
+    moderate: "בינוני",
+    steep: "תלול",
+    
+    // Obstacles
+    obstacles: "מכשולים בשביל",
+    noObstacles: "ללא",
+    fewObstacles: "מעט",
+    someObstacles: "כמה",
+    manyObstacles: "הרבה",
+    
+    // Quick notes
+    quickNotes: "הערות קצרות (אופציונלי)",
+    notesPlaceholder: "טיפים חשובים למבקרים...",
+    
+    // Buttons
+    continueToDetails: "המשך לפרטים",
+    saveNow: "שמור עכשיו",
+    saving: "שומר...",
+    cancel: "ביטול",
+    goBack: "חזור",
+    saveSurvey: "שמור סקר",
+    
+    // Detailed sections
+    addMoreDetails: "הוסף פרטים נוספים",
+    optional: "אופציונלי",
+    
+    // Categories
+    mobilityDetails: "פרטי ניידות",
+    surfaceDetails: "משטח ואיכות",
+    visualDetails: "סביבה חזותית",
+    facilitiesDetails: "מתקנים",
+    signageDetails: "שילוט וניווט",
+    
+    // Mobility section
+    wheelchairAccess: "נגישות לכיסא גלגלים",
+    disabledParking: "חניית נכים זמינה",
+    parkingSpaces: "מספר מקומות",
+    handrails: "מעקות במדרונות",
+    handrailsBoth: "משני הצדדים",
+    handrailsOne: "צד אחד",
+    handrailsNone: "ללא",
+    handrailsNA: "לא נדרש",
+    
+    // Surface section
+    surfaceQuality: "איכות המשטח",
+    excellent: "מצוין",
+    fair: "סביר",
+    poor: "גרוע",
+    stepsOnTrail: "מדרגות בשביל",
+    noSteps: "ללא",
+    fewSteps: "מעט (1-3)",
+    someSteps: "כמה (4-10)",
+    manySteps: "הרבה (10+)",
+    
+    // Visual section
+    shadeCoverage: "כיסוי צל",
+    mostlyShaded: "מוצל ברובו",
+    partialShade: "חלקי",
+    noShade: "ללא צל",
+    trailLit: "השביל מואר בלילה",
+    visualAdaptations: "התאמות ללקויי ראייה",
+    raisedBorders: "גבולות בולטים",
+    tactileSurfaces: "משטחים מישושיים",
+    colorContrast: "ניגודיות צבעים",
+    
+    // Facilities section
+    accessibleRestrooms: "שירותים נגישים",
+    available: "זמין",
+    notAvailable: "לא זמין",
+    nearby: "בקרבת מקום",
+    waterFountains: "ברזיות מים",
+    restAreas: "אזורי מנוחה / ספסלים",
+    none: "ללא",
+    few: "מעט",
+    many: "הרבה",
+    picnicAreas: "אזורי פיקניק נגישים",
+    viewpoint: "נקודת תצפית נגישה",
+    
+    // Signage section
+    signageQuality: "איכות השילוט",
+    good: "טוב",
+    availableSignage: "שילוט זמין",
+    routeMap: "מפת מסלול",
+    directionalSigns: "שילוט כיווני",
+    distanceMarkers: "סימוני מרחק",
+    accessibilityInfo: "מידע נגישות",
+    simpleLanguage: "שפה פשוטה",
+    audioDescription: "תיאור קולי",
+    
+    // Phase 1 fields
+    trailName: "שם השביל",
+    trailNamePlaceholder: "לדוגמה: שביל הנחל",
+    location: "מיקום",
+    locationPlaceholder: "לדוגמה: פארק הירקון, תל אביב",
+    trailSurface: "משטח השביל (בחר את כל המתאימים)",
+    concrete: "בטון",
+    stone: "אבן",
+    overallDifficulty: "רמת קושי כללית",
+    easy: "קל",
+    challenging: "מאתגר",
+    routeType: "סוג המסלול",
+    loop: "מעגלי",
+    returnsToStart: "חוזר להתחלה",
+    outAndBack: "הלוך וחזור",
+    samePathBothWays: "אותו שביל בשני הכיוונים",
+    withHelp: "עם עזרה",
+    partial: "חלקי",
+    
+    // Phase 2 fields
+    tapCategoryHint: "הקש על קטגוריה להוספת פרטים. כל השדות אופציונליים.",
+    parking: "חניה",
+    accessibleSpaces: "מקומות נגישים",
+    restrooms: "שירותים",
+    accessibleFacilities: "מתקנים נגישים",
+    waterAndSeating: "מים וישיבה",
+    fountainsBenches: "ברזיות, ספסלים",
+    shade: "צל",
+    coverageVisibility: "כיסוי ותאורה",
+    slopes: "שיפועים",
+    slopeInfo: "מדרונות ומדרגות",
+    signage: "שילוט",
+    navigation: "שילוט ניווט",
+    
+    // More Phase 2 fields
+    surfaceQualityCategory: "איכות המשטח",
+    conditionSlopes: "מצב, שיפועים",
+    visualAccess: "נגישות חזותית",
+    tactileContrast: "מישוש, ניגודיות",
+    environment: "סביבה",
+    shadeLighting: "צל, תאורה",
+    mapsDirections: "מפות, כיוונים",
+    picnicAndViews: "פיקניק ותצפיות",
+    tablesViewpoints: "שולחנות, תצפיות",
+    additionalNotesLabel: "הערות נוספות",
+    additionalNotesPlaceholder: "מידע נגישות נוסף, טיפים או אזהרות...",
+    trailLength: "אורך השביל (ק״מ)",
+    trailLengthPlaceholder: "לדוגמה: 2.5",
+    estimatedDuration: "משך משוער",
+    selectDuration: "בחר...",
+    under30: "פחות מ-30 דק׳",
+    mins30to60: "30-60 דק׳",
+    hours1to2: "1-2 שעות",
+    hours2to4: "2-4 שעות",
+    over4hours: "4+ שעות"
+  }
+};
+
 export class AccessibilityFormV2Quick {
   constructor() {
     this.isOpen = false;
@@ -19,12 +395,70 @@ export class AccessibilityFormV2Quick {
     this.currentPhase = 1; // 1 = Quick, 2 = Detailed
     this.expandedCategories = new Set();
     this.userMobilityProfile = null; // Cache user's mobility profile
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+  }
+
+  /**
+   * Get translation for key
+   */
+  t(key) {
+    return formTranslations[this.lang]?.[key] || formTranslations['en']?.[key] || key;
+  }
+
+  /**
+   * Update language and refresh form
+   */
+  updateLanguage(newLang) {
+    this.lang = newLang;
+    const overlay = document.getElementById('af2-overlay');
+    if (overlay) {
+      // Set RTL direction for Hebrew
+      overlay.dir = this.lang === 'he' ? 'rtl' : 'ltr';
+      overlay.lang = this.lang;
+      
+      // Re-render form
+      const savedData = { ...this.formData };
+      const savedPhase = this.currentPhase;
+      this.loadFormHTML();
+      this.setupEventListeners();
+      this.formData = savedData;
+      this.currentPhase = savedPhase;
+      this.restoreFormData();
+    }
+  }
+
+  /**
+   * Restore form data after language change
+   */
+  restoreFormData() {
+    const overlay = document.getElementById('af2-overlay');
+    if (!overlay) return;
+    
+    // Restore input values
+    Object.entries(this.formData).forEach(([key, value]) => {
+      if (typeof value === 'string' || typeof value === 'number') {
+        const input = overlay.querySelector(`[name="${key}"]`);
+        if (input) input.value = value;
+      }
+    });
   }
 
   initialize() {
     this.injectStyles();
     this.loadFormHTML();
     this.setupEventListeners();
+    
+    // Register for i18n refresh
+    if (window.i18n) {
+      window.i18n.registerForRefresh('accessibilityFormV2Quick', (lang) => {
+        this.updateLanguage(lang);
+      });
+    }
+    
+    // Listen for languageChanged event as backup
+    window.addEventListener('languageChanged', (e) => {
+      this.updateLanguage(e.detail.newLang);
+    });
   }
 
   injectStyles() {
@@ -771,6 +1205,11 @@ export class AccessibilityFormV2Quick {
   }
 
   loadFormHTML() {
+    // Refresh language from localStorage
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    const t = (key) => this.t(key);
+    const isRTL = this.lang === 'he';
+    
     // Create overlay container if it doesn't exist
     let overlay = document.getElementById('af2-overlay');
     if (!overlay) {
@@ -780,19 +1219,23 @@ export class AccessibilityFormV2Quick {
       document.body.appendChild(overlay);
     }
     
+    // Set RTL direction
+    overlay.dir = isRTL ? 'rtl' : 'ltr';
+    overlay.lang = this.lang;
+    
     overlay.innerHTML = `
       <div class="af2-container">
         <!-- Header -->
         <div class="af2-header">
-          <h1>🌲 Trail Accessibility Survey</h1>
-          <p>Help others discover accessible outdoor spaces</p>
+          <h1>🌲 ${t('formTitle')}</h1>
+          <p>${t('formSubtitle')}</p>
           <button class="af2-close" onclick="window.closeAccessibilityFormV2()">×</button>
         </div>
         
         <!-- Progress -->
         <div class="af2-progress">
-          <div class="af2-progress-step active" data-step="1">① Quick Assessment</div>
-          <div class="af2-progress-step" data-step="2">② Add Details (Optional)</div>
+          <div class="af2-progress-step active" data-step="1">① ${t('phase1')}</div>
+          <div class="af2-progress-step" data-step="2">② ${t('phase2')} (${t('optional')})</div>
         </div>
         
         <!-- Form Body -->
@@ -810,75 +1253,76 @@ export class AccessibilityFormV2Quick {
         
         <!-- Footer -->
         <div class="af2-footer">
-          <button class="af2-btn af2-btn-text" onclick="window.closeAccessibilityFormV2()">Cancel</button>
-          <button class="af2-btn af2-btn-secondary" id="af2-back-btn" style="display:none" onclick="window.af2GoBack()">← Back</button>
-          <button class="af2-btn af2-btn-primary" id="af2-next-btn" onclick="window.af2Next()">Save Quick Assessment ✓</button>
+          <button class="af2-btn af2-btn-text" onclick="window.closeAccessibilityFormV2()">${t('cancel')}</button>
+          <button class="af2-btn af2-btn-secondary" id="af2-back-btn" style="display:none" onclick="window.af2GoBack()">← ${t('goBack')}</button>
+          <button class="af2-btn af2-btn-primary" id="af2-next-btn" onclick="window.af2Next()">${t('saveNow')} ✓</button>
         </div>
       </div>
     `;
   }
 
   renderPhase1() {
+    const t = (key) => this.t(key);
     return `
       <!-- Trail Name -->
       <div class="af2-field">
-        <label class="af2-label">Trail Name <span class="required">*</span></label>
-        <input type="text" class="af2-input" id="af2-trailName" name="trailName" placeholder="e.g., Riverside Nature Path" required>
+        <label class="af2-label">${t('trailName')} <span class="required">*</span></label>
+        <input type="text" class="af2-input" id="af2-trailName" name="trailName" placeholder="${t('trailNamePlaceholder')}" required>
       </div>
       
       <!-- Location -->
       <div class="af2-field">
-        <label class="af2-label">Location <span class="required">*</span></label>
-        <input type="text" class="af2-input" id="af2-location" name="location" placeholder="e.g., Central Park, NYC" required>
+        <label class="af2-label">${t('location')} <span class="required">*</span></label>
+        <input type="text" class="af2-input" id="af2-location" name="location" placeholder="${t('locationPlaceholder')}" required>
       </div>
       
       <div class="af2-divider"></div>
       
       <!-- Wheelchair Accessibility -->
       <div class="af2-field">
-        <label class="af2-label">Wheelchair Accessibility</label>
+        <label class="af2-label">${t('wheelchairAccess')}</label>
         <div class="af2-card-grid cols-4" data-field="wheelchairAccess" data-type="single">
           <div class="af2-select-card" data-value="Fully accessible">
             <span class="card-icon">♿</span>
-            <span class="card-label">Fully Accessible</span>
+            <span class="card-label">${t('fullyAccessible')}</span>
           </div>
           <div class="af2-select-card" data-value="Partially accessible">
             <span class="card-icon">⚠️</span>
-            <span class="card-label">Partial</span>
+            <span class="card-label">${t('partial')}</span>
           </div>
           <div class="af2-select-card" data-value="Accessible with assistance">
             <span class="card-icon">🤝</span>
-            <span class="card-label">With Help</span>
+            <span class="card-label">${t('withHelp')}</span>
           </div>
           <div class="af2-select-card" data-value="Not accessible">
             <span class="card-icon">🚫</span>
-            <span class="card-label">Not Accessible</span>
+            <span class="card-label">${t('notAccessible')}</span>
           </div>
         </div>
       </div>
       
       <!-- Surface Type -->
       <div class="af2-field">
-        <label class="af2-label">Trail Surface (select all that apply)</label>
+        <label class="af2-label">${t('trailSurface')}</label>
         <div class="af2-chip-grid" data-field="trailSurface" data-type="multi">
-          <div class="af2-chip" data-value="Asphalt">🛣️ Paved</div>
-          <div class="af2-chip" data-value="Concrete">⬜ Concrete</div>
-          <div class="af2-chip" data-value="Compacted Gravel">⚪ Gravel</div>
-          <div class="af2-chip" data-value="Stone">🪨 Stone</div>
-          <div class="af2-chip" data-value="Wood/Plastic Deck">🪵 Boardwalk</div>
-          <div class="af2-chip" data-value="Grass">🌿 Grass</div>
-          <div class="af2-chip" data-value="Mixed Surfaces">🔀 Mixed</div>
+          <div class="af2-chip" data-value="Asphalt">🛣️ ${t('paved')}</div>
+          <div class="af2-chip" data-value="Concrete">⬜ ${t('concrete')}</div>
+          <div class="af2-chip" data-value="Compacted Gravel">⚪ ${t('gravel')}</div>
+          <div class="af2-chip" data-value="Stone">🪨 ${t('stone')}</div>
+          <div class="af2-chip" data-value="Wood/Plastic Deck">🪵 ${t('boardwalk')}</div>
+          <div class="af2-chip" data-value="Grass">🌿 ${t('dirt')}</div>
+          <div class="af2-chip" data-value="Mixed Surfaces">🔀 ${t('mixed')}</div>
         </div>
       </div>
       
       <!-- Difficulty Slider -->
       <div class="af2-field">
-        <label class="af2-label">Overall Difficulty</label>
+        <label class="af2-label">${t('overallDifficulty')}</label>
         <div class="af2-slider-container">
           <div class="af2-slider-labels">
-            <span class="af2-slider-label active" data-level="1">😊 Easy</span>
-            <span class="af2-slider-label" data-level="2">😐 Moderate</span>
-            <span class="af2-slider-label" data-level="3">😰 Challenging</span>
+            <span class="af2-slider-label active" data-level="1">😊 ${t('easy')}</span>
+            <span class="af2-slider-label" data-level="2">😐 ${t('moderate')}</span>
+            <span class="af2-slider-label" data-level="3">😰 ${t('challenging')}</span>
           </div>
           <input type="range" class="af2-slider" id="af2-difficulty" name="difficulty" min="1" max="3" value="1">
         </div>
@@ -886,17 +1330,17 @@ export class AccessibilityFormV2Quick {
       
       <!-- Route Type Quick -->
       <div class="af2-field">
-        <label class="af2-label">Route Type</label>
+        <label class="af2-label">${t('routeType')}</label>
         <div class="af2-card-grid" data-field="routeType" data-type="single">
           <div class="af2-select-card" data-value="Circular">
             <span class="card-icon">🔄</span>
-            <span class="card-label">Loop</span>
-            <span class="card-desc">Returns to start</span>
+            <span class="card-label">${t('loop')}</span>
+            <span class="card-desc">${t('returnsToStart')}</span>
           </div>
           <div class="af2-select-card" data-value="Round Trip">
             <span class="card-icon">↔️</span>
-            <span class="card-label">Out & Back</span>
-            <span class="card-desc">Same path both ways</span>
+            <span class="card-label">${t('outAndBack')}</span>
+            <span class="card-desc">${t('samePathBothWays')}</span>
           </div>
         </div>
       </div>
@@ -904,9 +1348,10 @@ export class AccessibilityFormV2Quick {
   }
 
   renderPhase2() {
+    const t = (key) => this.t(key);
     return `
       <p style="color: #666; margin-bottom: 20px; text-align: center;">
-        Tap a category to add more details. All fields are optional.
+        ${t('tapCategoryHint')}
       </p>
       
       <div class="af2-category-grid">
@@ -915,8 +1360,8 @@ export class AccessibilityFormV2Quick {
           <div class="cat-header">
             <span class="cat-icon">🅿️</span>
             <div class="cat-info">
-              <div class="cat-title">Parking</div>
-              <div class="cat-desc">Accessible spaces</div>
+              <div class="cat-title">${t('parking')}</div>
+              <div class="cat-desc">${t('accessibleSpaces')}</div>
             </div>
             <div class="cat-status">✓</div>
           </div>
@@ -930,8 +1375,8 @@ export class AccessibilityFormV2Quick {
           <div class="cat-header">
             <span class="cat-icon">🚻</span>
             <div class="cat-info">
-              <div class="cat-title">Restrooms</div>
-              <div class="cat-desc">Accessible facilities</div>
+              <div class="cat-title">${t('restrooms')}</div>
+              <div class="cat-desc">${t('accessibleFacilities')}</div>
             </div>
             <div class="cat-status">✓</div>
           </div>
@@ -945,8 +1390,8 @@ export class AccessibilityFormV2Quick {
           <div class="cat-header">
             <span class="cat-icon">🚰</span>
             <div class="cat-info">
-              <div class="cat-title">Water & Seating</div>
-              <div class="cat-desc">Fountains, benches</div>
+              <div class="cat-title">${t('waterAndSeating')}</div>
+              <div class="cat-desc">${t('fountainsBenches')}</div>
             </div>
             <div class="cat-status">✓</div>
           </div>
@@ -960,8 +1405,8 @@ export class AccessibilityFormV2Quick {
           <div class="cat-header">
             <span class="cat-icon">🛤️</span>
             <div class="cat-info">
-              <div class="cat-title">Surface Quality</div>
-              <div class="cat-desc">Condition, slopes</div>
+              <div class="cat-title">${t('surfaceQualityCategory')}</div>
+              <div class="cat-desc">${t('conditionSlopes')}</div>
             </div>
             <div class="cat-status">✓</div>
           </div>
@@ -975,8 +1420,8 @@ export class AccessibilityFormV2Quick {
           <div class="cat-header">
             <span class="cat-icon">👁️</span>
             <div class="cat-info">
-              <div class="cat-title">Visual Access</div>
-              <div class="cat-desc">Tactile, contrast</div>
+              <div class="cat-title">${t('visualAccess')}</div>
+              <div class="cat-desc">${t('tactileContrast')}</div>
             </div>
             <div class="cat-status">✓</div>
           </div>
@@ -990,8 +1435,8 @@ export class AccessibilityFormV2Quick {
           <div class="cat-header">
             <span class="cat-icon">⛱️</span>
             <div class="cat-info">
-              <div class="cat-title">Environment</div>
-              <div class="cat-desc">Shade, lighting</div>
+              <div class="cat-title">${t('environment')}</div>
+              <div class="cat-desc">${t('shadeLighting')}</div>
             </div>
             <div class="cat-status">✓</div>
           </div>
@@ -1005,8 +1450,8 @@ export class AccessibilityFormV2Quick {
           <div class="cat-header">
             <span class="cat-icon">🪧</span>
             <div class="cat-info">
-              <div class="cat-title">Signage</div>
-              <div class="cat-desc">Maps, directions</div>
+              <div class="cat-title">${t('signage')}</div>
+              <div class="cat-desc">${t('mapsDirections')}</div>
             </div>
             <div class="cat-status">✓</div>
           </div>
@@ -1020,8 +1465,8 @@ export class AccessibilityFormV2Quick {
           <div class="cat-header">
             <span class="cat-icon">🧺</span>
             <div class="cat-info">
-              <div class="cat-title">Picnic & Views</div>
-              <div class="cat-desc">Tables, viewpoints</div>
+              <div class="cat-title">${t('picnicAndViews')}</div>
+              <div class="cat-desc">${t('tablesViewpoints')}</div>
             </div>
             <div class="cat-status">✓</div>
           </div>
@@ -1033,9 +1478,9 @@ export class AccessibilityFormV2Quick {
       
       <!-- Additional Notes -->
       <div class="af2-field">
-        <label class="af2-label">📝 Additional Notes</label>
+        <label class="af2-label">📝 ${t('additionalNotesLabel')}</label>
         <textarea class="af2-textarea" id="af2-additionalNotes" name="additionalNotes" 
-          placeholder="Any other accessibility information, tips, or warnings..."></textarea>
+          placeholder="${t('additionalNotesPlaceholder')}"></textarea>
       </div>
       
       <!-- Trail Info -->
@@ -1043,11 +1488,11 @@ export class AccessibilityFormV2Quick {
       
       <div class="af2-field" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div>
-          <label class="af2-label">Trail Length (km)</label>
-          <input type="number" class="af2-input" id="af2-trailLength" name="trailLength" step="0.1" min="0" placeholder="e.g., 2.5">
+          <label class="af2-label">${t('trailLength')}</label>
+          <input type="number" class="af2-input" id="af2-trailLength" name="trailLength" step="0.1" min="0" placeholder="${t('trailLengthPlaceholder')}">
         </div>
         <div>
-          <label class="af2-label">Estimated Duration</label>
+          <label class="af2-label">${t('estimatedDuration')}</label>
           <select class="af2-input" id="af2-estimatedTime" name="estimatedTime">
             <option value="">Select...</option>
             <option value="Under 30 minutes">Under 30 min</option>
@@ -1541,8 +1986,16 @@ export class AccessibilityFormV2Quick {
     this._callbackCalled = false; // Reset flag
     this.currentPhase = 1;
     
+    // Refresh language from localStorage before opening
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    const t = (key) => this.t(key);
+    
     // Load user's mobility profile for pre-filling and category prioritization
     this.loadMobilityProfile();
+    
+    // Re-render form to ensure correct language
+    this.loadFormHTML();
+    this.setupEventListeners();
     
     const overlay = document.getElementById('af2-overlay');
     if (overlay) {
@@ -1575,12 +2028,12 @@ export class AccessibilityFormV2Quick {
       // Then prefill from saved data
       this.prefillForm();
       
-      // Reset footer
+      // Reset footer with translated buttons
       const footer = document.querySelector('.af2-footer');
       footer.innerHTML = `
-        <button class="af2-btn af2-btn-text" onclick="window.closeAccessibilityFormV2()">Cancel</button>
-        <button class="af2-btn af2-btn-secondary" id="af2-back-btn" style="display:none" onclick="window.af2GoBack()">← Back</button>
-        <button class="af2-btn af2-btn-primary" id="af2-next-btn" onclick="window.af2Next()">Continue →</button>
+        <button class="af2-btn af2-btn-text" onclick="window.closeAccessibilityFormV2()">${t('cancel')}</button>
+        <button class="af2-btn af2-btn-secondary" id="af2-back-btn" style="display:none" onclick="window.af2GoBack()">← ${t('goBack')}</button>
+        <button class="af2-btn af2-btn-primary" id="af2-next-btn" onclick="window.af2Next()">${t('saveNow')} ✓</button>
       `;
     }
   }
