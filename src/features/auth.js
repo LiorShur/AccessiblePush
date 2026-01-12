@@ -195,11 +195,8 @@ setupCloudButtonsWithRetry() {
           detail: { user, authenticated: true } 
         }));
         
-        // Directly update global nav if available
-        if (window.updateGlobalNavAuth) {
-          console.log('🔄 Directly updating global nav auth state');
-          window.updateGlobalNavAuth({ detail: { user, authenticated: true } });
-        }
+        // Update global nav with retries and fallback
+        this.updateGlobalNav(user);
         
         // Verify the user still exists on the server
         try {
@@ -220,7 +217,7 @@ setupCloudButtonsWithRetry() {
             }
             this.currentUser = null;
             this.updateUI(null);
-            toast.info('Your session has expired. Please sign in again.');
+            toast.infoKey('sessionExpiredSignIn');
             return;
           }
         }
@@ -257,17 +254,59 @@ setupCloudButtonsWithRetry() {
           detail: { user: null, authenticated: false } 
         }));
         
-        // Directly update global nav if available
-        if (window.updateGlobalNavAuth) {
-          console.log('🔄 Directly updating global nav auth state (signed out)');
-          window.updateGlobalNavAuth({ detail: { user: null, authenticated: false } });
-        }
+        // Update global nav with retries and fallback
+        this.updateGlobalNav(null);
         
         // Reset userService on logout
         userService.reset();
         
         this.executeCallbacks('onLogout');
       }
+    });
+  }
+
+  /**
+   * Update global nav profile button with retries and direct DOM fallback
+   * @param {Object|null} user - Firebase user object or null for signed out
+   */
+  updateGlobalNav(user) {
+    const updateNav = () => {
+      // Try the exposed function first
+      if (window.updateGlobalNavAuth) {
+        console.log('🔄 Updating global nav via exposed function');
+        window.updateGlobalNavAuth({ detail: { user, authenticated: !!user } });
+        return true;
+      }
+      
+      // Fallback: directly update DOM elements
+      const profileItem = document.getElementById('globalNavProfile');
+      const profileLabel = document.getElementById('profileLabel');
+      
+      if (profileItem && profileLabel) {
+        if (user) {
+          const displayName = user.email?.split('@')[0] || user.displayName || 'User';
+          const truncatedName = displayName && displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
+          profileItem.classList.add('signed-in');
+          if (truncatedName) profileLabel.textContent = truncatedName;
+        } else {
+          profileItem.classList.remove('signed-in');
+          profileLabel.textContent = 'Sign In';
+        }
+        return true;
+      }
+      
+      return false;
+    };
+    
+    // Try immediately
+    if (updateNav()) return;
+    
+    // Retry with delays (global nav might not be initialized yet)
+    const delays = [100, 300, 500, 1000, 2000];
+    delays.forEach(delay => {
+      setTimeout(() => {
+        updateNav();
+      }, delay);
     });
   }
 
@@ -406,11 +445,11 @@ setupCloudButtonsWithRetry() {
 
       await signOut(auth);
       console.log('👋 Logout successful');
-      toast.success('See you next time! 👋');
+      toast.successKey('seeYouNextTime');
       
     } catch (error) {
       console.error('❌ Logout failed:', error);
-      toast.error('Logout failed. Please try again.');
+      toast.errorKey('logoutFailed');
     }
   }
 
@@ -659,7 +698,7 @@ async saveCurrentRouteToCloud() {
   // Prevent multiple simultaneous saves
   if (this.isSavingToCloud) {
     console.log('⏳ Cloud save already in progress...');
-    toast.info('Save already in progress...');
+    toast.infoKey('saveInProgress');
     return;
   }
 
@@ -683,7 +722,7 @@ async saveCurrentRouteToCloud() {
       const savedSessions = state?.getSessions();
       
       if (!savedSessions || savedSessions.length === 0) {
-        toast.info('No route data available. Record a route first, then save to cloud.');
+        toast.infoKey('noRouteData');
         this.isSavingToCloud = false;
         return;
       }
@@ -1307,7 +1346,7 @@ async updateUserStats() {
       mapController.showRouteData(route.routeData);
     }
 
-    toast.success('Route loaded successfully!');
+    toast.successKey('routeLoadedSuccess');
     console.log('✅ Route loaded:', route.routeName);
   }
 }
