@@ -7,6 +7,7 @@ import { storageService } from '../services/storageService.js';
 import { uploadProgress } from '../ui/uploadProgress.js';
 import { trailGuideGeneratorV2 } from '../features/trailGuideGeneratorV2.js';
 import { getElevation } from '../utils/geolocation.js';
+import { t } from '../i18n/i18n.js';
 
 export class TrackingController {
   constructor(appState) {
@@ -297,16 +298,16 @@ async promptForAccessibilitySurvey() {
         ">
           <div style="font-size: 48px; margin-bottom: 8px;">♿</div>
           <h3 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">
-            Accessibility Survey
+            ${t('trackerUI.surveyPrompt.title')}
           </h3>
         </div>
         
         <div style="padding: 20px;">
           <p style="margin: 0 0 8px; color: #333; font-size: 15px; line-height: 1.5; text-align: center;">
-            You haven't filled the accessibility survey for this trail yet.
+            ${t('trackerUI.surveyPrompt.notFilled')}
           </p>
           <p style="margin: 0 0 20px; color: #666; font-size: 14px; line-height: 1.4; text-align: center;">
-            Your input helps others with mobility challenges discover accessible trails!
+            ${t('trackerUI.surveyPrompt.helpOthers')}
           </p>
           
           <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -326,7 +327,7 @@ async promptForAccessibilitySurvey() {
               gap: 8px;
             ">
               <span style="font-size: 18px;">📋</span>
-              Fill Survey Now
+              ${t('trackerUI.surveyPrompt.fillNow')}
             </button>
             
             <button id="survey-skip-btn" style="
@@ -339,7 +340,7 @@ async promptForAccessibilitySurvey() {
               font-size: 14px;
               cursor: pointer;
             ">
-              Skip & Save Without Survey
+              ${t('trackerUI.surveyPrompt.skipAndSave')}
             </button>
             
             <button id="survey-cancel-btn" style="
@@ -351,7 +352,7 @@ async promptForAccessibilitySurvey() {
               font-size: 13px;
               cursor: pointer;
             ">
-              Cancel
+              ${t('trackerUI.surveyPrompt.cancel')}
             </button>
           </div>
         </div>
@@ -720,19 +721,19 @@ async stop() {
     const notes = routeData.filter(point => point.type === 'text').length;
 
     // Create a detailed save dialog
-    const routeStats = `📍 GPS Points: ${locationPoints}
-📏 Distance: ${totalDistance.toFixed(2)} km
-⏱️ Duration: ${this.formatTime(elapsedTime)}
-📷 Photos: ${photos}
-📝 Notes: ${notes}`;
+    const routeStats = `📍 ${t('trackerUI.tracking.gpsPoints')}: ${locationPoints}
+📏 ${t('trackerUI.tracking.distance')}: ${totalDistance.toFixed(2)} km
+⏱️ ${t('trackerUI.tracking.duration')}: ${this.formatTime(elapsedTime)}
+📷 ${t('trackerUI.tracking.photos')}: ${photos}
+📝 ${t('trackerUI.tracking.notes')}: ${notes}`;
 
-    const wantsToSave = await modal.confirm(routeStats, 'Save Route?');
+    const wantsToSave = await modal.confirm(routeStats, t('trackerUI.saveFlow.saveRoute'));
     
     if (wantsToSave) {
       await this.saveRoute();
     } else {
       // Ask if they want to discard
-      const confirmDiscard = await modal.confirm('All route data will be lost!', '⚠️ Discard Route?');
+      const confirmDiscard = await modal.confirm(t('trackerUI.saveFlow.allDataLost'), `⚠️ ${t('trackerUI.saveFlow.discardRoute')}`);
       if (confirmDiscard) {
         this.discardRoute();
       } else {
@@ -785,11 +786,11 @@ async saveRoute(skipSurveyPrompt = false) {
 
     const defaultName = `Route ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
     
-    let routeName = await modal.prompt('Enter a name for this route:', 'Name Your Route', defaultName);
+    let routeName = await modal.prompt(t('trackerUI.saveFlow.enterRouteName'), t('trackerUI.saveFlow.nameYourRoute'), defaultName);
     
     // If they cancelled the name dialog, ask if they want to use default
     if (routeName === null) {
-      const useDefault = await modal.confirm(`Use default name "${defaultName}"?`, 'Use Default Name?');
+      const useDefault = await modal.confirm(t('trackerUI.saveFlow.useDefaultPrompt').replace('{name}', defaultName), t('trackerUI.saveFlow.useDefaultName'));
       routeName = useDefault ? defaultName : null;
     }
 
@@ -938,18 +939,18 @@ async saveRoute(skipSurveyPrompt = false) {
 
 // NEW: Ask user about cloud save options
 async askCloudSaveOptions(routeName) {
-  const message = `"${routeName}" saved locally! 
+  const message = `"${routeName}" ${t('trackerUI.saveFlow.routeSaved')} 
 
-☁️ Would you like to save to cloud and create a trail guide?
+☁️ ${t('trackerUI.saveFlow.cloudSaveOptions')}
 
-🔒 PRIVATE: Only you can see it (you can make it public later)
-🌍 PUBLIC: Share with the community immediately  
-❌ SKIP: Keep local only`;
+🔒 ${t('trackerUI.saveFlow.savePrivate')}: ${t('trackerUI.saveFlow.privateDesc')}
+🌍 ${t('trackerUI.saveFlow.savePublic')}: ${t('trackerUI.saveFlow.publicDesc')}
+❌ ${t('trackerUI.saveFlow.saveLocal')}: ${t('trackerUI.saveFlow.localDesc')}`;
 
-  const choice = await modal.choice(message, '☁️ Cloud Save Options', [
-    { label: '🔒 Private', value: 'private' },
-    { label: '🌍 Public', value: 'public' },
-    { label: '❌ Skip', value: 'skip' }
+  const choice = await modal.choice(message, `☁️ ${t('trackerUI.saveFlow.cloudSaveOptions')}`, [
+    { label: `🔒 ${t('trackerUI.saveFlow.savePrivate')}`, value: 'private' },
+    { label: `🌍 ${t('trackerUI.saveFlow.savePublic')}`, value: 'public' },
+    { label: `❌ ${t('trackerUI.saveFlow.saveLocal')}`, value: 'skip' }
   ]);
   
   return choice || 'skip';
