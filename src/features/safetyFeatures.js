@@ -11,6 +11,72 @@
 import { toast } from '../utils/toast.js';
 import { modal } from '../utils/modal.js';
 
+// Safety Features Translations
+const safetyTranslations = {
+  en: {
+    emergency: "Emergency",
+    sendingAs: "Sending as",
+    yourCurrentGps: "Your current GPS coordinates:",
+    gpsLocation: "GPS Location",
+    acquiringLocation: "Acquiring location...",
+    callEmergency: "Call Emergency Services",
+    shareMyLocation: "Share My Location",
+    copyCoordinates: "Copy Coordinates",
+    changeName: "Change Name",
+    cancel: "Cancel",
+    emergencyNameUpdated: "Emergency name updated!",
+    enterNamePrompt: "Enter your name for emergency messages:",
+    lifelineActive: "Lifeline active!",
+    lifelineStopped: "Lifeline stopped",
+    contactsWillReceive: "contact(s) will receive automatic email updates every",
+    minutes: "minutes",
+    shareNow: "Share Now",
+    setupLifeline: "Setup Lifeline",
+    stopLifeline: "Stop Lifeline",
+    emergencyContacts: "Emergency Contacts",
+    addContact: "Add Contact",
+    noContactsAdded: "No contacts added",
+    enterEmail: "Enter email address:",
+    contactAdded: "Contact added!",
+    contactRemoved: "Contact removed",
+    coordsCopied: "Coordinates copied to clipboard!",
+    shareEmergencyAlert: "Share Emergency Alert",
+    copyMessage: "Copy Message",
+    messageCopied: "Message copied! Paste to send."
+  },
+  he: {
+    emergency: "מצוקה",
+    sendingAs: "שולח בתור",
+    yourCurrentGps: "קואורדינטות ה-GPS הנוכחיות שלך:",
+    gpsLocation: "מיקום GPS",
+    acquiringLocation: "מאתר מיקום...",
+    callEmergency: "התקשר לשירותי חירום",
+    shareMyLocation: "שתף את המיקום שלי",
+    copyCoordinates: "העתק קואורדינטות",
+    changeName: "שנה שם",
+    cancel: "ביטול",
+    emergencyNameUpdated: "שם החירום עודכן!",
+    enterNamePrompt: "הזן את שמך להודעות חירום:",
+    lifelineActive: "קו חיים פעיל!",
+    lifelineStopped: "קו חיים נעצר",
+    contactsWillReceive: "אנשי קשר יקבלו עדכוני דוא״ל אוטומטיים כל",
+    minutes: "דקות",
+    shareNow: "שתף עכשיו",
+    setupLifeline: "הגדר קו חיים",
+    stopLifeline: "עצור קו חיים",
+    emergencyContacts: "אנשי קשר לחירום",
+    addContact: "הוסף איש קשר",
+    noContactsAdded: "לא נוספו אנשי קשר",
+    enterEmail: "הזן כתובת דוא״ל:",
+    contactAdded: "איש קשר נוסף!",
+    contactRemoved: "איש קשר הוסר",
+    coordsCopied: "קואורדינטות הועתקו ללוח!",
+    shareEmergencyAlert: "שתף התראת חירום",
+    copyMessage: "העתק הודעה",
+    messageCopied: "ההודעה הועתקה! הדבק לשליחה."
+  }
+};
+
 class SafetyFeatures {
   constructor() {
     this.emergencyContacts = [];
@@ -20,6 +86,14 @@ class SafetyFeatures {
     this.weatherCache = new Map();
     this.weatherCacheTimeout = 30 * 60 * 1000; // 30 minutes
     this.storageKey = 'accessNature_safety';
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+  }
+  
+  /**
+   * Get translation for key
+   */
+  t(key) {
+    return safetyTranslations[this.lang]?.[key] || safetyTranslations['en']?.[key] || key;
   }
 
   /**
@@ -743,6 +817,9 @@ class SafetyFeatures {
    * Open emergency modal with options
    */
   async openEmergencyModal() {
+    // Refresh language
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    
     // Haptic feedback
     if (window.displayPreferences?.haptic) {
       window.displayPreferences.haptic('heavy');
@@ -750,7 +827,7 @@ class SafetyFeatures {
     
     const coords = this.currentPosition 
       ? `${this.currentPosition.lat.toFixed(6)}, ${this.currentPosition.lng.toFixed(6)}`
-      : 'Acquiring location...';
+      : this.t('acquiringLocation');
     
     // Get user name for display
     const userName = await this.getUserName();
@@ -762,39 +839,39 @@ class SafetyFeatures {
     overlay.innerHTML = `
       <div class="safety-modal">
         <div class="safety-header">
-          <h2>🆘 Emergency</h2>
-          <p style="font-size: 1rem; margin-top: 8px;">Sending as: <strong>${userName}</strong></p>
-          <p style="opacity: 0.8; margin-top: 4px;">Your current GPS coordinates:</p>
+          <h2>🆘 ${this.t('emergency')}</h2>
+          <p style="font-size: 1rem; margin-top: 8px;">${this.t('sendingAs')}: <strong>${userName}</strong></p>
+          <p style="opacity: 0.8; margin-top: 4px;">${this.t('yourCurrentGps')}</p>
         </div>
         
         <div class="safety-body">
           <div class="safety-coords">
-            <div class="safety-coords-label">GPS Location</div>
+            <div class="safety-coords-label">${this.t('gpsLocation')}</div>
             <div class="safety-coords-value" id="emergencyCoords">${coords}</div>
           </div>
           
           <div class="safety-actions">
             <button class="safety-btn safety-btn-emergency" onclick="safetyFeatures.callEmergency()">
-              📞 Call Emergency Services
+              📞 ${this.t('callEmergency')}
             </button>
             
             <button class="safety-btn safety-btn-share" onclick="safetyFeatures.shareLocation()">
-              📍 Share My Location
+              📍 ${this.t('shareMyLocation')}
             </button>
             
             <button class="safety-btn safety-btn-secondary" onclick="safetyFeatures.copyCoordinates()">
-              📋 Copy Coordinates
+              📋 ${this.t('copyCoordinates')}
             </button>
             
             <button class="safety-btn safety-btn-secondary" onclick="safetyFeatures.changeEmergencyName()" style="font-size: 0.85rem;">
-              ✏️ Change Name
+              ✏️ ${this.t('changeName')}
             </button>
           </div>
         </div>
         
         <div class="safety-footer">
           <button class="safety-cancel" onclick="safetyFeatures.closeEmergencyModal()">
-            Cancel
+            ${this.t('cancel')}
           </button>
         </div>
       </div>

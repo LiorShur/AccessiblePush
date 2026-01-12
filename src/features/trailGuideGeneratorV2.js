@@ -44,6 +44,8 @@ export class TrailGuideGeneratorV2 {
       notes: "Notes",
       waypoints: "Waypoints",
       start: "Start",
+      photo: "Photo",
+      note: "Note",
       finish: "Finish",
       km: "km",
       m: "m",
@@ -52,6 +54,14 @@ export class TrailGuideGeneratorV2 {
       elevation: "Elevation",
       minElevation: "Min",
       maxElevation: "Max",
+      ascent: "Ascent",
+      descent: "Descent",
+      singlePointRecorded: "Single point recorded. Track longer routes for elevation profile chart.",
+      flat: "Flat",
+      moderate: "Moderate",
+      steep: "Steep",
+      verySteep: "Very Steep",
+      steepSections: "Steep Sections",
       totalGain: "Total Gain",
       totalLoss: "Total Loss",
       fullyAccessible: "Fully Accessible",
@@ -162,6 +172,8 @@ export class TrailGuideGeneratorV2 {
       notes: "הערות",
       waypoints: "נקודות ציון",
       start: "התחלה",
+      photo: "תמונה",
+      note: "הערה",
       finish: "סיום",
       km: "ק״מ",
       m: "מ׳",
@@ -170,6 +182,15 @@ export class TrailGuideGeneratorV2 {
       elevation: "גובה",
       minElevation: "מינימום",
       maxElevation: "מקסימום",
+      elevation: "גובה",
+      ascent: "עלייה",
+      descent: "ירידה",
+      singlePointRecorded: "נקודה בודדת הוקלטה. הקלט מסלולים ארוכים יותר לתרשים גובה.",
+      flat: "שטוח",
+      moderate: "מתון",
+      steep: "תלול",
+      verySteep: "תלול מאוד",
+      steepSections: "קטעים תלולים",
       totalGain: "עלייה כוללת",
       totalLoss: "ירידה כוללת",
       fullyAccessible: "נגיש לחלוטין",
@@ -309,7 +330,7 @@ export class TrailGuideGeneratorV2 {
     const accessLevel = this.getAccessibilityLevel(accessibilityData);
     
     // Build timeline items
-    const timelineItems = this.buildTimeline(routeData, routeInfo);
+    const timelineItems = this.buildTimeline(routeData, routeInfo, currentLang);
     
     // Calculate route bounds for map
     let bounds = null;
@@ -774,7 +795,9 @@ export class TrailGuideGeneratorV2 {
   /**
    * Render elevation profile section
    */
-  renderElevationSection(routeData) {
+  renderElevationSection(routeData, lang = 'en') {
+    const t = (key) => this.t(key, lang);
+    
     // Extract location points with elevation data
     const locationPoints = routeData.filter(p => 
       p.type === 'location' && 
@@ -794,16 +817,16 @@ export class TrailGuideGeneratorV2 {
       const elevation = Math.round(locationPoints[0].elevation);
       return `
         <section class="tg-section tg-elevation">
-            <h2 class="tg-section-title">📈 Elevation</h2>
+            <h2 class="tg-section-title">📈 ${t('elevationProfile')}</h2>
             <div class="tg-elevation-stats" style="justify-content: center;">
                 <div class="tg-elev-stat">
                     <span class="tg-elev-icon" style="color: #4CAF50;">⛰️</span>
                     <span class="tg-elev-value">${elevation}m</span>
-                    <span class="tg-elev-label">Elevation</span>
+                    <span class="tg-elev-label">${t('elevation')}</span>
                 </div>
             </div>
             <p style="text-align: center; color: #888; font-size: 0.85rem; margin-top: 12px;">
-                Single point recorded. Track longer routes for elevation profile chart.
+                ${t('singlePointRecorded')}
             </p>
         </section>
       `;
@@ -876,29 +899,29 @@ export class TrailGuideGeneratorV2 {
 
     return `
         <section class="tg-section tg-elevation">
-            <h2 class="tg-section-title">📈 Elevation Profile</h2>
+            <h2 class="tg-section-title">📈 ${t('elevationProfile')}</h2>
             
             <!-- Elevation Stats -->
             <div class="tg-elevation-stats">
                 <div class="tg-elev-stat">
                     <span class="tg-elev-icon" style="color: #4CAF50;">↑</span>
                     <span class="tg-elev-value">${Math.round(totalAscent)}m</span>
-                    <span class="tg-elev-label">Ascent</span>
+                    <span class="tg-elev-label">${t('ascent')}</span>
                 </div>
                 <div class="tg-elev-stat">
                     <span class="tg-elev-icon" style="color: #f44336;">↓</span>
                     <span class="tg-elev-value">${Math.round(totalDescent)}m</span>
-                    <span class="tg-elev-label">Descent</span>
+                    <span class="tg-elev-label">${t('descent')}</span>
                 </div>
                 <div class="tg-elev-stat">
                     <span class="tg-elev-icon" style="color: #2196F3;">▽</span>
                     <span class="tg-elev-value">${Math.round(minElevation)}m</span>
-                    <span class="tg-elev-label">Min</span>
+                    <span class="tg-elev-label">${t('minElevation')}</span>
                 </div>
                 <div class="tg-elev-stat">
                     <span class="tg-elev-icon" style="color: #FF9800;">△</span>
                     <span class="tg-elev-value">${Math.round(maxElevation)}m</span>
-                    <span class="tg-elev-label">Max</span>
+                    <span class="tg-elev-label">${t('maxElevation')}</span>
                 </div>
             </div>
             
@@ -909,10 +932,10 @@ export class TrailGuideGeneratorV2 {
             
             <!-- Gradient Legend -->
             <div class="tg-gradient-legend">
-                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #4CAF50;"></span> 0-5% Flat</span>
-                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #FFC107;"></span> 5-10% Moderate</span>
-                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #FF9800;"></span> 10-15% Steep</span>
-                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #f44336;"></span> >15% Very Steep</span>
+                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #4CAF50;"></span> 0-5% ${t('flat')}</span>
+                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #FFC107;"></span> 5-10% ${t('moderate')}</span>
+                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #FF9800;"></span> 10-15% ${t('steep')}</span>
+                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #f44336;"></span> >15% ${t('verySteep')}</span>
             </div>
             
             ${steepAnalysis.hasSteepSections ? `
@@ -920,7 +943,7 @@ export class TrailGuideGeneratorV2 {
             <div class="tg-steep-warning">
                 <div class="tg-steep-header">
                     <span class="tg-steep-icon">⚠️</span>
-                    <span class="tg-steep-title">Steep Sections (${steepAnalysis.count})</span>
+                    <span class="tg-steep-title">${t('steepSections')} (${steepAnalysis.count})</span>
                 </div>
                 <div class="tg-steep-details">
                     ${steepAnalysis.details}
@@ -1296,7 +1319,8 @@ export class TrailGuideGeneratorV2 {
     `;
   }
 
-  buildTimeline(routeData, routeInfo) {
+  buildTimeline(routeData, routeInfo, lang = 'en') {
+    const t = (key) => this.t(key, lang);
     console.log('📍 Building timeline with routeData:', routeData?.length, 'points');
     const items = [];
     const startTime = new Date(routeInfo.date).getTime();
@@ -1305,7 +1329,7 @@ export class TrailGuideGeneratorV2 {
     items.push({
       type: 'start',
       icon: '🟢',
-      title: 'Start',
+      title: t('start'),
       time: null,
       distance: 0
     });
@@ -1320,7 +1344,7 @@ export class TrailGuideGeneratorV2 {
           items.push({
             type: 'photo',
             icon: '📸',
-            title: 'Photo',
+            title: t('photo'),
             content: photoContent,
             time: point.timestamp ? new Date(point.timestamp).toLocaleTimeString() : null,
             distance: point.distance || null,
@@ -1335,7 +1359,7 @@ export class TrailGuideGeneratorV2 {
           items.push({
             type: 'note',
             icon: '📝',
-            title: 'Note',
+            title: t('note'),
             content: noteContent,
             time: point.timestamp ? new Date(point.timestamp).toLocaleTimeString() : null,
             distance: point.distance || null,
@@ -1349,7 +1373,7 @@ export class TrailGuideGeneratorV2 {
     items.push({
       type: 'end',
       icon: '🔴',
-      title: 'End',
+      title: t('end'),
       time: null,
       distance: routeInfo.totalDistance || null
     });

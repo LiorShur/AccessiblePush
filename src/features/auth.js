@@ -6,6 +6,7 @@ import { userService } from '../services/userService.js';
 import { storageService } from '../services/storageService.js';
 import { uploadProgress } from '../ui/uploadProgress.js';
 import { trailGuideGeneratorV2 } from './trailGuideGeneratorV2.js';
+import { t } from '../i18n/i18n.js';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -2065,7 +2066,7 @@ async manageGuide(guide) {
 async displayMyGuides(guides) {
   // Validate guides array
   if (!guides || !Array.isArray(guides) || guides.length === 0) {
-    toast.info('No trail guides to display');
+    toast.info(t('profile.noGuidesYet') || 'No trail guides to display');
     return;
   }
   
@@ -2078,14 +2079,18 @@ async displayMyGuides(guides) {
     const distance = (stats.totalDistance || 0).toFixed(1);
     
     return {
-      label: `${visibility} ${guide.routeName || 'Unnamed'} (${date}, ${distance} km)`,
+      label: `${visibility} ${guide.routeName || 'Unnamed'} (${date}, ${distance} ${t('trailBrowser.km') || 'km'})`,
       value: index
     };
   });
   
-  choices.push({ label: '❌ Cancel', value: 'cancel' });
+  choices.push({ label: `❌ ${t('reportForm.cancel') || 'Cancel'}`, value: 'cancel' });
   
-  const choice = await modal.choice('Select a guide to manage:', '🌐 Your Trail Guides', choices);
+  const choice = await modal.choice(
+    t('profile.selectGuideToManage') || 'Select a guide to manage:', 
+    `🌐 ${t('profile.yourTrailGuides') || 'Your Trail Guides'}`, 
+    choices
+  );
   
   console.log('📋 Modal returned choice:', choice, 'type:', typeof choice);
   
