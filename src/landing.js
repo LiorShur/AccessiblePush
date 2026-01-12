@@ -557,7 +557,7 @@ async searchTrails() {
       <div class="trail-result-card" onclick="viewTrailGuide('${guide.id}')">
         <div class="trail-result-header">
           <div class="trail-result-name">${guide.routeName}</div>
-          <div class="trail-result-author">by ${guide.userEmail}</div>
+          <div class="trail-result-author">${t('trailBrowser.by')} ${guide.userEmail}</div>
           <div class="trail-result-date">${date}</div>
         </div>
         
@@ -565,11 +565,11 @@ async searchTrails() {
           <div class="trail-result-stats">
             <div class="trail-stat">
               <span class="trail-stat-value">${(metadata.totalDistance || 0).toFixed(1)}</span>
-              <span class="trail-stat-label">km</span>
+              <span class="trail-stat-label">${t('trailBrowser.km')}</span>
             </div>
             <div class="trail-stat">
               <span class="trail-stat-value">${metadata.locationCount || 0}</span>
-              <span class="trail-stat-label">GPS Points</span>
+              <span class="trail-stat-label">${t('trailBrowser.gpsPoints')}</span>
             </div>
           </div>
           
@@ -580,9 +580,9 @@ async searchTrails() {
           </div>
           
           <div class="trail-community-stats">
-            <span>👁️ ${community.views || 0} views</span>
-            <span>📷 ${metadata.photoCount || 0} photos</span>
-            <span>📝 ${metadata.noteCount || 0} notes</span>
+            <span>👁️ ${community.views || 0} ${t('trailBrowser.views')}</span>
+            <span>📷 ${metadata.photoCount || 0} ${t('trailBrowser.photos')}</span>
+            <span>📝 ${metadata.noteCount || 0} ${t('trailBrowser.notes')}</span>
           </div>
         </div>
       </div>
