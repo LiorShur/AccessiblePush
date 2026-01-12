@@ -266,7 +266,18 @@ const formTranslations = {
     directionalSigns: "➡️ Directional signs",
     distanceMarkers: "📏 Distance markers",
     accessibilityInfo: "♿ Accessibility info",
-    audioDescAvailable: "🔊 Audio description available"
+    audioDescAvailable: "🔊 Audio description available",
+    simpleLanguage: "📖 Simple language",
+    highContrast: "🔤 High contrast",
+    qrCodeAvailable: "📱 QR code with site information available",
+    
+    // Additional section
+    surveyorName: "Surveyor Name (Optional)",
+    yourName: "Your name",
+    surveyDate: "Survey Date",
+    overallSummary: "Overall Accessibility Summary",
+    accessible: "Accessible",
+    partial: "Partial"
   },
   he: {
     // Header
@@ -514,7 +525,18 @@ const formTranslations = {
     directionalSigns: "➡️ שילוט כיווני",
     distanceMarkers: "📏 סימוני מרחק",
     accessibilityInfo: "♿ מידע נגישות",
-    audioDescAvailable: "🔊 תיאור קולי זמין"
+    audioDescAvailable: "🔊 תיאור קולי זמין",
+    simpleLanguage: "📖 שפה פשוטה",
+    highContrast: "🔤 ניגודיות גבוהה",
+    qrCodeAvailable: "📱 קוד QR עם מידע על האתר זמין",
+    
+    // Additional section
+    surveyorName: "שם הסוקר (אופציונלי)",
+    yourName: "השם שלך",
+    surveyDate: "תאריך הסקר",
+    overallSummary: "סיכום נגישות כללי",
+    accessible: "נגיש",
+    partial: "נגיש חלקית"
   }
 };
 
@@ -551,6 +573,10 @@ export class AccessibilityFormV2Full {
     // Re-render form if it exists
     const overlay = document.getElementById('af2f-overlay');
     if (overlay) {
+      // Set RTL direction for Hebrew
+      overlay.dir = this.lang === 'he' ? 'rtl' : 'ltr';
+      overlay.lang = this.lang;
+      
       // Save current form data before re-rendering
       const savedData = { ...this.formData };
       this.loadFormHTML();
@@ -1152,6 +1178,63 @@ export class AccessibilityFormV2Full {
           flex-direction: column;
         }
       }
+      
+      /* ========== RTL Support ========== */
+      [dir="rtl"] .af2f-header h1,
+      [dir="rtl"] .af2f-header p {
+        text-align: right;
+      }
+      
+      [dir="rtl"] .af2f-close {
+        left: 16px;
+        right: auto;
+      }
+      
+      [dir="rtl"] .af2f-section-header {
+        flex-direction: row-reverse;
+      }
+      
+      [dir="rtl"] .af2f-section-info {
+        text-align: right;
+      }
+      
+      [dir="rtl"] .af2f-section-arrow {
+        margin-left: 0;
+        margin-right: auto;
+      }
+      
+      [dir="rtl"] .af2f-label {
+        text-align: right;
+      }
+      
+      [dir="rtl"] .af2f-input,
+      [dir="rtl"] .af2f-select,
+      [dir="rtl"] .af2f-textarea {
+        text-align: right;
+      }
+      
+      [dir="rtl"] .af2f-select-card,
+      [dir="rtl"] .af2f-chip {
+        text-align: center;
+      }
+      
+      [dir="rtl"] .af2f-checkbox {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+      }
+      
+      [dir="rtl"] .af2f-checkbox .check-label {
+        margin-left: 0;
+        margin-right: 12px;
+      }
+      
+      [dir="rtl"] .af2f-footer {
+        flex-direction: row-reverse;
+      }
+      
+      [dir="rtl"] .af2f-number-row {
+        flex-direction: row-reverse;
+      }
     `;
     
     document.head.appendChild(styles);
@@ -1501,8 +1584,8 @@ export class AccessibilityFormV2Full {
             <div class="af2f-chip-grid" data-field="signage" data-type="multi">
               <div class="af2f-chip" data-value="Route map available">${t('routeMap')}</div>
               <div class="af2f-chip" data-value="Clear directional signage">${t('directionalSigns')}</div>
-              <div class="af2f-chip" data-value="Simple language signage">📖 ${this.lang === 'he' ? 'שפה פשוטה' : 'Simple language'}</div>
-              <div class="af2f-chip" data-value="Large, high-contrast accessible signage">🔤 ${this.lang === 'he' ? 'ניגודיות גבוהה' : 'High contrast'}</div>
+              <div class="af2f-chip" data-value="Simple language signage">${t('simpleLanguage')}</div>
+              <div class="af2f-chip" data-value="Large, high-contrast accessible signage">${t('highContrast')}</div>
               <div class="af2f-chip" data-value="Audio explanation compatible with T-mode hearing devices">${t('audioDescAvailable')}</div>
             </div>
           </div>
@@ -1510,7 +1593,7 @@ export class AccessibilityFormV2Full {
           <div class="af2f-field">
             <div class="af2f-checkbox" data-field="qrCode" data-value="Available">
               <span class="check-box">✓</span>
-              <span class="check-label">📱 ${this.lang === 'he' ? 'קוד QR עם מידע על האתר זמין' : 'QR code with site information available'}</span>
+              <span class="check-label">${t('qrCodeAvailable')}</span>
             </div>
           </div>
         `;
@@ -1524,25 +1607,25 @@ export class AccessibilityFormV2Full {
           
           <div class="af2f-row">
             <div class="af2f-field">
-              <label class="af2f-label">${this.lang === 'he' ? 'שם הסוקר (אופציונלי)' : 'Surveyor Name (Optional)'}</label>
-              <input type="text" class="af2f-input" name="surveyorName" placeholder="${this.lang === 'he' ? 'השם שלך' : 'Your name'}">
+              <label class="af2f-label">${t('surveyorName')}</label>
+              <input type="text" class="af2f-input" name="surveyorName" placeholder="${t('yourName')}">
             </div>
             <div class="af2f-field">
-              <label class="af2f-label">${this.lang === 'he' ? 'תאריך הסקר' : 'Survey Date'}</label>
+              <label class="af2f-label">${t('surveyDate')}</label>
               <input type="date" class="af2f-input" name="surveyDate">
             </div>
           </div>
           
           <div class="af2f-field">
-            <label class="af2f-label">${this.lang === 'he' ? 'סיכום נגישות כללי' : 'Overall Accessibility Summary'}</label>
+            <label class="af2f-label">${t('overallSummary')}</label>
             <div class="af2f-card-grid cols-3" data-field="accessibilitySummary" data-type="single">
               <div class="af2f-select-card" data-value="Accessible">
                 <span class="card-icon">✅</span>
-                <span class="card-label">${this.lang === 'he' ? 'נגיש' : 'Accessible'}</span>
+                <span class="card-label">${t('accessible')}</span>
               </div>
               <div class="af2f-select-card" data-value="Partially accessible">
                 <span class="card-icon">⚠️</span>
-                <span class="card-label">${this.lang === 'he' ? 'נגיש חלקית' : 'Partial'}</span>
+                <span class="card-label">${t('partial')}</span>
               </div>
               <div class="af2f-select-card" data-value="Not accessible">
                 <span class="card-icon">❌</span>
@@ -1873,10 +1956,18 @@ export class AccessibilityFormV2Full {
 
   open(callback) {
     this.currentCallback = callback;
+    
+    // Refresh language from localStorage before opening
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    
     this.initialize();
     
     const overlay = document.getElementById('af2f-overlay');
     if (overlay) {
+      // Set RTL direction for Hebrew
+      overlay.dir = this.lang === 'he' ? 'rtl' : 'ltr';
+      overlay.lang = this.lang;
+      
       overlay.classList.add('open');
       this.isOpen = true;
       
