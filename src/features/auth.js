@@ -291,7 +291,7 @@ setupCloudButtonsWithRetry() {
           if (truncatedName) profileLabel.textContent = truncatedName;
         } else {
           profileItem.classList.remove('signed-in');
-          profileLabel.textContent = 'Sign In';
+          profileLabel.textContent = window.t?.('auth.signIn') || 'Sign In';
         }
         return true;
       }
@@ -477,7 +477,7 @@ setupCloudButtonsWithRetry() {
       
       // Show profile link
       if (profileNavLink) profileNavLink.style.display = 'block';
-      if (navAuthBtn) navAuthBtn.textContent = 'Sign Out';
+      if (navAuthBtn) navAuthBtn.textContent = window.t?.('auth.signOut') || 'Sign Out';
 
     } else {
       // Show login prompt
@@ -492,7 +492,7 @@ setupCloudButtonsWithRetry() {
       
       // Hide profile link
       if (profileNavLink) profileNavLink.style.display = 'none';
-      if (navAuthBtn) navAuthBtn.textContent = 'Sign In';
+      if (navAuthBtn) navAuthBtn.textContent = window.t?.('auth.signIn') || 'Sign In';
     }
   }
 
@@ -520,7 +520,7 @@ setupCloudButtonsWithRetry() {
     loginForm?.classList.add('active');
     signupForm?.classList.remove('active');
     
-    if (title) title.textContent = 'Welcome Back!';
+    if (title) title.textContent = window.t?.('authModal.welcomeBack') || 'Welcome Back!';
   }
 
   switchToSignup() {
@@ -531,7 +531,7 @@ setupCloudButtonsWithRetry() {
     signupForm?.classList.add('active');
     loginForm?.classList.remove('active');
     
-    if (title) title.textContent = 'Join Access Nature';
+    if (title) title.textContent = window.t?.('authModal.joinUs') || 'Join Access Nature';
   }
 
   clearAuthForms() {
