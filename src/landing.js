@@ -1760,8 +1760,18 @@ Happy trail mapping! 🥾`);
         try {
           await userService.initializeUser(authStatus.user);
           console.log('🏅 UserService initialized for gamification');
+          
+          // Refresh community challenges with new user data
+          if (window.communityChallenges) {
+            await window.communityChallenges.refresh();
+          }
         } catch (error) {
           console.warn('⚠️ UserService initialization failed:', error);
+        }
+      } else {
+        // UserService already initialized, just refresh challenges
+        if (window.communityChallenges) {
+          await window.communityChallenges.refresh();
         }
       }
       
@@ -2799,7 +2809,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     mobilityProfileUI.initialize();
     
     // Initialize community challenges
-    communityChallenges.initialize();
+    await communityChallenges.initialize();
     const challengesContainer = document.getElementById('communityChallengesPanel');
     if (challengesContainer) {
       communityChallenges.mount(challengesContainer);
