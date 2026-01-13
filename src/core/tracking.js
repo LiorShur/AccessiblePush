@@ -181,10 +181,10 @@ showAccessibilitySurveyReminder() {
       <div style="font-size: 32px; line-height: 1;">♿</div>
       <div style="flex: 1;">
         <div style="font-weight: 600; font-size: 15px; margin-bottom: 6px;">
-          📋 Accessibility Survey
+          📋 ${t('trackerUI.surveyReminder.title')}
         </div>
         <div style="font-size: 13px; opacity: 0.95; line-height: 1.4;">
-          Help others by documenting this trail's accessibility features as you go!
+          ${t('trackerUI.surveyReminder.message')}
         </div>
       </div>
     </div>
@@ -199,7 +199,7 @@ showAccessibilitySurveyReminder() {
         font-weight: 600;
         font-size: 14px;
         cursor: pointer;
-      ">Open Survey</button>
+      ">${t('trackerUI.surveyReminder.openSurvey')}</button>
       <button id="remind-later-btn" style="
         padding: 10px 16px;
         background: rgba(255,255,255,0.2);
@@ -208,7 +208,7 @@ showAccessibilitySurveyReminder() {
         border-radius: 8px;
         font-size: 14px;
         cursor: pointer;
-      ">Later</button>
+      ">${t('trackerUI.surveyReminder.later')}</button>
     </div>
   `;
 
