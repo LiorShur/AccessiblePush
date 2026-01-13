@@ -535,7 +535,7 @@ textarea:focus-visible,
       ♿ Mobility Profile
     </button>
     <div class="nav-auth">
-      <button id="navAuthBtn" class="btn">Sign In</button>
+      <button id="navAuthBtn" class="btn" data-i18n="auth.signIn">Sign In</button>
     </div>
   </div>
 </nav>
@@ -550,16 +550,26 @@ textarea:focus-visible,
   <!-- Auth Status Bar -->
   <div id="authStatusBar" class="auth-status-bar">
     <div id="userInfo" class="user-info hidden">
-      <span class="user-greeting">Welcome, <span id="userEmail"></span>!</span>
-      <button id="logoutBtn" class="auth-btn logout-btn">Logout</button>
+      <span class="user-greeting"><span data-i18n="auth.welcomeBack">Welcome</span>, <span id="userEmail"></span>!</span>
+      <button id="logoutBtn" class="auth-btn logout-btn" data-i18n="auth.signOut">Logout</button>
     </div>
     <div id="authPrompt" class="auth-prompt">
-      <button id="showAuthBtn" class="auth-btn login-btn">Sign In</button>
+      <button id="showAuthBtn" class="auth-btn login-btn" data-i18n="auth.signIn">Sign In</button>
     </div>
   </div>
 
   <!-- Auth Modal Helper Functions -->
   <script>
+    function openAuthModal() {
+      const modal = document.getElementById('authModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        // Translate modal content when opened
+        if (window.i18n?.translatePage) {
+          window.i18n.translatePage();
+        }
+      }
+    }
     function closeAuthModal() {
       document.getElementById('authModal')?.classList.add('hidden');
     }
@@ -590,7 +600,7 @@ textarea:focus-visible,
     <div class="auth-modal-backdrop" onclick="closeAuthModal()"></div>
     <div class="auth-modal-container" role="dialog" aria-labelledby="authModalTitle" aria-modal="true">
       <div class="auth-modal-header">
-        <h2 id="authModalTitle">Welcome to Accessible</h2>
+        <h2 id="authModalTitle" data-i18n="authModal.welcome">Welcome to Accessible</h2>
         <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close authentication modal">✕</button>
       </div>
       
@@ -598,70 +608,70 @@ textarea:focus-visible,
         <!-- Login Form -->
         <div id="loginForm" class="auth-form active">
           <div class="auth-form-header">
-            <h3>Sign In to Your Account</h3>
-            <p>Continue your accessibility mapping journey</p>
+            <h3 data-i18n="authModal.signInTitle">Sign In to Your Account</h3>
+            <p data-i18n="authModal.signInSubtitle">Continue your accessibility mapping journey</p>
           </div>
           
           <form class="auth-inputs" aria-label="Sign in form">
             <div class="input-group">
-              <label for="loginEmail" class="visually-hidden">Email address</label>
-              <input type="email" id="loginEmail" placeholder="Email address" aria-label="Email address" required autocomplete="email" dir="ltr">
+              <label for="loginEmail" class="visually-hidden" data-i18n="auth.email">Email address</label>
+              <input type="email" id="loginEmail" data-i18n-placeholder="auth.emailPlaceholder" placeholder="Email address" aria-label="Email address" required autocomplete="email" dir="ltr">
               <span class="input-icon" aria-hidden="true">📧</span>
             </div>
             
             <div class="input-group password-group">
-              <label for="loginPassword" class="visually-hidden">Password</label>
-              <input type="password" id="loginPassword" placeholder="Password" aria-label="Password" required autocomplete="current-password" dir="ltr">
+              <label for="loginPassword" class="visually-hidden" data-i18n="auth.password">Password</label>
+              <input type="password" id="loginPassword" data-i18n-placeholder="auth.passwordPlaceholder" placeholder="Password" aria-label="Password" required autocomplete="current-password" dir="ltr">
               <span class="input-icon" aria-hidden="true">🔒</span>
               <button type="button" class="password-toggle" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Show password">👁️</button>
             </div>
             
             <button type="submit" id="loginBtn" class="auth-submit-btn">
-              <span class="btn-text">Sign In</span>
+              <span class="btn-text" data-i18n="auth.signIn">Sign In</span>
               <span class="btn-spinner hidden">⏳</span>
             </button>
           </form>
           
           <div class="auth-switch">
-            <p>Don't have an account? <button type="button" onclick="switchToSignup()" class="switch-btn">Sign up</button></p>
+            <p><span data-i18n="authModal.noAccount">Don't have an account?</span> <button type="button" onclick="switchToSignup()" class="switch-btn" data-i18n="auth.signUp">Sign up</button></p>
           </div>
         </div>
 
         <!-- Signup Form -->
         <div id="signupForm" class="auth-form">
           <div class="auth-form-header">
-            <h3>Create Your Account</h3>
-            <p>Join the community making nature accessible</p>
+            <h3 data-i18n="authModal.createTitle">Create Your Account</h3>
+            <p data-i18n="authModal.createSubtitle">Join the community making nature accessible</p>
           </div>
           
           <form class="auth-inputs" aria-label="Create account form">
             <div class="input-group">
-              <label for="signupName" class="visually-hidden">Full name</label>
-              <input type="text" id="signupName" placeholder="Full name" aria-label="Full name" required autocomplete="name">
+              <label for="signupName" class="visually-hidden" data-i18n="auth.fullName">Full name</label>
+              <input type="text" id="signupName" data-i18n-placeholder="auth.fullNamePlaceholder" placeholder="Full name" aria-label="Full name" required autocomplete="name">
               <span class="input-icon" aria-hidden="true">👤</span>
             </div>
             
             <div class="input-group">
-              <label for="signupEmail" class="visually-hidden">Email address</label>
-              <input type="email" id="signupEmail" placeholder="Email address" aria-label="Email address" required autocomplete="email" dir="ltr">
+              <label for="signupEmail" class="visually-hidden" data-i18n="auth.email">Email address</label>
+              <input type="email" id="signupEmail" data-i18n-placeholder="auth.emailPlaceholder" placeholder="Email address" aria-label="Email address" required autocomplete="email" dir="ltr">
               <span class="input-icon" aria-hidden="true">📧</span>
             </div>
             
             <div class="input-group password-group">
-              <label for="signupPassword" class="visually-hidden">Create password</label>
-              <input type="password" id="signupPassword" placeholder="Create password" aria-label="Create password" required autocomplete="new-password" dir="ltr">
+              <label for="signupPassword" class="visually-hidden" data-i18n="authModal.createPassword">Create password</label>
+              <input type="password" id="signupPassword" data-i18n-placeholder="authModal.createPassword" placeholder="Create password" aria-label="Create password" required autocomplete="new-password" dir="ltr">
               <span class="input-icon" aria-hidden="true">🔒</span>
               <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signupPassword', this)" aria-label="Show password">👁️</button>
             </div>
             
             <button type="submit" id="signupBtn" class="auth-submit-btn">
-              <span class="btn-text">Create Account</span>
+              <span class="btn-text" data-i18n="authModal.createAccount">Create Account</span>
               <span class="btn-spinner hidden">⏳</span>
             </button>
           </form>
           
           <div class="auth-switch">
-            <p>Already have an account? <button type="button" onclick="switchToLogin()" class="switch-btn">Sign in</button></p>
+            <p><span data-i18n="authModal.hasAccount">Already have an account?</span> <button type="button" onclick="switchToLogin()" class="switch-btn" data-i18n="auth.signIn">Sign in</button></p>
           </div>
         </div>
       </div>
@@ -1458,21 +1468,16 @@ textarea:focus-visible,
     window.history.replaceState({}, document.title, window.location.pathname);
     // Open auth modal after a brief delay to let page load
     setTimeout(() => {
-      const authModal = document.getElementById('authModal');
-      if (authModal) {
-        authModal.classList.remove('hidden');
+      if (window.openAuthModal) {
+        window.openAuthModal();
       }
     }, 500);
   }
   
-  // Expose openAuthModal globally for bottom nav
-  window.openAuthModal = () => {
-    const authModal = document.getElementById('authModal');
-    if (authModal) {
-      authModal.classList.remove('hidden');
-    }
-  };
+  // Expose openAuthModal globally for bottom nav (already defined in helper functions)
+  </script>
   
+  <script type="module">
   // Auth setup (hamburger menu is handled in IMMEDIATE UI Handlers above)
   try {
     const { auth } = await import('./firebase-setup.js');
@@ -1496,7 +1501,7 @@ textarea:focus-visible,
             if (truncatedName) profileLabel.textContent = truncatedName;
           } else {
             profileItem.classList.remove('signed-in');
-            profileLabel.textContent = 'Sign In';
+            profileLabel.textContent = window.t?.('auth.signIn') || 'Sign In';
           }
           return true;
         }
@@ -1519,9 +1524,9 @@ textarea:focus-visible,
         indicator?.classList.add('signed-in');
         if (text) text.textContent = user.displayName || user.email?.split('@')[0];
         if (btn) {
-          btn.textContent = 'Sign Out';
+          btn.textContent = window.t?.('auth.signOut') || 'Sign Out';
           btn.onclick = () => {
-            if (confirm('Sign out of Access Nature?')) {
+            if (confirm(window.t?.('auth.signOutConfirm') || 'Sign out of Access Nature?')) {
               signOut(auth);
             }
           };
@@ -1533,14 +1538,13 @@ textarea:focus-visible,
         }
       } else {
         indicator?.classList.remove('signed-in');
-        if (text) text.textContent = 'Guest';
+        if (text) text.textContent = window.t?.('auth.guest') || 'Guest';
         if (btn) {
-          btn.textContent = 'Sign In';
+          btn.textContent = window.t?.('auth.signIn') || 'Sign In';
           btn.onclick = () => {
             // Open existing auth modal instead of Google popup
-            const authModal = document.getElementById('authModal');
-            if (authModal) {
-              authModal.classList.remove('hidden');
+            if (window.openAuthModal) {
+              window.openAuthModal();
             } else {
               // Fallback: try clicking the existing sign in button
               document.getElementById('showAuthBtn')?.click();
@@ -1557,11 +1561,10 @@ textarea:focus-visible,
     // Even if Firebase fails, the hamburger menu still works
     const btn = document.getElementById('navAuthBtn');
     if (btn) {
-      btn.textContent = 'Sign In';
+      btn.textContent = window.t?.('auth.signIn') || 'Sign In';
       btn.onclick = () => {
-        const authModal = document.getElementById('authModal');
-        if (authModal) {
-          authModal.classList.remove('hidden');
+        if (window.openAuthModal) {
+          window.openAuthModal();
         }
       };
     }

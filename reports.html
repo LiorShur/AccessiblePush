@@ -1039,7 +1039,7 @@
       <a href="reports.html" class="nav-link active" role="menuitem" aria-current="page">📋 Reports</a>
       <a href="profile.html" class="nav-link" id="profileNavLink" style="display: none;" role="menuitem">👤 Profile</a>
       <div class="nav-auth">
-        <button id="navAuthBtn" class="btn btn-primary" aria-label="Sign in to your account">Sign In</button>
+        <button id="navAuthBtn" class="btn btn-primary" aria-label="Sign in to your account" data-i18n="auth.signIn">Sign In</button>
       </div>
     </div>
   </nav>
@@ -3172,7 +3172,7 @@
             if (truncatedName) profileLabel.textContent = truncatedName;
           } else {
             profileItem.classList.remove('signed-in');
-            profileLabel.textContent = 'Sign In';
+            profileLabel.textContent = window.t?.('auth.signIn') || 'Sign In';
           }
           return true;
         }
@@ -3180,7 +3180,7 @@
       };
       
       if (user) {
-        if (navAuthBtn) navAuthBtn.textContent = 'Sign Out';
+        if (navAuthBtn) navAuthBtn.textContent = window.t?.('auth.signOut') || 'Sign Out';
         if (indicator) indicator.classList.add('signed-in');
         if (statusText) statusText.textContent = user.displayName || user.email?.split('@')[0] || 'User';
         if (profileNavLink) profileNavLink.style.display = 'block';
@@ -3190,9 +3190,9 @@
           [100, 300, 500, 1000].forEach(delay => setTimeout(updateGlobalNavProfile, delay));
         }
       } else {
-        if (navAuthBtn) navAuthBtn.textContent = 'Sign In';
+        if (navAuthBtn) navAuthBtn.textContent = window.t?.('auth.signIn') || 'Sign In';
         if (indicator) indicator.classList.remove('signed-in');
-        if (statusText) statusText.textContent = 'Guest';
+        if (statusText) statusText.textContent = window.t?.('auth.guest') || 'Guest';
         if (profileNavLink) profileNavLink.style.display = 'none';
         
         // Update global nav
@@ -4521,7 +4521,7 @@ Generated: ${new Date().toLocaleString()}`;
     <div class="auth-modal-backdrop" onclick="closeAuthModal()"></div>
     <div class="auth-modal-container">
       <div class="auth-modal-header">
-        <h2 id="authModalTitle">Welcome to Accessible</h2>
+        <h2 id="authModalTitle" data-i18n="authModal.welcome">Welcome to Accessible</h2>
         <button class="auth-modal-close" onclick="closeAuthModal()">✕</button>
       </div>
       
@@ -4529,65 +4529,65 @@ Generated: ${new Date().toLocaleString()}`;
         <!-- Login Form -->
         <div id="loginForm" class="auth-form active">
           <div class="auth-form-header">
-            <h3>Sign In to Your Account</h3>
-            <p>Continue your accessibility mapping journey</p>
+            <h3 data-i18n="authModal.signInTitle">Sign In to Your Account</h3>
+            <p data-i18n="authModal.signInSubtitle">Continue your accessibility mapping journey</p>
           </div>
           
           <form class="auth-inputs" id="loginFormElement">
             <div class="input-group">
-              <input type="email" id="loginEmail" placeholder="Email address" required autocomplete="email" dir="ltr">
+              <input type="email" id="loginEmail" data-i18n-placeholder="auth.emailPlaceholder" placeholder="Email address" required autocomplete="email" dir="ltr">
               <span class="input-icon">📧</span>
             </div>
             
             <div class="input-group password-group">
-              <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password" dir="ltr">
+              <input type="password" id="loginPassword" data-i18n-placeholder="auth.passwordPlaceholder" placeholder="Password" required autocomplete="current-password" dir="ltr">
               <span class="input-icon">🔒</span>
               <button type="button" class="password-toggle" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Show password">👁️</button>
             </div>
             
             <button type="submit" id="loginBtn" class="auth-submit-btn">
-              <span class="btn-text">Sign In</span>
+              <span class="btn-text" data-i18n="auth.signIn">Sign In</span>
               <span class="btn-spinner hidden">⏳</span>
             </button>
           </form>
           
           <div class="auth-switch">
-            <p>Don't have an account? <button type="button" onclick="switchToSignup()" class="switch-btn">Sign up</button></p>
+            <p><span data-i18n="authModal.noAccount">Don't have an account?</span> <button type="button" onclick="switchToSignup()" class="switch-btn" data-i18n="auth.signUp">Sign up</button></p>
           </div>
         </div>
 
         <!-- Signup Form -->
         <div id="signupForm" class="auth-form">
           <div class="auth-form-header">
-            <h3>Create Your Account</h3>
-            <p>Join the community making nature accessible</p>
+            <h3 data-i18n="authModal.createTitle">Create Your Account</h3>
+            <p data-i18n="authModal.createSubtitle">Join the community making nature accessible</p>
           </div>
           
           <form class="auth-inputs" id="signupFormElement">
             <div class="input-group">
-              <input type="text" id="signupName" placeholder="Full name" required autocomplete="name">
+              <input type="text" id="signupName" data-i18n-placeholder="auth.fullNamePlaceholder" placeholder="Full name" required autocomplete="name">
               <span class="input-icon">👤</span>
             </div>
             
             <div class="input-group">
-              <input type="email" id="signupEmail" placeholder="Email address" required autocomplete="email" dir="ltr">
+              <input type="email" id="signupEmail" data-i18n-placeholder="auth.emailPlaceholder" placeholder="Email address" required autocomplete="email" dir="ltr">
               <span class="input-icon">📧</span>
             </div>
             
             <div class="input-group password-group">
-              <input type="password" id="signupPassword" placeholder="Create password" required autocomplete="new-password" dir="ltr">
+              <input type="password" id="signupPassword" data-i18n-placeholder="authModal.createPassword" placeholder="Create password" required autocomplete="new-password" dir="ltr">
               <span class="input-icon">🔒</span>
               <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signupPassword', this)" aria-label="Show password">👁️</button>
             </div>
             
             <button type="submit" id="signupBtn" class="auth-submit-btn">
-              <span class="btn-text">Create Account</span>
+              <span class="btn-text" data-i18n="authModal.createAccount">Create Account</span>
               <span class="btn-spinner hidden">⏳</span>
             </button>
           </form>
           
           <div class="auth-switch">
-            <p>Already have an account? <button type="button" onclick="switchToLogin()" class="switch-btn">Sign in</button></p>
+            <p><span data-i18n="authModal.hasAccount">Already have an account?</span> <button type="button" onclick="switchToLogin()" class="switch-btn" data-i18n="auth.signIn">Sign in</button></p>
           </div>
         </div>
       </div>
@@ -4597,7 +4597,14 @@ Generated: ${new Date().toLocaleString()}`;
   <!-- Auth Modal Helper Functions -->
   <script>
     function openAuthModal() {
-      document.getElementById('authModal')?.classList.remove('hidden');
+      const modal = document.getElementById('authModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        // Translate modal content when opened
+        if (window.i18n?.translatePage) {
+          window.i18n.translatePage();
+        }
+      }
     }
     function closeAuthModal() {
       document.getElementById('authModal')?.classList.add('hidden');
@@ -4656,14 +4663,14 @@ Generated: ${new Date().toLocaleString()}`;
       
       try {
         btn.disabled = true;
-        btn.querySelector('.btn-text').textContent = 'Signing in...';
+        btn.querySelector('.btn-text').textContent = window.t?.('auth.signingIn') || 'Signing in...';
         await signInWithEmailAndPassword(firebaseAuth, email, password);
         closeAuthModal();
       } catch (error) {
-        alert('Sign in failed: ' + error.message);
+        alert((window.t?.('auth.signInFailed') || 'Sign in failed') + ': ' + error.message);
       } finally {
         btn.disabled = false;
-        btn.querySelector('.btn-text').textContent = 'Sign In';
+        btn.querySelector('.btn-text').textContent = window.t?.('auth.signIn') || 'Sign In';
       }
     });
     
@@ -4677,15 +4684,15 @@ Generated: ${new Date().toLocaleString()}`;
       
       try {
         btn.disabled = true;
-        btn.querySelector('.btn-text').textContent = 'Creating account...';
+        btn.querySelector('.btn-text').textContent = window.t?.('auth.creatingAccount') || 'Creating account...';
         const result = await createUserWithEmailAndPassword(firebaseAuth, email, password);
         await updateProfile(result.user, { displayName: name });
         closeAuthModal();
       } catch (error) {
-        alert('Sign up failed: ' + error.message);
+        alert((window.t?.('auth.signUpFailed') || 'Sign up failed') + ': ' + error.message);
       } finally {
         btn.disabled = false;
-        btn.querySelector('.btn-text').textContent = 'Create Account';
+        btn.querySelector('.btn-text').textContent = window.t?.('authModal.createAccount') || 'Create Account';
       }
     });
   </script>
@@ -5040,11 +5047,15 @@ Generated: ${new Date().toLocaleString()}`;
     // Initialize bottom nav
     initGlobalNav({ currentPage: 'reports' });
     
-    // Expose openAuthModal for bottom nav
+    // Expose openAuthModal for bottom nav (with translation support)
     window.openAuthModal = () => {
       const authModal = document.getElementById('authModal');
       if (authModal) {
         authModal.classList.remove('hidden');
+        // Translate modal content when opened
+        if (window.i18n?.translatePage) {
+          window.i18n.translatePage();
+        }
       }
     };
     
