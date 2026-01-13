@@ -604,6 +604,68 @@
     "betaGuide": "מדריך בטא",
     "copyright": "הנגשת שבילים לכל היכולות."
   },
+  "legal": {
+    "backToApp": "→ חזרה ל-Access Nature",
+    "lastUpdated": "עודכן לאחרונה:",
+    "december2024": "דצמבר 2024",
+    "contents": "תוכן עניינים",
+    "allRightsReserved": "כל הזכויות שמורות.",
+    "home": "דף הבית"
+  },
+  "privacy": {
+    "title": "🔒 מדיניות פרטיות",
+    "nav": {
+      "introduction": "הקדמה",
+      "dataCollected": "מידע שאנו אוספים",
+      "howWeUse": "כיצד אנו משתמשים במידע",
+      "dataSharing": "שיתוף מידע",
+      "dataStorage": "אחסון ואבטחת מידע",
+      "yourRights": "הזכויות שלך",
+      "locationData": "נתוני מיקום",
+      "cookies": "עוגיות ואחסון מקומי",
+      "children": "פרטיות ילדים",
+      "changes": "שינויים במדיניות",
+      "contact": "צור קשר"
+    }
+  },
+  "terms": {
+    "title": "📜 תנאי שימוש",
+    "nav": {
+      "acceptance": "קבלת התנאים",
+      "description": "תיאור השירות",
+      "accounts": "חשבונות משתמש",
+      "acceptableUse": "שימוש מקובל",
+      "content": "תוכן משתמש",
+      "safety": "בטיחות והסתייגויות",
+      "ip": "קניין רוחני",
+      "termination": "סיום",
+      "liability": "הגבלת אחריות",
+      "changes": "שינויים בתנאים",
+      "governingLaw": "דין חל",
+      "contact": "צור קשר"
+    }
+  },
+  "betaGuide": {
+    "backToApp": "→ חזרה לאפליקציה",
+    "title": "🌲 מדריך בטא של Access Nature",
+    "subtitle": "תודה שעוזרים לנו לבדוק!",
+    "quickNav": "📋 ניווט מהיר",
+    "nav": {
+      "welcome": "👋 ברוכים הבאים",
+      "gettingStarted": "🚀 תחילת עבודה",
+      "features": "✨ תכונות לבדיקה",
+      "howToTest": "🧪 איך לבדוק",
+      "feedback": "📝 מתן משוב",
+      "knownIssues": "⚠️ בעיות ידועות",
+      "faq": "❓ שאלות נפוצות"
+    },
+    "footer": {
+      "thanks": "תודה שאתם בודקי בטא! 💜",
+      "questions": "שאלות?",
+      "sendFeedback": "שלחו לנו משוב",
+      "orEmail": "או שלחו מייל"
+    }
+  },
   "time": {
     "justNow": "עכשיו",
     "secondsAgo": "לפני {n} שניות",

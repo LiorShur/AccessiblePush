@@ -604,6 +604,68 @@
     "betaGuide": "Beta Guide",
     "copyright": "Making trails accessible for all abilities."
   },
+  "legal": {
+    "backToApp": "← Back to Access Nature",
+    "lastUpdated": "Last Updated:",
+    "december2024": "December 2024",
+    "contents": "Contents",
+    "allRightsReserved": "All rights reserved.",
+    "home": "Home"
+  },
+  "privacy": {
+    "title": "🔒 Privacy Policy",
+    "nav": {
+      "introduction": "Introduction",
+      "dataCollected": "Data We Collect",
+      "howWeUse": "How We Use Your Data",
+      "dataSharing": "Data Sharing",
+      "dataStorage": "Data Storage & Security",
+      "yourRights": "Your Rights",
+      "locationData": "Location Data",
+      "cookies": "Cookies & Local Storage",
+      "children": "Children's Privacy",
+      "changes": "Changes to This Policy",
+      "contact": "Contact Us"
+    }
+  },
+  "terms": {
+    "title": "📜 Terms of Service",
+    "nav": {
+      "acceptance": "Acceptance of Terms",
+      "description": "Service Description",
+      "accounts": "User Accounts",
+      "acceptableUse": "Acceptable Use",
+      "content": "User Content",
+      "safety": "Safety & Disclaimers",
+      "ip": "Intellectual Property",
+      "termination": "Termination",
+      "liability": "Limitation of Liability",
+      "changes": "Changes to Terms",
+      "governingLaw": "Governing Law",
+      "contact": "Contact"
+    }
+  },
+  "betaGuide": {
+    "backToApp": "← Back to App",
+    "title": "🌲 Access Nature Beta Guide",
+    "subtitle": "Thank you for helping us test!",
+    "quickNav": "📋 Quick Navigation",
+    "nav": {
+      "welcome": "👋 Welcome",
+      "gettingStarted": "🚀 Getting Started",
+      "features": "✨ Features to Test",
+      "howToTest": "🧪 How to Test",
+      "feedback": "📝 Giving Feedback",
+      "knownIssues": "⚠️ Known Issues",
+      "faq": "❓ FAQ"
+    },
+    "footer": {
+      "thanks": "Thank you for being a beta tester! 💜",
+      "questions": "Questions?",
+      "sendFeedback": "Send us feedback",
+      "orEmail": "or email"
+    }
+  },
   "time": {
     "justNow": "Just now",
     "secondsAgo": "{n} seconds ago",
