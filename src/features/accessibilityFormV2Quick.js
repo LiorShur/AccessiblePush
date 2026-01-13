@@ -266,9 +266,48 @@ const formTranslations = {
     numTables: "Number of tables",
     tablesInShade: "Tables in shade",
     tablesInSun: "Tables in sun",
+    totalAreas: "Total areas",
     viewpointAccessible: "Accessible Viewpoint",
     hasAccessibleViewpoint: "Has accessible viewpoint",
-    noAccessibleViewpoint: "No accessible viewpoint"
+    noAccessibleViewpoint: "No accessible viewpoint",
+    
+    // Restroom options
+    unisexRestroom: "Unisex",
+    separateRestrooms: "Separate",
+    
+    // Amenities options
+    oneFountain: "One",
+    multipleFountains: "Multiple",
+    seatingOptions: "Seating Options",
+    noBenches: "No benches",
+    oneBench: "One bench",
+    multipleBenches: "Multiple",
+    benchFeatures: "Bench Features",
+    withHandrails: "With handrails",
+    noHandrails: "No handrails",
+    withBackrests: "With backrests",
+    
+    // Surface options
+    excellent: "Excellent",
+    smoothMaintained: "Smooth, maintained",
+    fair: "Fair",
+    minorBumps: "Minor bumps",
+    poor: "Poor",
+    roughTerrain: "Rough terrain",
+    overgrown: "Overgrown",
+    blocked: "Blocked",
+    trailSlopes: "Trail Slopes",
+    flatMild: "Flat/Mild",
+    moderateSlope: "Moderate",
+    steepSlope: "Steep",
+    
+    // Environment options
+    plentyShade: "Plenty",
+    someShade: "Some",
+    
+    // Signage options
+    highContrastSigns: "High contrast",
+    qrCodes: "QR codes"
   },
   he: {
     // Header
@@ -519,11 +558,50 @@ const formTranslations = {
     // Picnic fields
     picnicTables: "שולחנות פיקניק נגישים",
     numTables: "מספר שולחנות",
-    tablesInShade: "שולחנות בצל",
-    tablesInSun: "שולחנות בשמש",
+    tablesInShade: "בצל",
+    tablesInSun: "בשמש",
+    totalAreas: "סה״כ אזורים",
     viewpointAccessible: "נקודת תצפית נגישה",
     hasAccessibleViewpoint: "יש נקודת תצפית נגישה",
-    noAccessibleViewpoint: "אין נקודת תצפית נגישה"
+    noAccessibleViewpoint: "אין נקודת תצפית נגישה",
+    
+    // Restroom options
+    unisexRestroom: "יוניסקס",
+    separateRestrooms: "נפרדים",
+    
+    // Amenities options
+    oneFountain: "אחת",
+    multipleFountains: "מרובות",
+    seatingOptions: "אפשרויות ישיבה",
+    noBenches: "אין ספסלים",
+    oneBench: "ספסל אחד",
+    multipleBenches: "מרובים",
+    benchFeatures: "תכונות הספסלים",
+    withHandrails: "עם מעקות",
+    noHandrails: "ללא מעקות",
+    withBackrests: "עם משענות גב",
+    
+    // Surface options
+    excellent: "מצוין",
+    smoothMaintained: "חלק, מתוחזק",
+    fair: "סביר",
+    minorBumps: "מהמורות קלות",
+    poor: "גרוע",
+    roughTerrain: "שטח קשה",
+    overgrown: "מוצמח",
+    blocked: "חסום",
+    trailSlopes: "שיפועי השביל",
+    flatMild: "שטוח/קל",
+    moderateSlope: "בינוני",
+    steepSlope: "תלול",
+    
+    // Environment options
+    plentyShade: "הרבה",
+    someShade: "קצת",
+    
+    // Signage options
+    highContrastSigns: "ניגודיות גבוהה",
+    qrCodes: "קודי QR"
   }
 };
 
@@ -1841,102 +1919,105 @@ export class AccessibilityFormV2Quick {
   }
 
   renderRestroomFields() {
+    const t = (key) => this.t(key);
     return `
       <div class="af2-card-grid" data-field="restrooms" data-type="single">
         <div class="af2-select-card" data-value="None">
           <span class="card-icon">🚫</span>
-          <span class="card-label">None</span>
+          <span class="card-label">${t('none')}</span>
         </div>
         <div class="af2-select-card" data-value="One unisex accessible restroom">
           <span class="card-icon">🚻</span>
-          <span class="card-label">Unisex</span>
+          <span class="card-label">${t('unisexRestroom')}</span>
         </div>
         <div class="af2-select-card" data-value="Separate accessible restrooms for men and women">
           <span class="card-icon">🚹🚺</span>
-          <span class="card-label">Separate</span>
+          <span class="card-label">${t('separateRestrooms')}</span>
         </div>
       </div>
     `;
   }
 
   renderAmenitiesFields() {
+    const t = (key) => this.t(key);
     return `
       <div class="af2-subsection">
-        <div class="af2-subsection-title">Water Fountains</div>
+        <div class="af2-subsection-title">${t('waterFountainsLabel')}</div>
         <div class="af2-card-grid cols-3" data-field="waterFountains" data-type="single">
           <div class="af2-select-card" data-value="None">
-            <span class="card-label">None</span>
+            <span class="card-label">${t('none')}</span>
           </div>
           <div class="af2-select-card" data-value="One accessible fountain">
-            <span class="card-label">One</span>
+            <span class="card-label">${t('oneFountain')}</span>
           </div>
           <div class="af2-select-card" data-value="Multiple fountains along route">
-            <span class="card-label">Multiple</span>
+            <span class="card-label">${t('multipleFountains')}</span>
           </div>
         </div>
       </div>
       <div class="af2-subsection">
-        <div class="af2-subsection-title">Seating Options</div>
+        <div class="af2-subsection-title">${t('seatingOptions')}</div>
         <div class="af2-chip-grid" data-field="seating" data-type="single">
-          <div class="af2-chip" data-value="No accessible benches">No benches</div>
-          <div class="af2-chip" data-value="One accessible bench">One bench</div>
-          <div class="af2-chip" data-value="Multiple benches along route">Multiple</div>
+          <div class="af2-chip" data-value="No accessible benches">${t('noBenches')}</div>
+          <div class="af2-chip" data-value="One accessible bench">${t('oneBench')}</div>
+          <div class="af2-chip" data-value="Multiple benches along route">${t('multipleBenches')}</div>
         </div>
       </div>
       <div class="af2-subsection">
-        <div class="af2-subsection-title">Bench Features</div>
+        <div class="af2-subsection-title">${t('benchFeatures')}</div>
         <div class="af2-chip-grid" data-field="benchFeatures" data-type="multi">
-          <div class="af2-chip" data-value="With handrails">With handrails</div>
-          <div class="af2-chip" data-value="Without handrails">No handrails</div>
-          <div class="af2-chip" data-value="With backrests">With backrests</div>
+          <div class="af2-chip" data-value="With handrails">${t('withHandrails')}</div>
+          <div class="af2-chip" data-value="Without handrails">${t('noHandrails')}</div>
+          <div class="af2-chip" data-value="With backrests">${t('withBackrests')}</div>
         </div>
       </div>
     `;
   }
 
   renderSurfaceFields() {
+    const t = (key) => this.t(key);
     return `
       <div class="af2-subsection">
-        <div class="af2-subsection-title">Surface Quality</div>
+        <div class="af2-subsection-title">${t('surfaceCondition')}</div>
         <div class="af2-card-grid" data-field="surfaceQuality" data-type="single">
           <div class="af2-select-card" data-value="Excellent - smooth and well maintained">
             <span class="card-icon">✨</span>
-            <span class="card-label">Excellent</span>
-            <span class="card-desc">Smooth, maintained</span>
+            <span class="card-label">${t('excellent')}</span>
+            <span class="card-desc">${t('smoothMaintained')}</span>
           </div>
           <div class="af2-select-card" data-value="Fair - minor disruptions, rough patches, bumps, cracks">
             <span class="card-icon">👍</span>
-            <span class="card-label">Fair</span>
-            <span class="card-desc">Minor bumps</span>
+            <span class="card-label">${t('fair')}</span>
+            <span class="card-desc">${t('minorBumps')}</span>
           </div>
           <div class="af2-select-card" data-value="Poor - serious disruptions, protruding stones, large grooves">
             <span class="card-icon">⚠️</span>
-            <span class="card-label">Poor</span>
-            <span class="card-desc">Rough terrain</span>
+            <span class="card-label">${t('poor')}</span>
+            <span class="card-desc">${t('roughTerrain')}</span>
           </div>
           <div class="af2-select-card" data-value="Vegetation blocks passage">
             <span class="card-icon">🌿</span>
-            <span class="card-label">Overgrown</span>
-            <span class="card-desc">Blocked</span>
+            <span class="card-label">${t('overgrown')}</span>
+            <span class="card-desc">${t('blocked')}</span>
           </div>
         </div>
       </div>
       <div class="af2-subsection">
-        <div class="af2-subsection-title">Trail Slopes</div>
+        <div class="af2-subsection-title">${t('trailSlopes')}</div>
         <div class="af2-card-grid cols-3" data-field="trailSlopes" data-type="single">
           <div class="af2-select-card" data-value="No slopes to mild slopes (up to 5%)">
             <span class="card-icon">➡️</span>
-            <span class="card-label">Flat/Mild</span>
+            <span class="card-label">${t('flatMild')}</span>
             <span class="card-desc">&lt; 5%</span>
           </div>
           <div class="af2-select-card" data-value="Moderate slopes - assistance recommended (5%-10%)">
             <span class="card-icon">📐</span>
-            <span class="card-label">Moderate</span>
+            <span class="card-label">${t('moderateSlope')}</span>
             <span class="card-desc">5-10%</span>
           </div>
           <div class="af2-select-card" data-value="Steep slopes - not accessible (over 10%)">
             <span class="card-icon">⛰️</span>
-            <span class="card-label">Steep</span>
+            <span class="card-label">${t('steepSlope')}</span>
             <span class="card-desc">&gt; 10%</span>
           </div>
         </div>
@@ -1945,73 +2026,77 @@ export class AccessibilityFormV2Quick {
   }
 
   renderVisualFields() {
+    const t = (key) => this.t(key);
     return `
       <div class="af2-subsection">
-        <div class="af2-subsection-title">Visual Impairment Adaptations</div>
+        <div class="af2-subsection-title">${t('visualFeatures')}</div>
         <div class="af2-chip-grid" data-field="visualAdaptations" data-type="multi">
-          <div class="af2-chip" data-value="Raised/protruding borders">Raised borders</div>
-          <div class="af2-chip" data-value="Texture/tactile differences">Tactile surfaces</div>
-          <div class="af2-chip" data-value="Color contrast differences">Color contrast</div>
+          <div class="af2-chip" data-value="Raised/protruding borders">${t('raisedEdges')}</div>
+          <div class="af2-chip" data-value="Texture/tactile differences">${t('tactilePaving')}</div>
+          <div class="af2-chip" data-value="Color contrast differences">${t('colorContrastMarkers')}</div>
         </div>
       </div>
     `;
   }
 
   renderEnvironmentFields() {
+    const t = (key) => this.t(key);
     return `
       <div class="af2-subsection">
-        <div class="af2-subsection-title">Shade Coverage</div>
+        <div class="af2-subsection-title">${t('shadeLevel')}</div>
         <div class="af2-card-grid cols-3" data-field="shadeCoverage" data-type="single">
           <div class="af2-select-card" data-value="Plenty of shade">
             <span class="card-icon">🌳</span>
-            <span class="card-label">Plenty</span>
+            <span class="card-label">${t('plentyShade')}</span>
           </div>
           <div class="af2-select-card" data-value="Intermittent shade">
             <span class="card-icon">⛅</span>
-            <span class="card-label">Some</span>
+            <span class="card-label">${t('someShade')}</span>
           </div>
           <div class="af2-select-card" data-value="No shade">
             <span class="card-icon">☀️</span>
-            <span class="card-label">None</span>
+            <span class="card-label">${t('noShade')}</span>
           </div>
         </div>
       </div>
       <div class="af2-subsection">
         <div class="af2-chip-grid" data-field="lighting" data-type="multi">
-          <div class="af2-chip" data-value="Trail is lit in darkness">💡 Trail is lit at night</div>
+          <div class="af2-chip" data-value="Trail is lit in darkness">💡 ${t('litAtNight')}</div>
         </div>
       </div>
     `;
   }
 
   renderSignageFields() {
+    const t = (key) => this.t(key);
     return `
       <div class="af2-chip-grid" data-field="signage" data-type="multi">
-        <div class="af2-chip" data-value="Route map available">🗺️ Route map</div>
-        <div class="af2-chip" data-value="Clear directional signage">➡️ Directions</div>
-        <div class="af2-chip" data-value="Simple language signage">📖 Simple text</div>
-        <div class="af2-chip" data-value="Large, high-contrast accessible signage">🔤 High contrast</div>
-        <div class="af2-chip" data-value="Audio explanation compatible with T-mode hearing devices">🔊 Audio</div>
-        <div class="af2-chip" data-value="QR code with site information available">📱 QR codes</div>
+        <div class="af2-chip" data-value="Route map available">🗺️ ${t('routeMap')}</div>
+        <div class="af2-chip" data-value="Clear directional signage">➡️ ${t('clearDirectionalSigns')}</div>
+        <div class="af2-chip" data-value="Simple language signage">📖 ${t('simpleLanguage')}</div>
+        <div class="af2-chip" data-value="Large, high-contrast accessible signage">🔤 ${t('highContrastSigns')}</div>
+        <div class="af2-chip" data-value="Audio explanation compatible with T-mode hearing devices">🔊 ${t('audioDescription')}</div>
+        <div class="af2-chip" data-value="QR code with site information available">📱 ${t('qrCodes')}</div>
       </div>
     `;
   }
 
   renderPicnicFields() {
+    const t = (key) => this.t(key);
     return `
       <div class="af2-subsection">
         <div class="af2-chip-grid" data-field="picnicAreas" data-type="multi">
-          <div class="af2-chip" data-value="Available">🧺 Accessible picnic areas</div>
+          <div class="af2-chip" data-value="Available">🧺 ${t('picnicAreas')}</div>
         </div>
       </div>
       <div class="af2-subsection">
         <div class="af2-chip-grid" data-field="accessibleViewpoint" data-type="single">
-          <div class="af2-chip" data-value="Available">🏔️ Accessible viewpoint</div>
+          <div class="af2-chip" data-value="Available">🏔️ ${t('viewpoint')}</div>
         </div>
       </div>
       <div class="af2-subsection af2-grid-3col">
         <div>
-          <div class="af2-subsection-title">In shade</div>
+          <div class="af2-subsection-title">${t('tablesInShade')}</div>
           <div class="af2-number-input">
             <button type="button" onclick="window.af2NumberStep('picnicShade', -1)">−</button>
             <input type="number" id="af2-picnicShade" name="picnicShade" value="0" min="0">
@@ -2019,7 +2104,7 @@ export class AccessibilityFormV2Quick {
           </div>
         </div>
         <div>
-          <div class="af2-subsection-title">In sun</div>
+          <div class="af2-subsection-title">${t('tablesInSun')}</div>
           <div class="af2-number-input">
             <button type="button" onclick="window.af2NumberStep('picnicSun', -1)">−</button>
             <input type="number" id="af2-picnicSun" name="picnicSun" value="0" min="0">
@@ -2027,7 +2112,7 @@ export class AccessibilityFormV2Quick {
           </div>
         </div>
         <div>
-          <div class="af2-subsection-title">Total areas</div>
+          <div class="af2-subsection-title">${t('totalAreas')}</div>
           <div class="af2-number-input af2-readonly">
             <input type="number" id="af2-picnicCount" name="picnicCount" value="0" min="0" readonly>
           </div>
