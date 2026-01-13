@@ -1284,7 +1284,7 @@
             </div>
             
             <div id="severityDescription" style="padding: 12px; background: #fef3c7; border-radius: 8px; font-size: 0.85rem; color: #92400e;">
-              <strong>Medium (3):</strong> Significant barrier that makes the area difficult to use for people with mobility needs.
+              <strong data-i18n="reportForm.medium">Medium (3)</strong>: <span data-i18n="reportForm.severityMediumDesc">Significant barrier that makes the area difficult to use for people with mobility needs.</span>
             </div>
           </div>
           
@@ -1316,17 +1316,19 @@
                 this.style.background = colors[value].bg;
                 this.style.transform = 'scale(1.05)';
                 
-                // Update description
+                // Update description using translations
                 const descriptions = {
-                  1: { label: 'Minor (1)', text: 'Small inconvenience that doesn\'t significantly impact accessibility. Example: slightly uneven pavement.', color: '#166534', bg: '#f0fdf4' },
-                  2: { label: 'Low (2)', text: 'Noticeable barrier that causes minor difficulty. Example: narrow section that requires careful navigation.', color: '#3f6212', bg: '#f7fee7' },
-                  3: { label: 'Medium (3)', text: 'Significant barrier that makes the area difficult to use for people with mobility needs.', color: '#92400e', bg: '#fef3c7' },
-                  4: { label: 'High (4)', text: 'Major barrier that prevents independent access for many users. Example: stairs with no ramp alternative.', color: '#9a3412', bg: '#fff7ed' },
-                  5: { label: 'Critical (5)', text: 'Complete barrier that blocks access entirely. Example: locked gate, missing bridge, dangerous hazard.', color: '#991b1b', bg: '#fef2f2' }
+                  1: { labelKey: 'reportForm.minor', descKey: 'reportForm.severityMinorDesc', color: '#166534', bg: '#f0fdf4' },
+                  2: { labelKey: 'reportForm.low', descKey: 'reportForm.severityLowDesc', color: '#3f6212', bg: '#f7fee7' },
+                  3: { labelKey: 'reportForm.medium', descKey: 'reportForm.severityMediumDesc', color: '#92400e', bg: '#fef3c7' },
+                  4: { labelKey: 'reportForm.high', descKey: 'reportForm.severityHighDesc', color: '#9a3412', bg: '#fff7ed' },
+                  5: { labelKey: 'reportForm.critical', descKey: 'reportForm.severityCriticalDesc', color: '#991b1b', bg: '#fef2f2' }
                 };
                 
                 const desc = document.getElementById('severityDescription');
-                desc.innerHTML = '<strong>' + descriptions[value].label + ':</strong> ' + descriptions[value].text;
+                const label = window.t ? window.t(descriptions[value].labelKey) : descriptions[value].labelKey.split('.')[1];
+                const text = window.t ? window.t(descriptions[value].descKey) : 'Description loading...';
+                desc.innerHTML = '<strong>' + label + '</strong>: ' + text;
                 desc.style.background = descriptions[value].bg;
                 desc.style.color = descriptions[value].color;
               });
