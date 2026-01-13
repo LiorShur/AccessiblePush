@@ -23,6 +23,7 @@ import { toast } from './utils/toast.js';
 import { modal } from './utils/modal.js';
 import { showError, getErrorMessage } from './utils/errorMessages.js';
 import { betaFeedback } from './utils/betaFeedback.js';
+import { t } from './i18n/i18n.js';
 
 class AccessNatureApp {
   constructor() {
@@ -542,7 +543,7 @@ showError(message) {
     try {
       const backup = localStorage.getItem('route_backup');
       if (backup) {
-        const shouldRestore = await modal.confirm('Unsaved route data was found. Would you like to restore it?', '📍 Restore Route?');
+        const shouldRestore = await modal.confirm(t('trackerUI.restoreRoute.message'), `📍 ${t('trackerUI.restoreRoute.title')}`);
         if (shouldRestore) {
           console.log('✅ Restored from backup');
         } else {
