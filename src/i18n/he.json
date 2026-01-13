@@ -521,6 +521,8 @@
   },
   "authModal": {
     "welcome": "ברוכים הבאים לנגיש",
+    "welcomeBack": "ברוך שובך!",
+    "joinUs": "הצטרף ל-Access Nature",
     "signInTitle": "התחבר לחשבון שלך",
     "signInSubtitle": "המשך את מסע מיפוי הנגישות שלך",
     "createTitle": "צור את החשבון שלך",

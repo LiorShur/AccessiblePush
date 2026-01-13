@@ -521,6 +521,8 @@
   },
   "authModal": {
     "welcome": "Welcome to Accessible",
+    "welcomeBack": "Welcome Back!",
+    "joinUs": "Join Access Nature",
     "signInTitle": "Sign In to Your Account",
     "signInSubtitle": "Continue your accessibility mapping journey",
     "createTitle": "Create Your Account",
