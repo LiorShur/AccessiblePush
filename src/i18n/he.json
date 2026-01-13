@@ -103,7 +103,11 @@
     "loadingAnnouncements": "טוען הודעות...",
     "featuredTrails": "שבילים נגישים מומלצים",
     "loadMore": "טען עוד שבילים",
-    "browseTrails": "עיין בשבילים נגישים"
+    "browseTrails": "עיין בשבילים נגישים",
+    "clickToViewDetails": "לחץ על מדריך שביל לצפייה בפרטים המלאים",
+    "public": "ציבורי",
+    "private": "פרטי",
+    "close": "סגור"
   },
   "trackModal": {
     "title": "📍 מפה שביל חדש",
@@ -332,7 +336,12 @@
     "submitting": "שולח...",
     "reportSubmitted": "הדיווח נשלח בהצלחה!",
     "reportUpdated": "הדיווח עודכן בהצלחה!",
-    "submitError": "שליחת הדיווח נכשלה. נסה שוב."
+    "submitError": "שליחת הדיווח נכשלה. נסה שוב.",
+    "durationHint": "האם זה מכשול זמני או קבוע?",
+    "permanentHint": "בעיה מבנית מתמשכת",
+    "temporaryHint": "בנייה, עונתי וכו׳",
+    "expectedResolution": "תאריך פתרון צפוי",
+    "expectedResolutionHint": "מתי אתה מצפה שהמכשול יוסר?"
   },
   "tracker": {
     "pageTitle": "מקליט שבילים",
@@ -809,6 +818,11 @@
       "exportPdf": "ייצא PDF",
       "noSavedRoutes": "אין מסלולים שמורים זמינים",
       "cancel": "ביטול"
+    },
+    "restoreRoute": {
+      "title": "לשחזר מסלול?",
+      "message": "נמצאו נתוני מסלול שלא נשמרו. האם תרצה לשחזר אותם?",
+      "restored": "המסלול שוחזר מגיבוי"
     }
   },
   "profile": {

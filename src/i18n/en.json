@@ -103,7 +103,11 @@
     "loadingAnnouncements": "Loading announcements...",
     "featuredTrails": "Featured Accessible Trails",
     "loadMore": "Load More Trails",
-    "browseTrails": "Browse Accessible Trails"
+    "browseTrails": "Browse Accessible Trails",
+    "clickToViewDetails": "Click a trail guide to view full details",
+    "public": "Public",
+    "private": "Private",
+    "close": "Close"
   },
   "trackModal": {
     "title": "📍 Map a New Trail",
@@ -332,7 +336,12 @@
     "submitting": "Submitting...",
     "reportSubmitted": "Report submitted successfully!",
     "reportUpdated": "Report updated successfully!",
-    "submitError": "Failed to submit report. Please try again."
+    "submitError": "Failed to submit report. Please try again.",
+    "durationHint": "Is this a temporary or permanent barrier?",
+    "permanentHint": "Ongoing structural issue",
+    "temporaryHint": "Construction, seasonal, etc.",
+    "expectedResolution": "Expected Resolution Date",
+    "expectedResolutionHint": "When do you expect this barrier to be removed?"
   },
   "tracker": {
     "pageTitle": "Trail Tracker",
@@ -809,6 +818,11 @@
       "exportPdf": "Export PDF",
       "noSavedRoutes": "No saved routes available",
       "cancel": "Cancel"
+    },
+    "restoreRoute": {
+      "title": "Restore Route?",
+      "message": "Unsaved route data was found. Would you like to restore it?",
+      "restored": "Route restored from backup"
     }
   },
   "profile": {
