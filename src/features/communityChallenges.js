@@ -127,10 +127,25 @@ class CommunityChallengesUI {
   /**
    * Initialize the challenges UI
    */
-  initialize() {
+  async initialize() {
     this.injectStyles();
-    this.loadUserProgress();
+    await this.loadUserProgress();
     console.log('🏆 Community Challenges initialized');
+  }
+
+  /**
+   * Refresh challenges - reload user progress and re-render
+   */
+  async refresh() {
+    await this.loadUserProgress();
+    this.challenges = getActiveChallenges(); // Refresh for translations
+    
+    // Re-render if already mounted
+    const container = document.getElementById('communityChallengesPanel');
+    if (container) {
+      container.innerHTML = this.renderPanel();
+    }
+    console.log('🏆 Community Challenges refreshed');
   }
 
   /**
@@ -369,6 +384,12 @@ class CommunityChallengesUI {
         [CHALLENGE_TYPES.DISTANCE_TRACKED]: engagement.totalDistance || 0,
         [CHALLENGE_TYPES.SUBMIT_REPORTS]: engagement.reportsSubmitted || 0
       };
+      
+      console.log('🏆 Challenge progress loaded:', this.userProgress);
+    } else {
+      // Reset progress when not signed in
+      this.userProgress = {};
+      console.log('🏆 Challenge progress reset (user not initialized)');
     }
   }
 
