@@ -51,7 +51,66 @@ const safetyTranslations = {
     autoNotify: "auto-notify",
     smsOnly: "SMS-only",
     tapShareNow: "tap \"Share Now\" to send updates",
-    contactsWith: "contact(s) with auto-notifications"
+    contactsWith: "contact(s) with auto-notifications",
+    // Share options modal
+    chooseHowToShare: "Choose how to share your emergency location",
+    messagePreview: "Message preview",
+    isExperiencingEmergency: "is experiencing an emergency...",
+    sendViaSms: "Send via SMS/Text",
+    sendViaWhatsApp: "Send via WhatsApp",
+    sendViaEmail: "Send via Email",
+    otherApps: "Other Apps...",
+    copyFullMessage: "Copy Full Message",
+    back: "Back",
+    openingSmsApp: "Opening SMS app...",
+    openingWhatsApp: "Opening WhatsApp...",
+    openingEmailApp: "Opening email app...",
+    noMessageToShare: "No message to share",
+    // Manage contacts modal
+    manageContacts: "Manage Contacts",
+    addEmergencyContacts: "Add emergency contacts who will receive your location updates",
+    contactName: "Contact Name",
+    emailAddress: "Email Address",
+    phoneOptional: "Phone (Optional)",
+    autoEmailUpdates: "Auto Email Updates",
+    smsOnlyContact: "SMS Only",
+    save: "Save",
+    close: "Close",
+    // Lifeline
+    lifelineSetup: "Lifeline Setup",
+    lifelineDescription: "Lifeline will automatically share your location with emergency contacts at regular intervals",
+    updateInterval: "Update Interval",
+    startLifeline: "Start Lifeline",
+    // Weather
+    weatherConditions: "Weather Conditions",
+    temperature: "Temperature",
+    humidity: "Humidity",
+    wind: "Wind",
+    conditions: "Conditions",
+    feelsLike: "Feels Like",
+    uvIndex: "UV Index",
+    visibility: "Visibility",
+    loading: "Loading...",
+    weatherUnavailable: "Weather data unavailable",
+    // Report conditions
+    reportTrailConditions: "Report Trail Conditions",
+    selectCondition: "Select condition to report",
+    trailClear: "Trail Clear",
+    minorObstacle: "Minor Obstacle",
+    majorObstacle: "Major Obstacle",
+    trailClosed: "Trail Closed",
+    flooding: "Flooding",
+    iceSnow: "Ice/Snow",
+    fallenTree: "Fallen Tree",
+    wildlife: "Wildlife",
+    submitReport: "Submit Report",
+    reportSubmitted: "Report submitted! Thank you.",
+    // View conditions
+    viewTrailConditions: "Trail Conditions",
+    recentReports: "Recent Reports",
+    noRecentReports: "No recent reports in this area",
+    reportedBy: "Reported by",
+    reportedAt: "Reported at"
   },
   he: {
     emergency: "מצוקה",
@@ -91,7 +150,66 @@ const safetyTranslations = {
     autoNotify: "התראה אוטומטית",
     smsOnly: "SMS בלבד",
     tapShareNow: "לחץ \"שתף עכשיו\" לשליחת עדכונים",
-    contactsWith: "אנשי קשר עם התראות אוטומטיות"
+    contactsWith: "אנשי קשר עם התראות אוטומטיות",
+    // Share options modal
+    chooseHowToShare: "בחר איך לשתף את מיקום החירום שלך",
+    messagePreview: "תצוגה מקדימה של ההודעה",
+    isExperiencingEmergency: "נמצא במצב חירום...",
+    sendViaSms: "שלח ב-SMS/הודעה",
+    sendViaWhatsApp: "שלח בוואטסאפ",
+    sendViaEmail: "שלח באימייל",
+    otherApps: "אפליקציות אחרות...",
+    copyFullMessage: "העתק הודעה מלאה",
+    back: "חזרה",
+    openingSmsApp: "פותח אפליקציית SMS...",
+    openingWhatsApp: "פותח וואטסאפ...",
+    openingEmailApp: "פותח אפליקציית אימייל...",
+    noMessageToShare: "אין הודעה לשיתוף",
+    // Manage contacts modal
+    manageContacts: "נהל אנשי קשר",
+    addEmergencyContacts: "הוסף אנשי קשר לחירום שיקבלו עדכוני מיקום",
+    contactName: "שם איש קשר",
+    emailAddress: "כתובת אימייל",
+    phoneOptional: "טלפון (אופציונלי)",
+    autoEmailUpdates: "עדכוני אימייל אוטומטיים",
+    smsOnlyContact: "SMS בלבד",
+    save: "שמור",
+    close: "סגור",
+    // Lifeline
+    lifelineSetup: "הגדרת קו חיים",
+    lifelineDescription: "קו חיים ישתף אוטומטית את מיקומך עם אנשי קשר לחירום במרווחים קבועים",
+    updateInterval: "תדירות עדכון",
+    startLifeline: "התחל קו חיים",
+    // Weather
+    weatherConditions: "תנאי מזג אוויר",
+    temperature: "טמפרטורה",
+    humidity: "לחות",
+    wind: "רוח",
+    conditions: "תנאים",
+    feelsLike: "מרגיש כמו",
+    uvIndex: "מדד UV",
+    visibility: "נראות",
+    loading: "טוען...",
+    weatherUnavailable: "נתוני מזג אוויר לא זמינים",
+    // Report conditions
+    reportTrailConditions: "דווח על מצב השביל",
+    selectCondition: "בחר מצב לדיווח",
+    trailClear: "שביל פנוי",
+    minorObstacle: "מכשול קטן",
+    majorObstacle: "מכשול גדול",
+    trailClosed: "שביל סגור",
+    flooding: "הצפה",
+    iceSnow: "קרח/שלג",
+    fallenTree: "עץ קרוס",
+    wildlife: "חיות בר",
+    submitReport: "שלח דיווח",
+    reportSubmitted: "הדיווח נשלח! תודה.",
+    // View conditions
+    viewTrailConditions: "מצב השבילים",
+    recentReports: "דיווחים אחרונים",
+    noRecentReports: "אין דיווחים אחרונים באזור זה",
+    reportedBy: "דווח על ידי",
+    reportedAt: "דווח ב"
   }
 };
 
@@ -1089,6 +1207,9 @@ Sent via Access Nature App`;
     // Close existing emergency modal
     document.getElementById('safetyOverlay')?.remove();
     
+    // Refresh language
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    
     const overlay = document.createElement('div');
     overlay.className = 'safety-overlay open';
     overlay.id = 'shareOptionsOverlay';
@@ -1096,42 +1217,42 @@ Sent via Access Nature App`;
     overlay.innerHTML = `
       <div class="safety-modal">
         <div class="safety-header">
-          <h2>📤 Share Emergency Alert</h2>
-          <p>Choose how to share your emergency location</p>
+          <h2>📤 ${this.t('shareEmergencyAlert')}</h2>
+          <p>${this.t('chooseHowToShare')}</p>
         </div>
         
         <div class="safety-body">
           <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px; margin-bottom: 16px; font-size: 0.9rem;">
-            <strong>Message preview:</strong><br>
-            <span style="color: #991b1b;">${userName} is experiencing an emergency...</span>
+            <strong>${this.t('messagePreview')}:</strong><br>
+            <span style="color: #991b1b;">${userName} ${this.t('isExperiencingEmergency')}</span>
           </div>
           
           <div class="safety-actions">
             <button class="safety-btn safety-btn-emergency" onclick="safetyFeatures.shareViaSMS()">
-              💬 Send via SMS/Text
+              💬 ${this.t('sendViaSms')}
             </button>
             
             <button class="safety-btn safety-btn-share" onclick="safetyFeatures.shareViaWhatsApp()">
-              📱 Send via WhatsApp
+              📱 ${this.t('sendViaWhatsApp')}
             </button>
             
             <button class="safety-btn safety-btn-share" onclick="safetyFeatures.shareViaEmail()">
-              ✉️ Send via Email
+              ✉️ ${this.t('sendViaEmail')}
             </button>
             
             <button class="safety-btn safety-btn-secondary" onclick="safetyFeatures.shareViaSystem()">
-              📤 Other Apps...
+              📤 ${this.t('otherApps')}
             </button>
             
             <button class="safety-btn safety-btn-secondary" onclick="safetyFeatures.copyEmergencyMessage()">
-              📋 Copy Full Message
+              📋 ${this.t('copyFullMessage')}
             </button>
           </div>
         </div>
         
         <div class="safety-footer">
           <button class="safety-cancel" onclick="document.getElementById('shareOptionsOverlay').remove(); safetyFeatures.openEmergencyModal();">
-            ← Back
+            ← ${this.t('back')}
           </button>
         </div>
       </div>
@@ -1639,6 +1760,9 @@ If you cannot reach ${userName} and are concerned about their safety, please con
    * Manage emergency contacts
    */
   async manageContacts() {
+    // Refresh language
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    
     return new Promise((resolve) => {
       const overlay = document.createElement('div');
       overlay.className = 'safety-overlay open';
@@ -1647,8 +1771,8 @@ If you cannot reach ${userName} and are concerned about their safety, please con
       overlay.innerHTML = `
         <div class="safety-modal">
           <div class="safety-header" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
-            <h2>👥 Emergency Contacts</h2>
-            <p>People who will receive your location updates</p>
+            <h2>👥 ${this.t('emergencyContacts')}</h2>
+            <p>${this.t('addEmergencyContacts')}</p>
           </div>
           
           <div class="safety-body">
@@ -1657,13 +1781,13 @@ If you cannot reach ${userName} and are concerned about their safety, please con
             </div>
             
             <button class="safety-btn safety-btn-share" onclick="safetyFeatures.addContact()">
-              ➕ Add Contact
+              ➕ ${this.t('addContact')}
             </button>
           </div>
           
           <div class="safety-footer">
             <button class="safety-cancel" onclick="document.getElementById('contactsOverlay').remove()">
-              Done
+              ${this.t('close')}
             </button>
           </div>
         </div>
@@ -1679,7 +1803,7 @@ If you cannot reach ${userName} and are concerned about their safety, please con
    */
   renderContacts() {
     if (this.emergencyContacts.length === 0) {
-      return '<p style="text-align: center; color: #6b7280;">No contacts added yet</p>';
+      return `<p style="text-align: center; color: #6b7280;">${this.t('noContactsAdded')}</p>`;
     }
     
     return this.emergencyContacts.map((contact, i) => `
@@ -1689,12 +1813,12 @@ If you cannot reach ${userName} and are concerned about their safety, please con
           <div>
             <div class="contact-name">${contact.name}</div>
             <div class="contact-phone">${contact.phone}</div>
-            ${contact.email ? `<div class="contact-email" style="font-size: 0.75rem; color: #10b981;">📧 Auto-notify enabled</div>` : '<div class="contact-email" style="font-size: 0.75rem; color: #9ca3af;">📱 SMS only</div>'}
+            ${contact.email ? `<div class="contact-email" style="font-size: 0.75rem; color: #10b981;">📧 ${this.t('autoNotify')}</div>` : `<div class="contact-email" style="font-size: 0.75rem; color: #9ca3af;">📱 ${this.t('smsOnly')}</div>`}
           </div>
         </div>
         <div class="contact-actions">
-          <button class="contact-edit" onclick="safetyFeatures.editContact(${i})" title="Edit contact">✏️</button>
-          <button class="contact-remove" onclick="safetyFeatures.removeContact(${i})" title="Remove contact">×</button>
+          <button class="contact-edit" onclick="safetyFeatures.editContact(${i})" title="${this.t('editContacts')}">✏️</button>
+          <button class="contact-remove" onclick="safetyFeatures.removeContact(${i})" title="${this.t('contactRemoved')}">×</button>
         </div>
       </div>
     `).join('');

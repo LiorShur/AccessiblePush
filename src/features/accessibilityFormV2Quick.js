@@ -2046,26 +2046,46 @@ export class AccessibilityFormV2Quick {
     const overlay = document.getElementById('af2-overlay');
     if (!overlay) return;
     
-    // Close on overlay click
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) this.close();
-    });
+    // Remove existing listeners by replacing the element (clean slate approach)
+    if (overlay._listenersAttached) {
+      // Clone and replace to remove all event listeners
+      const newOverlay = overlay.cloneNode(true);
+      overlay.parentNode.replaceChild(newOverlay, overlay);
+      // Update reference
+      const freshOverlay = document.getElementById('af2-overlay');
+      this._attachEventHandlers(freshOverlay);
+    } else {
+      this._attachEventHandlers(overlay);
+    }
+  }
+  
+  _attachEventHandlers(overlay) {
+    if (!overlay) return;
+    overlay._listenersAttached = true;
     
-    // Card selections
+    // Single click handler for all interactions
     overlay.addEventListener('click', (e) => {
-      const card = e.target.closest('.af2-select-card');
-      if (card) {
-        const grid = card.closest('[data-field]');
+      // Close on background click
+      if (e.target === overlay) {
+        this.close();
+        return;
+      }
+      
+      // Card selections
+      const selectCard = e.target.closest('.af2-select-card');
+      if (selectCard) {
+        const grid = selectCard.closest('[data-field]');
         if (grid) {
           const type = grid.dataset.type;
           if (type === 'single') {
             grid.querySelectorAll('.af2-select-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
+            selectCard.classList.add('selected');
           } else {
-            card.classList.toggle('selected');
+            selectCard.classList.toggle('selected');
           }
-          this.updateCategoryStatus(card);
+          this.updateCategoryStatus(selectCard);
         }
+        return;
       }
       
       // Chip selections
@@ -2082,15 +2102,27 @@ export class AccessibilityFormV2Quick {
           }
           this.updateCategoryStatus(chip);
         }
+        return;
       }
       
-      // Category card expand
+      // Category card expand - IMPORTANT: check this AFTER card/chip selections
+      // to avoid conflicts with content inside categories
       const catCard = e.target.closest('.af2-category-card');
-      if (catCard && !e.target.closest('.af2-category-content')) {
+      if (catCard) {
+        // Don't toggle if clicking inside the expanded content area
+        if (e.target.closest('.af2-category-content')) {
+          return;
+        }
         const wasExpanded = catCard.classList.contains('expanded');
+        // Collapse all other cards
         overlay.querySelectorAll('.af2-category-card').forEach(c => c.classList.remove('expanded'));
+        // Toggle this card
         if (!wasExpanded) {
           catCard.classList.add('expanded');
+          // Scroll the card into view
+          setTimeout(() => {
+            catCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
         }
       }
     });
