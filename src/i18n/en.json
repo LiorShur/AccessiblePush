@@ -527,17 +527,26 @@
     "createSubtitle": "Join the community making nature accessible",
     "fullName": "Full name",
     "createPassword": "Create password",
-    "createAccount": "Create Account"
+    "createAccount": "Create Account",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
   },
   "auth": {
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "signOut": "Sign Out",
     "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "signInFailed": "Sign in failed",
+    "signUpFailed": "Sign up failed",
+    "signOutConfirm": "Sign out of Access Nature?",
+    "guest": "Guest",
     "email": "Email",
     "emailPlaceholder": "Email address",
     "password": "Password",
     "passwordPlaceholder": "Password",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Full name",
     "confirmPassword": "Confirm Password",
     "forgotPassword": "Forgot Password?",
     "resetPassword": "Reset Password",
@@ -965,13 +974,5 @@
     "totalRoutes": "Total Routes",
     "totalReports": "Total Reports",
     "recentActivity": "Recent Activity"
-  },
-  "footer": {
-    "about": "About",
-    "privacy": "Privacy Policy",
-    "terms": "Terms of Service",
-    "contact": "Contact",
-    "betaGuide": "Beta Guide",
-    "copyright": "Making trails accessible for all abilities."
   }
 }

@@ -527,17 +527,26 @@
     "createSubtitle": "הצטרף לקהילה שהופכת את הטבע לנגיש",
     "fullName": "שם מלא",
     "createPassword": "צור סיסמה",
-    "createAccount": "צור חשבון"
+    "createAccount": "צור חשבון",
+    "noAccount": "אין לך חשבון?",
+    "hasAccount": "כבר יש לך חשבון?"
   },
   "auth": {
     "signIn": "התחברות",
     "signUp": "הרשמה",
     "signOut": "התנתקות",
     "signingIn": "מתחבר...",
+    "creatingAccount": "יוצר חשבון...",
+    "signInFailed": "ההתחברות נכשלה",
+    "signUpFailed": "ההרשמה נכשלה",
+    "signOutConfirm": "להתנתק מ-Access Nature?",
+    "guest": "אורח",
     "email": "דוא״ל",
     "emailPlaceholder": "כתובת דוא״ל",
     "password": "סיסמה",
     "passwordPlaceholder": "סיסמה",
+    "fullName": "שם מלא",
+    "fullNamePlaceholder": "שם מלא",
     "confirmPassword": "אימות סיסמה",
     "forgotPassword": "שכחת סיסמה?",
     "resetPassword": "איפוס סיסמה",
@@ -965,13 +974,5 @@
     "totalRoutes": "סה״כ מסלולים",
     "totalReports": "סה״כ דיווחים",
     "recentActivity": "פעילות אחרונה"
-  },
-  "footer": {
-    "about": "אודות",
-    "privacy": "מדיניות פרטיות",
-    "terms": "תנאי שימוש",
-    "contact": "צור קשר",
-    "betaGuide": "מדריך בטא",
-    "copyright": "הנגשת שבילים לכל היכולות."
   }
 }
