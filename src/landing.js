@@ -50,6 +50,38 @@ class LandingPageController {
     this.publicGuidesCache = null;    // Cache for shared queries
   }
 
+  /**
+   * Translate accessibility database values to current language
+   */
+  translateAccessibilityValue(value) {
+    if (!value) return '';
+    
+    // Map database values to translation keys
+    const valueMap = {
+      // Wheelchair Access
+      'Fully Accessible': 'accessibility.fullyAccessible',
+      'Partially Accessible': 'accessibility.partiallyAccessible',
+      'Not Accessible': 'accessibility.notAccessible',
+      // Difficulty
+      'Easy': 'accessibility.easy',
+      'Moderate': 'accessibility.difficultModerate',
+      'Difficult': 'accessibility.difficult',
+      // Surface types
+      'Paved': 'accessibility.paved',
+      'Asphalt': 'accessibility.asphalt',
+      'Concrete': 'accessibility.concrete',
+      'Gravel': 'accessibility.gravel',
+      'Dirt': 'accessibility.dirt',
+      'Sand': 'accessibility.sand',
+      'Grass': 'accessibility.grass',
+      'Boardwalk': 'accessibility.boardwalk',
+      'Mixed': 'accessibility.mixed'
+    };
+    
+    const key = valueMap[value];
+    return key ? t(key) : value;
+  }
+
   async initialize() {
     console.log('🏠 initialize() method called');
     try {
@@ -574,9 +606,9 @@ async searchTrails() {
           </div>
           
           <div class="trail-accessibility-tags">
-            ${accessibility.wheelchairAccess ? `<span class="accessibility-tag">♿ ${accessibility.wheelchairAccess}</span>` : ''}
-            ${accessibility.difficulty ? `<span class="accessibility-tag">🥾 ${accessibility.difficulty}</span>` : ''}
-            ${accessibility.trailSurface ? `<span class="accessibility-tag">🛤️ ${accessibility.trailSurface}</span>` : ''}
+            ${accessibility.wheelchairAccess ? `<span class="accessibility-tag">♿ ${this.translateAccessibilityValue(accessibility.wheelchairAccess)}</span>` : ''}
+            ${accessibility.difficulty ? `<span class="accessibility-tag">🥾 ${this.translateAccessibilityValue(accessibility.difficulty)}</span>` : ''}
+            ${accessibility.trailSurface ? `<span class="accessibility-tag">🛤️ ${this.translateAccessibilityValue(accessibility.trailSurface)}</span>` : ''}
           </div>
           
           <div class="trail-community-stats">
@@ -1037,17 +1069,17 @@ updateLoadMoreButton() {
         <div class="trail-info">
           <div class="trail-name">${trail.routeName}</div>
           <div class="trail-meta">
-            <span>📍 ${accessibility.location || 'Location not specified'}</span>
+            <span>📍 ${accessibility.location || t('trailBrowser.locationNotSpecified') || 'Location not specified'}</span>
             <span>📅 ${new Date(trail.generatedAt).toLocaleDateString()}</span>
           </div>
           <div class="trail-accessibility">
-            ${accessibility.wheelchairAccess ? `<span class="accessibility-badge">♿ ${accessibility.wheelchairAccess}</span>` : ''}
-            ${accessibility.difficulty ? `<span class="accessibility-badge">🥾 ${accessibility.difficulty}</span>` : ''}
+            ${accessibility.wheelchairAccess ? `<span class="accessibility-badge">♿ ${this.translateAccessibilityValue(accessibility.wheelchairAccess)}</span>` : ''}
+            ${accessibility.difficulty ? `<span class="accessibility-badge">🥾 ${this.translateAccessibilityValue(accessibility.difficulty)}</span>` : ''}
           </div>
           <div class="trail-stats">
-            <span>📏 ${(metadata.totalDistance || 0).toFixed(1)} km</span>
-            <span>👁️ ${community.views || 0} views</span>
-            <span>📷 ${metadata.photoCount || 0} photos</span>
+            <span>📏 ${(metadata.totalDistance || 0).toFixed(1)} ${t('trailBrowser.km')}</span>
+            <span>👁️ ${community.views || 0} ${t('trailBrowser.views')}</span>
+            <span>📷 ${metadata.photoCount || 0} ${t('trailBrowser.photos')}</span>
           </div>
           <div class="trail-actions">
             <button class="like-trail-btn ${hasLiked ? 'liked' : ''}" 
@@ -1060,10 +1092,10 @@ updateLoadMoreButton() {
             <button class="share-trail-btn" 
                     onclick="event.stopPropagation(); shareTrail('${trail.id}', '${encodeURIComponent(trail.routeName)}')"
                     aria-label="Share this trail">
-              📤 Share
+              📤 ${t('trailBrowser.share') || 'Share'}
             </button>
             <button class="view-trail-btn" onclick="viewTrailGuide('${trail.id}')">
-              View Guide
+              ${t('trailBrowser.viewGuide') || 'View Guide'}
             </button>
           </div>
         </div>
