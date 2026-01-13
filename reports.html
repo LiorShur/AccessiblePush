@@ -1199,87 +1199,87 @@
         <form id="createReportForm">
           <!-- Location -->
           <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600;">📍 Location</label>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">📍 <span data-i18n="reportForm.location">Location</span></label>
             <div id="locationPickerMap" style="height: 200px; border-radius: 8px; margin-bottom: 8px; background: #f3f4f6;"></div>
-            <p style="font-size: 0.875rem; color: #6b7280; margin: 0;" id="selectedLocationText">Click on the map to select location, or use current location</p>
+            <p style="font-size: 0.875rem; color: #6b7280; margin: 0;" id="selectedLocationText" data-i18n="reportForm.clickMapOrUseLocation">Click on the map to select location, or use current location</p>
             <input type="hidden" id="reportLat" required>
             <input type="hidden" id="reportLng" required>
-            <button type="button" id="useCurrentLocationBtn" class="btn btn-secondary" style="margin-top: 8px; width: 100%;">📍 Use My Current Location</button>
+            <button type="button" id="useCurrentLocationBtn" class="btn btn-secondary" style="margin-top: 8px; width: 100%;">📍 <span data-i18n="reportForm.useCurrentLocation">Use My Current Location</span></button>
           </div>
 
           <!-- Issue Type -->
           <div style="margin-bottom: 20px;">
-            <label for="reportIssueType" style="display: block; margin-bottom: 8px; font-weight: 600;">🏷️ Issue Type *</label>
+            <label for="reportIssueType" style="display: block; margin-bottom: 8px; font-weight: 600;">🏷️ <span data-i18n="reportForm.issueType">Issue Type</span> *</label>
             <select id="reportIssueType" class="form-select" required>
-              <option value="">Select issue type...</option>
-              <optgroup label="Sidewalk Issues">
-                <option value="curb_ramp">🚧 Missing/Damaged Curb Ramp</option>
-                <option value="sidewalk_blocked">⛔ Blocked Sidewalk</option>
-                <option value="damaged_sidewalk">💔 Damaged Sidewalk</option>
-                <option value="tactile_paving">🔲 Missing Tactile Paving</option>
+              <option value="" data-i18n="reportForm.selectType">Select issue type...</option>
+              <optgroup label="Sidewalk Issues" data-i18n-label="reportForm.sidewalkIssues">
+                <option value="curb_ramp" data-i18n="reportForm.curbRamp">🚧 Missing/Damaged Curb Ramp</option>
+                <option value="sidewalk_blocked" data-i18n="reportForm.sidewalkBlocked">⛔ Blocked Sidewalk</option>
+                <option value="damaged_sidewalk" data-i18n="reportForm.damagedSidewalk">💔 Damaged Sidewalk</option>
+                <option value="tactile_paving" data-i18n="reportForm.tactilePaving">🔲 Missing Tactile Paving</option>
               </optgroup>
-              <optgroup label="Building Access">
-                <option value="inaccessible_entrance">🚪 Inaccessible Entrance</option>
-                <option value="broken_elevator">🛗 Broken Elevator/Lift</option>
-                <option value="heavy_doors">🚪 Heavy/Manual Doors</option>
-                <option value="stairs_only">🪜 Stairs Only Access</option>
+              <optgroup label="Building Access" data-i18n-label="reportForm.buildingAccess">
+                <option value="inaccessible_entrance" data-i18n="reportForm.inaccessibleEntrance">🚪 Inaccessible Entrance</option>
+                <option value="broken_elevator" data-i18n="reportForm.brokenElevator">🛗 Broken Elevator/Lift</option>
+                <option value="heavy_doors" data-i18n="reportForm.heavyDoors">🚪 Heavy/Manual Doors</option>
+                <option value="stairs_only" data-i18n="reportForm.stairsOnly">🪜 Stairs Only Access</option>
               </optgroup>
-              <optgroup label="Parking">
-                <option value="parking_blocked">🅿️ Blocked Accessible Parking</option>
-                <option value="no_parking">🚫 No Accessible Parking</option>
-                <option value="damaged_parking">⚠️ Damaged Parking Space</option>
+              <optgroup label="Parking" data-i18n-label="reportForm.parkingIssues">
+                <option value="parking_blocked" data-i18n="reportForm.parkingBlocked">🅿️ Blocked Accessible Parking</option>
+                <option value="no_parking" data-i18n="reportForm.noParking">🚫 No Accessible Parking</option>
+                <option value="damaged_parking" data-i18n="reportForm.damagedParking">⚠️ Damaged Parking Space</option>
               </optgroup>
-              <optgroup label="Facilities">
-                <option value="inaccessible_restroom">🚻 Inaccessible Restroom</option>
-                <option value="inaccessible_fountain">🚰 Inaccessible Water Fountain</option>
-                <option value="no_seating">💺 No Accessible Seating</option>
+              <optgroup label="Facilities" data-i18n-label="reportForm.facilitiesIssues">
+                <option value="inaccessible_restroom" data-i18n="reportForm.inaccessibleRestroom">🚻 Inaccessible Restroom</option>
+                <option value="inaccessible_fountain" data-i18n="reportForm.inaccessibleFountain">🚰 Inaccessible Water Fountain</option>
+                <option value="no_seating" data-i18n="reportForm.noSeating">💺 No Accessible Seating</option>
               </optgroup>
-              <optgroup label="Trail/Outdoor">
-                <option value="trail_obstacle">🪨 Trail Obstacle</option>
-                <option value="trail_erosion">🕳️ Trail Erosion/Damage</option>
-                <option value="overgrown">🌿 Overgrown Vegetation</option>
-                <option value="missing_sign">🪧 Missing Signage</option>
+              <optgroup label="Trail/Outdoor" data-i18n-label="reportForm.trailOutdoor">
+                <option value="trail_obstacle" data-i18n="reportForm.trailObstacle">🪨 Trail Obstacle</option>
+                <option value="trail_erosion" data-i18n="reportForm.trailErosion">🕳️ Trail Erosion/Damage</option>
+                <option value="overgrown" data-i18n="reportForm.overgrown">🌿 Overgrown Vegetation</option>
+                <option value="missing_sign" data-i18n="reportForm.missingSign">🪧 Missing Signage</option>
               </optgroup>
-              <optgroup label="Transit">
-                <option value="bus_stop">🚌 Inaccessible Bus Stop</option>
-                <option value="transit_station">🚇 Inaccessible Station</option>
+              <optgroup label="Transit" data-i18n-label="reportForm.transitIssues">
+                <option value="bus_stop" data-i18n="reportForm.busStop">🚌 Inaccessible Bus Stop</option>
+                <option value="transit_station" data-i18n="reportForm.transitStation">🚇 Inaccessible Station</option>
               </optgroup>
-              <optgroup label="Other">
-                <option value="other">📝 Other Issue</option>
+              <optgroup label="Other" data-i18n-label="reportForm.otherIssue">
+                <option value="other" data-i18n="reportForm.otherIssue">📝 Other Issue</option>
               </optgroup>
             </select>
           </div>
 
           <!-- Severity - Enhanced 1-5 Scale -->
           <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600;">⚠️ Severity Level *</label>
-            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 12px;">Rate how much this barrier impacts accessibility (1 = minor inconvenience, 5 = completely blocks access)</p>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">⚠️ <span data-i18n="reportForm.severity">Severity Level</span> *</label>
+            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 12px;" data-i18n="reportForm.severityHint">Rate how much this barrier impacts accessibility (1 = minor inconvenience, 5 = completely blocks access)</p>
             
             <div class="severity-scale" style="display: flex; gap: 8px; margin-bottom: 12px;">
               <label class="severity-option" style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 12px 8px; border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: white;">
                 <input type="radio" name="reportSeverity" value="1" style="display: none;">
                 <span style="font-size: 1.5rem; margin-bottom: 4px;">1️⃣</span>
-                <span style="font-size: 0.75rem; font-weight: 600; color: #22c55e;">Minor</span>
+                <span style="font-size: 0.75rem; font-weight: 600; color: #22c55e;" data-i18n="reportForm.minor">Minor</span>
               </label>
               <label class="severity-option" style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 12px 8px; border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: white;">
                 <input type="radio" name="reportSeverity" value="2" style="display: none;">
                 <span style="font-size: 1.5rem; margin-bottom: 4px;">2️⃣</span>
-                <span style="font-size: 0.75rem; font-weight: 600; color: #84cc16;">Low</span>
+                <span style="font-size: 0.75rem; font-weight: 600; color: #84cc16;" data-i18n="reportForm.low">Low</span>
               </label>
               <label class="severity-option" style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 12px 8px; border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: white;">
                 <input type="radio" name="reportSeverity" value="3" checked style="display: none;">
                 <span style="font-size: 1.5rem; margin-bottom: 4px;">3️⃣</span>
-                <span style="font-size: 0.75rem; font-weight: 600; color: #f59e0b;">Medium</span>
+                <span style="font-size: 0.75rem; font-weight: 600; color: #f59e0b;" data-i18n="reportForm.medium">Medium</span>
               </label>
               <label class="severity-option" style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 12px 8px; border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: white;">
                 <input type="radio" name="reportSeverity" value="4" style="display: none;">
                 <span style="font-size: 1.5rem; margin-bottom: 4px;">4️⃣</span>
-                <span style="font-size: 0.75rem; font-weight: 600; color: #ea580c;">High</span>
+                <span style="font-size: 0.75rem; font-weight: 600; color: #ea580c;" data-i18n="reportForm.high">High</span>
               </label>
               <label class="severity-option" style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 12px 8px; border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: white;">
                 <input type="radio" name="reportSeverity" value="5" style="display: none;">
                 <span style="font-size: 1.5rem; margin-bottom: 4px;">5️⃣</span>
-                <span style="font-size: 0.75rem; font-weight: 600; color: #dc2626;">Critical</span>
+                <span style="font-size: 0.75rem; font-weight: 600; color: #dc2626;" data-i18n="reportForm.critical">Critical</span>
               </label>
             </div>
             
@@ -1341,32 +1341,32 @@
 
           <!-- Temporary/Permanent Indicator -->
           <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600;">🕐 Duration Type</label>
-            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 12px;">Is this a temporary or permanent barrier?</p>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">🕐 <span data-i18n="reportForm.durationType">Duration Type</span></label>
+            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 12px;" data-i18n="reportForm.durationHint">Is this a temporary or permanent barrier?</p>
             <div style="display: flex; gap: 12px;">
               <label class="duration-option" style="flex: 1; display: flex; align-items: center; gap: 12px; padding: 14px; border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: white;">
                 <input type="radio" name="durationType" value="permanent" checked style="width: 20px; height: 20px;">
                 <div>
                   <span style="font-size: 1.2rem;">🏗️</span>
-                  <span style="font-weight: 600; margin-left: 4px;">Permanent</span>
-                  <div style="font-size: 0.8rem; color: #6b7280;">Ongoing structural issue</div>
+                  <span style="font-weight: 600; margin-left: 4px;" data-i18n="reportForm.permanent">Permanent</span>
+                  <div style="font-size: 0.8rem; color: #6b7280;" data-i18n="reportForm.permanentHint">Ongoing structural issue</div>
                 </div>
               </label>
               <label class="duration-option" style="flex: 1; display: flex; align-items: center; gap: 12px; padding: 14px; border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: white;">
                 <input type="radio" name="durationType" value="temporary" style="width: 20px; height: 20px;">
                 <div>
                   <span style="font-size: 1.2rem;">⏳</span>
-                  <span style="font-weight: 600; margin-left: 4px;">Temporary</span>
-                  <div style="font-size: 0.8rem; color: #6b7280;">Construction, seasonal, etc.</div>
+                  <span style="font-weight: 600; margin-left: 4px;" data-i18n="reportForm.temporary">Temporary</span>
+                  <div style="font-size: 0.8rem; color: #6b7280;" data-i18n="reportForm.temporaryHint">Construction, seasonal, etc.</div>
                 </div>
               </label>
             </div>
             
             <!-- Expected resolution date (only shown for temporary) -->
             <div id="expectedResolutionContainer" style="display: none; margin-top: 12px; padding: 12px; background: #f0f9ff; border-radius: 8px; border: 1px solid #bae6fd;">
-              <label for="expectedResolution" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem;">📅 Expected Resolution Date (optional)</label>
+              <label for="expectedResolution" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem;">📅 <span data-i18n="reportForm.expectedResolution">Expected Resolution Date</span> (optional)</label>
               <input type="date" id="expectedResolution" class="form-select" style="width: 100%;">
-              <p style="font-size: 0.75rem; color: #0369a1; margin-top: 6px; margin-bottom: 0;">When do you expect this barrier to be removed?</p>
+              <p style="font-size: 0.75rem; color: #0369a1; margin-top: 6px; margin-bottom: 0;" data-i18n="reportForm.expectedResolutionHint">When do you expect this barrier to be removed?</p>
             </div>
           </div>
 
@@ -1391,34 +1391,34 @@
 
           <!-- Title -->
           <div style="margin-bottom: 20px;">
-            <label for="reportTitle" style="display: block; margin-bottom: 8px; font-weight: 600;">📝 Title *</label>
-            <input type="text" id="reportTitle" class="form-select" placeholder="Brief description of the issue" required style="width: 100%;">
+            <label for="reportTitle" style="display: block; margin-bottom: 8px; font-weight: 600;">📝 <span data-i18n="reportForm.reportTitle">Title</span> *</label>
+            <input type="text" id="reportTitle" class="form-select" data-i18n-placeholder="reportForm.reportTitlePlaceholder" placeholder="Brief description of the issue" required style="width: 100%;">
           </div>
 
           <!-- Description -->
           <div style="margin-bottom: 20px;">
-            <label for="reportDescription" style="display: block; margin-bottom: 8px; font-weight: 600;">📄 Description</label>
-            <textarea id="reportDescription" class="form-select" placeholder="Provide more details about the accessibility barrier..." rows="4" style="width: 100%; resize: vertical;"></textarea>
+            <label for="reportDescription" style="display: block; margin-bottom: 8px; font-weight: 600;">📄 <span data-i18n="reportForm.description">Description</span></label>
+            <textarea id="reportDescription" class="form-select" data-i18n-placeholder="reportForm.descriptionPlaceholder" placeholder="Provide more details about the accessibility barrier..." rows="4" style="width: 100%; resize: vertical;"></textarea>
           </div>
 
           <!-- Photos -->
           <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600;">📷 Photos</label>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">📷 <span data-i18n="reportForm.photos">Photos</span></label>
             <input type="file" id="reportPhotos" accept="image/*" multiple style="display: none;">
-            <button type="button" id="addPhotosBtn" class="btn btn-secondary" style="width: 100%;">📸 Add Photos</button>
+            <button type="button" id="addPhotosBtn" class="btn btn-secondary" style="width: 100%;">📸 <span data-i18n="reportForm.addPhotos">Add Photos</span></button>
             <div id="photoPreviewGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 12px;"></div>
           </div>
 
           <!-- Address (optional) -->
           <div style="margin-bottom: 20px;">
-            <label for="reportAddress" style="display: block; margin-bottom: 8px; font-weight: 600;">🏠 Address (optional)</label>
-            <input type="text" id="reportAddress" class="form-select" placeholder="e.g., 123 Main St, Cape Town" style="width: 100%;">
+            <label for="reportAddress" style="display: block; margin-bottom: 8px; font-weight: 600;">🏠 <span data-i18n="reportForm.addressOptional">Address (optional)</span></label>
+            <input type="text" id="reportAddress" class="form-select" data-i18n-placeholder="reportForm.addressPlaceholder" placeholder="e.g., 123 Main St, Cape Town" style="width: 100%;">
           </div>
 
           <!-- Submit -->
           <div style="display: flex; gap: 12px; margin-top: 24px;">
-            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="closeCreateReportModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary" style="flex: 1;" id="submitReportBtn">📤 Submit Report</button>
+            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="closeCreateReportModal()" data-i18n="reportForm.cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex: 1;" id="submitReportBtn">📤 <span data-i18n="reportForm.submitReport">Submit Report</span></button>
           </div>
         </form>
       </div>
