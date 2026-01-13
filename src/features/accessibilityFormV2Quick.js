@@ -1480,6 +1480,10 @@ export class AccessibilityFormV2Quick {
         text-align: right;
       }
       
+      .af2-overlay[dir="rtl"] .af2-category-card .cat-header {
+        flex-direction: row-reverse;
+      }
+      
       .af2-overlay[dir="rtl"] .af2-category-grid {
         direction: rtl;
       }

@@ -26,11 +26,16 @@ const safetyTranslations = {
     cancel: "Cancel",
     emergencyNameUpdated: "Emergency name updated!",
     enterNamePrompt: "Enter your name for emergency messages:",
-    lifelineActive: "Lifeline active!",
+    lifelineActive: "Lifeline Active",
     lifelineStopped: "Lifeline stopped",
+    lifelineAlreadyActive: "Lifeline is already active",
     contactsWillReceive: "contact(s) will receive automatic email updates every",
     minutes: "minutes",
     shareNow: "Share Now",
+    editContacts: "Edit Contacts",
+    stop: "Stop",
+    minimize: "Minimize",
+    lastUpdate: "Last update",
     setupLifeline: "Setup Lifeline",
     stopLifeline: "Stop Lifeline",
     emergencyContacts: "Emergency Contacts",
@@ -42,7 +47,11 @@ const safetyTranslations = {
     coordsCopied: "Coordinates copied to clipboard!",
     shareEmergencyAlert: "Share Emergency Alert",
     copyMessage: "Copy Message",
-    messageCopied: "Message copied! Paste to send."
+    messageCopied: "Message copied! Paste to send.",
+    autoNotify: "auto-notify",
+    smsOnly: "SMS-only",
+    tapShareNow: "tap \"Share Now\" to send updates",
+    contactsWith: "contact(s) with auto-notifications"
   },
   he: {
     emergency: "מצוקה",
@@ -57,11 +66,16 @@ const safetyTranslations = {
     cancel: "ביטול",
     emergencyNameUpdated: "שם החירום עודכן!",
     enterNamePrompt: "הזן את שמך להודעות חירום:",
-    lifelineActive: "קו חיים פעיל!",
+    lifelineActive: "קו חיים פעיל",
     lifelineStopped: "קו חיים נעצר",
+    lifelineAlreadyActive: "קו חיים כבר פעיל",
     contactsWillReceive: "אנשי קשר יקבלו עדכוני דוא״ל אוטומטיים כל",
     minutes: "דקות",
     shareNow: "שתף עכשיו",
+    editContacts: "ערוך אנשי קשר",
+    stop: "עצור",
+    minimize: "מזער",
+    lastUpdate: "עדכון אחרון",
     setupLifeline: "הגדר קו חיים",
     stopLifeline: "עצור קו חיים",
     emergencyContacts: "אנשי קשר לחירום",
@@ -73,7 +87,11 @@ const safetyTranslations = {
     coordsCopied: "קואורדינטות הועתקו ללוח!",
     shareEmergencyAlert: "שתף התראת חירום",
     copyMessage: "העתק הודעה",
-    messageCopied: "ההודעה הועתקה! הדבק לשליחה."
+    messageCopied: "ההודעה הועתקה! הדבק לשליחה.",
+    autoNotify: "התראה אוטומטית",
+    smsOnly: "SMS בלבד",
+    tapShareNow: "לחץ \"שתף עכשיו\" לשליחת עדכונים",
+    contactsWith: "אנשי קשר עם התראות אוטומטיות"
   }
 };
 
@@ -1499,6 +1517,9 @@ If you cannot reach ${userName} and are concerned about their safety, please con
    * Show lifeline status panel
    */
   showLifelinePanel() {
+    // Refresh language
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    
     let panel = document.getElementById('lifelinePanel');
     
     if (!panel) {
@@ -1514,11 +1535,11 @@ If you cannot reach ${userName} and are concerned about their safety, please con
     
     let contactInfo = '';
     if (emailContacts > 0 && smsOnlyContacts > 0) {
-      contactInfo = `📧 ${emailContacts} auto-notify, 📱 ${smsOnlyContacts} SMS-only`;
+      contactInfo = `📧 ${emailContacts} ${this.t('autoNotify')}, 📱 ${smsOnlyContacts} ${this.t('smsOnly')}`;
     } else if (emailContacts > 0) {
-      contactInfo = `📧 ${emailContacts} contact(s) with auto-notifications`;
+      contactInfo = `📧 ${emailContacts} ${this.t('contactsWith')}`;
     } else {
-      contactInfo = `📱 ${smsOnlyContacts} contact(s) - tap "Share Now" to send updates`;
+      contactInfo = `📱 ${smsOnlyContacts} - ${this.t('tapShareNow')}`;
     }
     
     // Update panel content
@@ -1526,25 +1547,25 @@ If you cannot reach ${userName} and are concerned about their safety, please con
       <div class="lifeline-header">
         <div class="lifeline-status">
           <span class="lifeline-dot"></span>
-          <span class="lifeline-status-text">Lifeline Active</span>
+          <span class="lifeline-status-text">${this.t('lifelineActive')}</span>
         </div>
         <div class="lifeline-header-buttons">
-          <button class="lifeline-minimize" onclick="safetyFeatures.toggleLifelineMinimize()" title="Minimize">▼</button>
-          <button class="lifeline-stop" onclick="safetyFeatures.stopLifeline()">Stop</button>
+          <button class="lifeline-minimize" onclick="safetyFeatures.toggleLifelineMinimize()" title="${this.t('minimize')}">▼</button>
+          <button class="lifeline-stop" onclick="safetyFeatures.stopLifeline()">${this.t('stop')}</button>
         </div>
       </div>
       <div class="lifeline-info">
         ${contactInfo}
       </div>
       <div class="lifeline-time" style="font-size: 0.75rem; color: #6b7280; margin-bottom: 8px;">
-        Last update: ${new Date().toLocaleTimeString()}
+        ${this.t('lastUpdate')}: ${new Date().toLocaleTimeString()}
       </div>
       <div class="lifeline-actions">
         <button class="lifeline-action-btn" onclick="safetyFeatures.shareLastLifelineUpdate()">
-          📤 Share Now
+          📤 ${this.t('shareNow')}
         </button>
         <button class="lifeline-action-btn" onclick="safetyFeatures.manageContacts()">
-          ✏️ Edit Contacts
+          ✏️ ${this.t('editContacts')}
         </button>
       </div>
     `;
