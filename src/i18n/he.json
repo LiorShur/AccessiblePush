@@ -150,7 +150,10 @@
     "gpsPoints": "נקודות GPS",
     "views": "צפיות",
     "photos": "תמונות",
-    "notes": "הערות"
+    "notes": "הערות",
+    "locationNotSpecified": "מיקום לא צוין",
+    "share": "שתף",
+    "viewGuide": "צפה במדריך"
   },
   "reports": {
     "pageTitle": "דיווחי נגישות",
@@ -645,7 +648,18 @@
     "daysLeft": "ימים נותרו",
     "participants": "משתתפים",
     "completed": "הושלם!",
-    "joinChallenge": "הצטרף לאתגר"
+    "complete": "הושלם",
+    "joinChallenge": "הצטרף לאתגר",
+    "noActive": "אין אתגרים פעילים כרגע.",
+    "checkBack": "בדוק שוב בקרוב לאתגרים חדשים!",
+    "monthlyExplorer": "חוקר חודשי",
+    "accessibilityAdvocate": "תומך נגישות",
+    "communityVerifier": "מאמת קהילתי",
+    "photoJournalist": "צלם עיתונאי",
+    "documentTrails": "תעד 5 שבילים חדשים החודש",
+    "completeSurveys": "השלם 10 סקרי נגישות",
+    "verifyReports": "אמת 15 דיווחי נגישות",
+    "uploadPhotos": "העלה 20 תמונות שבילים"
   },
   "announcements": {
     "title": "הודעות",
@@ -793,6 +807,12 @@
       "fillNow": "מלא סקר עכשיו",
       "skipAndSave": "דלג ושמור ללא סקר",
       "cancel": "ביטול"
+    },
+    "surveyReminder": {
+      "title": "סקר נגישות",
+      "message": "עזור לאחרים על ידי תיעוד תכונות הנגישות של השביל הזה בזמן ההליכה!",
+      "openSurvey": "פתח סקר",
+      "later": "אחר כך"
     },
     "export": {
       "exportOptions": "אפשרויות ייצוא",

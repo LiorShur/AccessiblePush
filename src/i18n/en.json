@@ -150,7 +150,10 @@
     "gpsPoints": "GPS Points",
     "views": "views",
     "photos": "photos",
-    "notes": "notes"
+    "notes": "notes",
+    "locationNotSpecified": "Location not specified",
+    "share": "Share",
+    "viewGuide": "View Guide"
   },
   "reports": {
     "pageTitle": "Accessibility Reports",
@@ -645,7 +648,18 @@
     "daysLeft": "days left",
     "participants": "participants",
     "completed": "Completed!",
-    "joinChallenge": "Join Challenge"
+    "complete": "Complete",
+    "joinChallenge": "Join Challenge",
+    "noActive": "No active challenges right now.",
+    "checkBack": "Check back soon for new challenges!",
+    "monthlyExplorer": "Monthly Explorer",
+    "accessibilityAdvocate": "Accessibility Advocate",
+    "communityVerifier": "Community Verifier",
+    "photoJournalist": "Photo Journalist",
+    "documentTrails": "Document 5 new trails this month",
+    "completeSurveys": "Complete 10 accessibility surveys",
+    "verifyReports": "Verify 15 accessibility reports",
+    "uploadPhotos": "Upload 20 trail photos"
   },
   "announcements": {
     "title": "Announcements",
@@ -793,6 +807,12 @@
       "fillNow": "Fill Survey Now",
       "skipAndSave": "Skip & Save Without Survey",
       "cancel": "Cancel"
+    },
+    "surveyReminder": {
+      "title": "Accessibility Survey",
+      "message": "Help others by documenting this trail's accessibility features as you go!",
+      "openSurvey": "Open Survey",
+      "later": "Later"
     },
     "export": {
       "exportOptions": "Export Options",
