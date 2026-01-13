@@ -171,6 +171,13 @@
       align-items: center;
       justify-content: center;
     }
+    
+    /* Force LTR for email and password inputs even in RTL mode */
+    input[type="email"],
+    input[type="password"] {
+      direction: ltr !important;
+      text-align: left !important;
+    }
   </style>
 
   <!-- PWA Meta Tags -->

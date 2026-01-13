@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
   <link rel="stylesheet" href="src/css/high-contrast.css">
   <link rel="stylesheet" href="src/css/global-nav.css">
-  <link rel="stylesheet" href="src/css/rtl.css">
   
   <!-- CRITICAL: Apply saved preferences immediately to prevent flash -->
   <script>
@@ -3703,9 +3702,21 @@
       await i18n.init();
       i18n.translatePage();
       
+      // Admin page is not translated - force LTR regardless of language setting
+      document.documentElement.setAttribute('dir', 'ltr');
+      document.documentElement.setAttribute('lang', 'en');
+      document.body.setAttribute('dir', 'ltr');
+      document.documentElement.classList.remove('rtl');
+      document.body.classList.remove('rtl');
+      
       // Listen for language changes
       i18n.onLanguageChange((newLang) => {
         i18n.translatePage();
+        // Keep LTR on admin page
+        document.documentElement.setAttribute('dir', 'ltr');
+        document.body.setAttribute('dir', 'ltr');
+        document.documentElement.classList.remove('rtl');
+        document.body.classList.remove('rtl');
       });
       
       // Make available globally
@@ -3713,15 +3724,7 @@
       window.t = t;
     } catch (e) {
       console.warn('🌐 i18n initialization failed:', e);
-      // Apply direction from saved preference
-      const savedLang = localStorage.getItem('accessNature_language') || 'en';
-      if (savedLang === 'he') {
-        document.documentElement.setAttribute('dir', 'rtl');
-        document.documentElement.setAttribute('lang', 'he');
-        document.body.setAttribute('dir', 'rtl');
-        document.documentElement.classList.add('rtl');
-        document.body.classList.add('rtl');
-      }
+      // Admin page is not translated, skip RTL setup
     }
   </script>
   

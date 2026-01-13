@@ -995,6 +995,13 @@
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3) !important;
       z-index: 999999 !important;
     }
+    
+    /* Force LTR for email and password inputs even in RTL mode */
+    input[type="email"],
+    input[type="password"] {
+      direction: ltr !important;
+      text-align: left !important;
+    }
   </style>
   
   <!-- Global Bottom Navigation -->
