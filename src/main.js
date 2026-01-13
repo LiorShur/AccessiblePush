@@ -171,7 +171,8 @@ async showRestoreDialog(backupData) {
       return false;
     }
 
-    const backupDate = new Date(backupData.backupTime || Date.now()).toLocaleString();
+    const lang = localStorage.getItem('accessNature_language') || 'en';
+    const backupDate = new Date(backupData.backupTime || Date.now()).toLocaleString(lang === 'he' ? 'he-IL' : 'en-US');
     const routeData = backupData.routeData || [];
     const pointCount = routeData.length;
     const distance = (backupData.totalDistance || 0).toFixed(2);
@@ -189,29 +190,29 @@ async showRestoreDialog(backupData) {
     
     let timeAgoText = '';
     if (hoursAgo > 0) {
-      timeAgoText = `${hoursAgo}h ${minutesAgo}m ago`;
+      timeAgoText = `${hoursAgo}${t('trackerUI.restoreRoute.hoursShort')} ${minutesAgo}${t('trackerUI.restoreRoute.minutesShort')} ${t('trackerUI.restoreRoute.ago')}`;
     } else {
-      timeAgoText = `${minutesAgo}m ago`;
+      timeAgoText = `${minutesAgo}${t('trackerUI.restoreRoute.minutesShort')} ${t('trackerUI.restoreRoute.ago')}`;
     }
 
     // Create detailed restore dialog
-    const restoreMessage = `🔄 UNSAVED ROUTE FOUND!
+    const restoreMessage = `🔄 ${t('trackerUI.restoreRoute.found')}
 
-📅 Created: ${backupDate}
-⏰ Time: ${timeAgoText}
+📅 ${t('trackerUI.restoreRoute.created')}: ${backupDate}
+⏰ ${t('trackerUI.restoreRoute.time')}: ${timeAgoText}
 
-📊 Route Details:
-📏 Distance: ${distance} km
-📍 GPS Points: ${locationPoints}
-📷 Photos: ${photos}
-📝 Notes: ${notes}
-📋 Total Data: ${pointCount} entries
+📊 ${t('trackerUI.restoreRoute.routeDetails')}:
+📏 ${t('trackerUI.restoreRoute.distance')}: ${distance} ${t('trackerUI.km')}
+📍 ${t('trackerUI.restoreRoute.gpsPoints')}: ${locationPoints}
+📷 ${t('trackerUI.restoreRoute.photos')}: ${photos}
+📝 ${t('trackerUI.restoreRoute.notes')}: ${notes}
+📋 ${t('trackerUI.restoreRoute.totalData')}: ${pointCount} ${t('trackerUI.restoreRoute.entries')}
 
-This route was not saved before the app was closed.
+${t('trackerUI.restoreRoute.notSaved')}
 
-Would you like to restore it?`;
+${t('trackerUI.restoreRoute.wouldYouLikeToRestore')}`;
 
-    const shouldRestore = await modal.confirm(restoreMessage, '📍 Unsaved Route Found');
+    const shouldRestore = await modal.confirm(restoreMessage, `📍 ${t('trackerUI.restoreRoute.title')}`);
     
     if (shouldRestore) {
       console.log('👤 User chose to restore route');
@@ -232,15 +233,15 @@ Would you like to restore it?`;
       console.log('👤 User chose to start fresh');
       
       // Double-check with warning about data loss
-      const discardMessage = `This will permanently delete:
-• ${distance} km of tracked distance
-• ${locationPoints} GPS points
-• ${photos} photos
-• ${notes} notes
+      const discardMessage = `${t('trackerUI.restoreRoute.willDelete')}:
+• ${distance} ${t('trackerUI.km')} ${t('trackerUI.restoreRoute.ofDistance')}
+• ${locationPoints} ${t('trackerUI.restoreRoute.gpsPoints')}
+• ${photos} ${t('trackerUI.restoreRoute.photos')}
+• ${notes} ${t('trackerUI.restoreRoute.notes')}
 
-This action cannot be undone!`;
+${t('trackerUI.restoreRoute.cannotUndo')}`;
       
-      const confirmDiscard = await modal.confirm(discardMessage, '⚠️ Discard Route?');
+      const confirmDiscard = await modal.confirm(discardMessage, `⚠️ ${t('trackerUI.restoreRoute.discardRoute')}`);
       
       if (confirmDiscard) {
         this.controllers.state.clearRouteBackup();
