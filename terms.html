@@ -5,8 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Terms of Service - Access Nature</title>
   <link rel="stylesheet" href="src/css/landing.css">
+  <link rel="stylesheet" href="src/css/rtl.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="src/assets/icon.svg">
+  
+  <!-- Apply language preference immediately -->
+  <script>
+    (function() {
+      const lang = localStorage.getItem('accessNature_language') || 'en';
+      if (lang === 'he') {
+        document.documentElement.setAttribute('dir', 'rtl');
+        document.documentElement.setAttribute('lang', 'he');
+        document.documentElement.classList.add('rtl');
+      }
+    })();
+  </script>
+  
   <style>
     .legal-container {
       max-width: 800px;
@@ -146,6 +160,38 @@
       color: #1f2937;
     }
     
+    /* Language Toggle */
+    .lang-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #2c5530;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .lang-toggle:hover {
+      background: #234426;
+    }
+    
+    html[dir="rtl"] .back-link {
+      left: auto;
+      right: 16px;
+    }
+    
+    html[dir="rtl"] .lang-toggle {
+      right: auto;
+      left: 16px;
+    }
+    
     @media (max-width: 640px) {
       .legal-container {
         padding: 20px 16px;
@@ -166,28 +212,29 @@
 </head>
 <body>
   <div class="legal-container">
-    <a href="index.html" class="back-link">← Back to Access Nature</a>
+    <a href="index.html" class="back-link" data-i18n="legal.backToApp">← Back to Access Nature</a>
+    <button class="lang-toggle" onclick="toggleLanguage()">🌐 <span id="langLabel">עברית</span></button>
     
     <header class="legal-header">
-      <h1>📜 Terms of Service</h1>
-      <p class="last-updated">Last Updated: December 2024</p>
+      <h1 data-i18n="terms.title">📜 Terms of Service</h1>
+      <p class="last-updated"><span data-i18n="legal.lastUpdated">Last Updated:</span> <span data-i18n="legal.december2024">December 2024</span></p>
     </header>
     
     <nav class="legal-nav">
-      <h2>Contents</h2>
+      <h2 data-i18n="legal.contents">Contents</h2>
       <ul>
-        <li><a href="#acceptance">Acceptance of Terms</a></li>
-        <li><a href="#description">Service Description</a></li>
-        <li><a href="#accounts">User Accounts</a></li>
-        <li><a href="#acceptable-use">Acceptable Use</a></li>
-        <li><a href="#content">User Content</a></li>
-        <li><a href="#safety">Safety & Disclaimers</a></li>
-        <li><a href="#intellectual-property">Intellectual Property</a></li>
-        <li><a href="#termination">Termination</a></li>
-        <li><a href="#liability">Limitation of Liability</a></li>
-        <li><a href="#changes">Changes to Terms</a></li>
-        <li><a href="#governing-law">Governing Law</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="#acceptance" data-i18n="terms.nav.acceptance">Acceptance of Terms</a></li>
+        <li><a href="#description" data-i18n="terms.nav.description">Service Description</a></li>
+        <li><a href="#accounts" data-i18n="terms.nav.accounts">User Accounts</a></li>
+        <li><a href="#acceptable-use" data-i18n="terms.nav.acceptableUse">Acceptable Use</a></li>
+        <li><a href="#content" data-i18n="terms.nav.content">User Content</a></li>
+        <li><a href="#safety" data-i18n="terms.nav.safety">Safety & Disclaimers</a></li>
+        <li><a href="#intellectual-property" data-i18n="terms.nav.ip">Intellectual Property</a></li>
+        <li><a href="#termination" data-i18n="terms.nav.termination">Termination</a></li>
+        <li><a href="#liability" data-i18n="terms.nav.liability">Limitation of Liability</a></li>
+        <li><a href="#changes" data-i18n="terms.nav.changes">Changes to Terms</a></li>
+        <li><a href="#governing-law" data-i18n="terms.nav.governingLaw">Governing Law</a></li>
+        <li><a href="#contact" data-i18n="terms.nav.contact">Contact</a></li>
       </ul>
     </nav>
     
@@ -387,13 +434,49 @@
     </section>
     
     <footer style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280;">
-      <p>© 2024 Access Nature. All rights reserved.</p>
+      <p>© 2024 Access Nature. <span data-i18n="legal.allRightsReserved">All rights reserved.</span></p>
       <p style="margin-top: 10px;">
-        <a href="index.html" style="color: #2c5530;">Home</a> · 
-        <a href="privacy.html" style="color: #2c5530;">Privacy Policy</a> · 
-        <a href="index.html#contact" style="color: #2c5530;">Contact</a>
+        <a href="index.html" style="color: #2c5530;" data-i18n="legal.home">Home</a> · 
+        <a href="privacy.html" style="color: #2c5530;" data-i18n="footer.privacy">Privacy Policy</a> · 
+        <a href="index.html#contact" style="color: #2c5530;" data-i18n="footer.contact">Contact</a>
       </p>
     </footer>
   </div>
+  
+  <!-- i18n Initialization -->
+  <script type="module">
+    import { i18n, t } from './src/i18n/i18n.js';
+    
+    window.toggleLanguage = async function() {
+      const currentLang = localStorage.getItem('accessNature_language') || 'en';
+      const newLang = currentLang === 'en' ? 'he' : 'en';
+      await i18n.setLanguage(newLang);
+      updateLangLabel();
+    };
+    
+    function updateLangLabel() {
+      const currentLang = localStorage.getItem('accessNature_language') || 'en';
+      const label = document.getElementById('langLabel');
+      if (label) {
+        label.textContent = currentLang === 'en' ? 'עברית' : 'English';
+      }
+    }
+    
+    try {
+      await i18n.init();
+      i18n.translatePage();
+      updateLangLabel();
+      
+      i18n.onLanguageChange(() => {
+        i18n.translatePage();
+        updateLangLabel();
+      });
+      
+      window.i18n = i18n;
+      window.t = t;
+    } catch (e) {
+      console.warn('i18n initialization failed:', e);
+    }
+  </script>
 </body>
 </html>

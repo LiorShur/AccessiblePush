@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Beta Tester Guide - Access Nature</title>
   <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
+  <link rel="stylesheet" href="src/css/rtl.css">
+  
+  <!-- Apply language preference immediately -->
+  <script>
+    (function() {
+      const lang = localStorage.getItem('accessNature_language') || 'en';
+      if (lang === 'he') {
+        document.documentElement.setAttribute('dir', 'rtl');
+        document.documentElement.setAttribute('lang', 'he');
+        document.documentElement.classList.add('rtl');
+      }
+    })();
+  </script>
+  
   <style>
     :root {
       --color-primary: #2c5530;
@@ -75,6 +89,38 @@
     
     .nav-back:hover {
       background: rgba(255,255,255,0.3);
+    }
+    
+    /* Language Toggle */
+    .lang-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .lang-toggle:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    html[dir="rtl"] .nav-back {
+      left: auto;
+      right: 16px;
+    }
+    
+    html[dir="rtl"] .lang-toggle {
+      right: auto;
+      left: 16px;
     }
     
     /* Content */
@@ -315,26 +361,27 @@
   <script src="src/utils/monitoring.js" defer></script>
 </head>
 <body>
-  <a href="index.html" class="nav-back">← Back to App</a>
+  <a href="index.html" class="nav-back" data-i18n="betaGuide.backToApp">← Back to App</a>
+  <button class="lang-toggle" onclick="toggleLanguage()">🌐 <span id="langLabel">עברית</span></button>
   
   <header class="header">
     <span class="beta-badge">BETA v1.0</span>
-    <h1>🌲 Access Nature Beta Guide</h1>
-    <p>Thank you for helping us test!</p>
+    <h1 data-i18n="betaGuide.title">🌲 Access Nature Beta Guide</h1>
+    <p data-i18n="betaGuide.subtitle">Thank you for helping us test!</p>
   </header>
   
   <div class="container">
     <!-- Table of Contents -->
     <nav class="toc">
-      <h2>📋 Quick Navigation</h2>
+      <h2 data-i18n="betaGuide.quickNav">📋 Quick Navigation</h2>
       <ul class="toc-list">
-        <li><a href="#welcome">👋 Welcome</a></li>
-        <li><a href="#getting-started">🚀 Getting Started</a></li>
-        <li><a href="#features">✨ Features to Test</a></li>
-        <li><a href="#how-to-test">🧪 How to Test</a></li>
-        <li><a href="#feedback">📝 Giving Feedback</a></li>
-        <li><a href="#known-issues">⚠️ Known Issues</a></li>
-        <li><a href="#faq">❓ FAQ</a></li>
+        <li><a href="#welcome" data-i18n="betaGuide.nav.welcome">👋 Welcome</a></li>
+        <li><a href="#getting-started" data-i18n="betaGuide.nav.gettingStarted">🚀 Getting Started</a></li>
+        <li><a href="#features" data-i18n="betaGuide.nav.features">✨ Features to Test</a></li>
+        <li><a href="#how-to-test" data-i18n="betaGuide.nav.howToTest">🧪 How to Test</a></li>
+        <li><a href="#feedback" data-i18n="betaGuide.nav.feedback">📝 Giving Feedback</a></li>
+        <li><a href="#known-issues" data-i18n="betaGuide.nav.knownIssues">⚠️ Known Issues</a></li>
+        <li><a href="#faq" data-i18n="betaGuide.nav.faq">❓ FAQ</a></li>
       </ul>
     </nav>
     
@@ -523,8 +570,8 @@
   </div>
   
   <footer class="footer">
-    <p>Thank you for being a beta tester! 💜</p>
-    <p>Questions? <a href="#" onclick="window.betaFeedback?.open(); return false;">Send us feedback</a> or email <a href="mailto:feedback@accessnature.app">feedback@accessnature.app</a></p>
+    <p data-i18n="betaGuide.footer.thanks">Thank you for being a beta tester! 💜</p>
+    <p><span data-i18n="betaGuide.footer.questions">Questions?</span> <a href="#" onclick="window.betaFeedback?.open(); return false;" data-i18n="betaGuide.footer.sendFeedback">Send us feedback</a> <span data-i18n="betaGuide.footer.orEmail">or email</span> <a href="mailto:feedback@accessnature.app">feedback@accessnature.app</a></p>
   </footer>
   
   <script type="module">
@@ -533,6 +580,42 @@
     // Initialize feedback button on this page too
     betaFeedback.initialize();
     window.betaFeedback = betaFeedback;
+  </script>
+  
+  <!-- i18n Initialization -->
+  <script type="module">
+    import { i18n, t } from './src/i18n/i18n.js';
+    
+    window.toggleLanguage = async function() {
+      const currentLang = localStorage.getItem('accessNature_language') || 'en';
+      const newLang = currentLang === 'en' ? 'he' : 'en';
+      await i18n.setLanguage(newLang);
+      updateLangLabel();
+    };
+    
+    function updateLangLabel() {
+      const currentLang = localStorage.getItem('accessNature_language') || 'en';
+      const label = document.getElementById('langLabel');
+      if (label) {
+        label.textContent = currentLang === 'en' ? 'עברית' : 'English';
+      }
+    }
+    
+    try {
+      await i18n.init();
+      i18n.translatePage();
+      updateLangLabel();
+      
+      i18n.onLanguageChange(() => {
+        i18n.translatePage();
+        updateLangLabel();
+      });
+      
+      window.i18n = i18n;
+      window.t = t;
+    } catch (e) {
+      console.warn('i18n initialization failed:', e);
+    }
   </script>
 </body>
 </html>

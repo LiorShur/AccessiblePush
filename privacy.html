@@ -5,8 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy - Access Nature</title>
   <link rel="stylesheet" href="src/css/landing.css">
+  <link rel="stylesheet" href="src/css/rtl.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="src/assets/icon.svg">
+  
+  <!-- Apply language preference immediately -->
+  <script>
+    (function() {
+      const lang = localStorage.getItem('accessNature_language') || 'en';
+      if (lang === 'he') {
+        document.documentElement.setAttribute('dir', 'rtl');
+        document.documentElement.setAttribute('lang', 'he');
+        document.documentElement.classList.add('rtl');
+      }
+    })();
+  </script>
+  
   <style>
     .legal-container {
       max-width: 800px;
@@ -141,6 +155,38 @@
       color: #1f2937;
     }
     
+    /* Language Toggle */
+    .lang-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #2c5530;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .lang-toggle:hover {
+      background: #234426;
+    }
+    
+    html[dir="rtl"] .back-link {
+      left: auto;
+      right: 16px;
+    }
+    
+    html[dir="rtl"] .lang-toggle {
+      right: auto;
+      left: 16px;
+    }
+    
     @media (max-width: 640px) {
       .legal-container {
         padding: 20px 16px;
@@ -161,27 +207,28 @@
 </head>
 <body>
   <div class="legal-container">
-    <a href="index.html" class="back-link">← Back to Access Nature</a>
+    <a href="index.html" class="back-link" data-i18n="legal.backToApp">← Back to Access Nature</a>
+    <button class="lang-toggle" onclick="toggleLanguage()">🌐 <span id="langLabel">עברית</span></button>
     
     <header class="legal-header">
-      <h1>🔒 Privacy Policy</h1>
-      <p class="last-updated">Last Updated: December 2024</p>
+      <h1 data-i18n="privacy.title">🔒 Privacy Policy</h1>
+      <p class="last-updated"><span data-i18n="legal.lastUpdated">Last Updated:</span> <span data-i18n="legal.december2024">December 2024</span></p>
     </header>
     
     <nav class="legal-nav">
-      <h2>Contents</h2>
+      <h2 data-i18n="legal.contents">Contents</h2>
       <ul>
-        <li><a href="#introduction">Introduction</a></li>
-        <li><a href="#data-collected">Data We Collect</a></li>
-        <li><a href="#how-we-use">How We Use Your Data</a></li>
-        <li><a href="#data-sharing">Data Sharing</a></li>
-        <li><a href="#data-storage">Data Storage & Security</a></li>
-        <li><a href="#your-rights">Your Rights</a></li>
-        <li><a href="#location-data">Location Data</a></li>
-        <li><a href="#cookies">Cookies & Local Storage</a></li>
-        <li><a href="#children">Children's Privacy</a></li>
-        <li><a href="#changes">Changes to This Policy</a></li>
-        <li><a href="#contact">Contact Us</a></li>
+        <li><a href="#introduction" data-i18n="privacy.nav.introduction">Introduction</a></li>
+        <li><a href="#data-collected" data-i18n="privacy.nav.dataCollected">Data We Collect</a></li>
+        <li><a href="#how-we-use" data-i18n="privacy.nav.howWeUse">How We Use Your Data</a></li>
+        <li><a href="#data-sharing" data-i18n="privacy.nav.dataSharing">Data Sharing</a></li>
+        <li><a href="#data-storage" data-i18n="privacy.nav.dataStorage">Data Storage & Security</a></li>
+        <li><a href="#your-rights" data-i18n="privacy.nav.yourRights">Your Rights</a></li>
+        <li><a href="#location-data" data-i18n="privacy.nav.locationData">Location Data</a></li>
+        <li><a href="#cookies" data-i18n="privacy.nav.cookies">Cookies & Local Storage</a></li>
+        <li><a href="#children" data-i18n="privacy.nav.children">Children's Privacy</a></li>
+        <li><a href="#changes" data-i18n="privacy.nav.changes">Changes to This Policy</a></li>
+        <li><a href="#contact" data-i18n="privacy.nav.contact">Contact Us</a></li>
       </ul>
     </nav>
     
@@ -374,13 +421,49 @@
     </section>
     
     <footer style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280;">
-      <p>© 2024 Access Nature. All rights reserved.</p>
+      <p>© 2024 Access Nature. <span data-i18n="legal.allRightsReserved">All rights reserved.</span></p>
       <p style="margin-top: 10px;">
-        <a href="index.html" style="color: #2c5530;">Home</a> · 
-        <a href="terms.html" style="color: #2c5530;">Terms of Service</a> · 
-        <a href="index.html#contact" style="color: #2c5530;">Contact</a>
+        <a href="index.html" style="color: #2c5530;" data-i18n="legal.home">Home</a> · 
+        <a href="terms.html" style="color: #2c5530;" data-i18n="footer.terms">Terms of Service</a> · 
+        <a href="index.html#contact" style="color: #2c5530;" data-i18n="footer.contact">Contact</a>
       </p>
     </footer>
   </div>
+  
+  <!-- i18n Initialization -->
+  <script type="module">
+    import { i18n, t } from './src/i18n/i18n.js';
+    
+    window.toggleLanguage = async function() {
+      const currentLang = localStorage.getItem('accessNature_language') || 'en';
+      const newLang = currentLang === 'en' ? 'he' : 'en';
+      await i18n.setLanguage(newLang);
+      updateLangLabel();
+    };
+    
+    function updateLangLabel() {
+      const currentLang = localStorage.getItem('accessNature_language') || 'en';
+      const label = document.getElementById('langLabel');
+      if (label) {
+        label.textContent = currentLang === 'en' ? 'עברית' : 'English';
+      }
+    }
+    
+    try {
+      await i18n.init();
+      i18n.translatePage();
+      updateLangLabel();
+      
+      i18n.onLanguageChange(() => {
+        i18n.translatePage();
+        updateLangLabel();
+      });
+      
+      window.i18n = i18n;
+      window.t = t;
+    } catch (e) {
+      console.warn('i18n initialization failed:', e);
+    }
+  </script>
 </body>
 </html>
