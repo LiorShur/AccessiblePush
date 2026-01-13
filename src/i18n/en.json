@@ -839,10 +839,30 @@
       "noSavedRoutes": "No saved routes available",
       "cancel": "Cancel"
     },
+    "km": "km",
     "restoreRoute": {
-      "title": "Restore Route?",
+      "title": "Unsaved Route Found",
       "message": "Unsaved route data was found. Would you like to restore it?",
-      "restored": "Route restored from backup"
+      "restored": "Route restored from backup",
+      "found": "UNSAVED ROUTE FOUND!",
+      "created": "Created",
+      "time": "Time",
+      "hoursShort": "h",
+      "minutesShort": "m",
+      "ago": "ago",
+      "routeDetails": "Route Details",
+      "distance": "Distance",
+      "gpsPoints": "GPS Points",
+      "photos": "Photos",
+      "notes": "Notes",
+      "totalData": "Total Data",
+      "entries": "entries",
+      "notSaved": "This route was not saved before the app was closed.",
+      "wouldYouLikeToRestore": "Would you like to restore it?",
+      "willDelete": "This will permanently delete",
+      "ofDistance": "of tracked distance",
+      "cannotUndo": "This action cannot be undone!",
+      "discardRoute": "Discard Route?"
     }
   },
   "profile": {

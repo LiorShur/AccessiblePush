@@ -839,10 +839,30 @@
       "noSavedRoutes": "אין מסלולים שמורים זמינים",
       "cancel": "ביטול"
     },
+    "km": "ק״מ",
     "restoreRoute": {
-      "title": "לשחזר מסלול?",
+      "title": "נמצא מסלול שלא נשמר",
       "message": "נמצאו נתוני מסלול שלא נשמרו. האם תרצה לשחזר אותם?",
-      "restored": "המסלול שוחזר מגיבוי"
+      "restored": "המסלול שוחזר מגיבוי",
+      "found": "נמצא מסלול שלא נשמר!",
+      "created": "נוצר",
+      "time": "זמן",
+      "hoursShort": "ש׳",
+      "minutesShort": "ד׳",
+      "ago": "לפני",
+      "routeDetails": "פרטי המסלול",
+      "distance": "מרחק",
+      "gpsPoints": "נקודות GPS",
+      "photos": "תמונות",
+      "notes": "הערות",
+      "totalData": "סה״כ נתונים",
+      "entries": "רשומות",
+      "notSaved": "מסלול זה לא נשמר לפני שהאפליקציה נסגרה.",
+      "wouldYouLikeToRestore": "האם תרצה לשחזר אותו?",
+      "willDelete": "פעולה זו תמחק לצמיתות",
+      "ofDistance": "של מרחק שנמדד",
+      "cannotUndo": "לא ניתן לבטל פעולה זו!",
+      "discardRoute": "למחוק מסלול?"
     }
   },
   "profile": {
