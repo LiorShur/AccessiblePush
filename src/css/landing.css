@@ -1903,12 +1903,19 @@ body {
   margin-top: 2px;
 }
 
-/* Skip modal checkbox option */
-.skip-modal-option {
+/* Modal preference radio buttons */
+.modal-preference-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.modal-preference-option {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 10px;
+  padding: 10px 14px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
@@ -1916,15 +1923,20 @@ body {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.6);
   transition: all 0.2s;
-  margin-top: 8px;
 }
 
-.skip-modal-option:hover {
+.modal-preference-option:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(102, 126, 234, 0.2);
 }
 
-.skip-modal-option input[type="checkbox"] {
+.modal-preference-option:has(input:checked) {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: rgba(102, 126, 234, 0.3);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.modal-preference-option input[type="radio"] {
   width: 16px;
   height: 16px;
   accent-color: #667eea;
@@ -2041,10 +2053,14 @@ body {
     font-size: 0.65rem;
   }
   
-  .skip-modal-option {
+  .modal-preference-group {
+    gap: 4px;
+    margin-top: 8px;
+  }
+  
+  .modal-preference-option {
     padding: 6px 10px;
     font-size: 0.75rem;
-    margin-top: 6px;
   }
 }
 
