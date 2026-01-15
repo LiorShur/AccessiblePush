@@ -381,12 +381,36 @@ html[dir="rtl"] .leaflet-control-layers {
   margin-right: auto;
 }
 
-[dir="rtl"] .modal-body {
+[dir="rtl"] .modal-body,
+[dir="rtl"] .modal-content,
+[dir="rtl"] .modal-description {
   text-align: right;
 }
 
 [dir="rtl"] .modal-footer {
   flex-direction: row-reverse;
+}
+
+/* Track Modal RTL */
+[dir="rtl"] .track-modal .modal-content {
+  text-align: right;
+}
+
+[dir="rtl"] .track-modal .feature-text {
+  text-align: right;
+}
+
+[dir="rtl"] .track-modal .feature-text strong {
+  display: block;
+  text-align: right;
+}
+
+[dir="rtl"] .track-modal .modal-stats {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .track-modal .modal-stat {
+  text-align: center;
 }
 
 /* ========== Cards ========== */
