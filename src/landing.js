@@ -27,6 +27,7 @@ window.openTracker = () => window.landingController?.openTracker() || (window.lo
 window.closeTrackModal = () => window.landingController?.closeTrackModal();
 window.goToTracker = () => window.landingController?.goToTracker() || (window.location.href = 'tracker.html');
 window.toggleSkipTrackModal = (checked) => window.landingController?.toggleSkipTrackModal(checked);
+window.setTrackModalPref = (pref) => window.landingController?.setTrackModalPref(pref);
 window.quickSearch = () => window.landingController?.quickSearch();
 window.searchTrails = () => window.landingController?.searchTrails();
 window.applyFilters = () => window.landingController?.applyFilters();
@@ -429,12 +430,12 @@ class LandingPageController {
     // Show track trail modal
     const modal = document.getElementById('trackTrailModal');
     if (modal) {
-      // Apply current language direction to modal
+      // Apply current language direction to entire modal
       const currentLang = localStorage.getItem('accessNature_language') || 'en';
-      const modalContainer = modal.querySelector('.track-modal');
-      if (modalContainer) {
-        modalContainer.setAttribute('dir', currentLang === 'he' ? 'rtl' : 'ltr');
-      }
+      const isRTL = currentLang === 'he';
+      
+      // Set dir on the outer modal div for proper RTL inheritance
+      modal.setAttribute('dir', isRTL ? 'rtl' : 'ltr');
       
       modal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
@@ -442,10 +443,13 @@ class LandingPageController {
       // Update stats in modal from userService or localStorage
       this.updateTrackModalStats();
       
-      // Restore checkbox state
-      const skipCheckbox = document.getElementById('skipTrackModal');
-      if (skipCheckbox) {
-        skipCheckbox.checked = false; // Always unchecked when showing
+      // Restore radio button state from localStorage
+      const skipPref = localStorage.getItem('accessNature_skipTrackModal') === 'true';
+      const showRadio = document.getElementById('showModalAlways');
+      const skipRadio = document.getElementById('skipModalNext');
+      if (showRadio && skipRadio) {
+        showRadio.checked = !skipPref;
+        skipRadio.checked = skipPref;
       }
       
       // Translate modal content
@@ -494,17 +498,29 @@ class LandingPageController {
   }
   
   goToTracker() {
-    // Save skip preference if checked
-    const skipCheckbox = document.getElementById('skipTrackModal');
-    if (skipCheckbox?.checked) {
+    // Save preference based on radio selection before navigating
+    const skipRadio = document.getElementById('skipModalNext');
+    if (skipRadio?.checked) {
       localStorage.setItem('accessNature_skipTrackModal', 'true');
+    } else {
+      localStorage.removeItem('accessNature_skipTrackModal');
     }
     window.location.href = 'tracker.html';
   }
   
+  setTrackModalPref(pref) {
+    // Save preference immediately when radio changes
+    if (pref === 'skip') {
+      localStorage.setItem('accessNature_skipTrackModal', 'true');
+    } else {
+      localStorage.removeItem('accessNature_skipTrackModal');
+    }
+    console.log('Track modal preference set to:', pref);
+  }
+  
   toggleSkipTrackModal(checked) {
-    // Just update the checkbox state, actual save happens on goToTracker
-    console.log('Skip track modal preference:', checked);
+    // Legacy function for backwards compatibility
+    this.setTrackModalPref(checked ? 'skip' : 'show');
   }
 
   // Search Functions
