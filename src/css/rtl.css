@@ -391,62 +391,103 @@ html[dir="rtl"] .leaflet-control-layers {
   flex-direction: row-reverse;
 }
 
-/* Track Modal RTL */
-[dir="rtl"] .track-modal {
-  text-align: right;
-}
-
-[dir="rtl"] .track-modal .modal-header {
-  flex-direction: row-reverse;
-}
-
-[dir="rtl"] .track-modal .modal-header h2 {
-  text-align: right;
-}
-
-[dir="rtl"] .track-modal .modal-content {
-  text-align: right;
-}
-
-[dir="rtl"] .track-modal .modal-description {
+/* Track Modal RTL - Note: dir="rtl" is set on .track-modal element directly */
+[dir="rtl"] .track-modal,
+.track-modal[dir="rtl"],
+.modal-container.track-modal[dir="rtl"] {
   text-align: right;
   direction: rtl;
 }
 
-[dir="rtl"] .track-modal .feature-list {
+[dir="rtl"] .track-modal .modal-header,
+.track-modal[dir="rtl"] .modal-header,
+.modal-container.track-modal[dir="rtl"] .modal-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .track-modal .modal-header h2,
+.track-modal[dir="rtl"] .modal-header h2,
+.modal-container.track-modal[dir="rtl"] .modal-header h2 {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .track-modal .modal-content,
+.track-modal[dir="rtl"] .modal-content,
+.modal-container.track-modal[dir="rtl"] .modal-content {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .track-modal .modal-description,
+.track-modal[dir="rtl"] .modal-description,
+.modal-container.track-modal[dir="rtl"] .modal-description {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .track-modal .feature-list,
+.track-modal[dir="rtl"] .feature-list,
+.modal-container.track-modal[dir="rtl"] .feature-list {
   text-align: right;
 }
 
-[dir="rtl"] .track-modal .feature-item {
+[dir="rtl"] .track-modal .feature-item,
+.track-modal[dir="rtl"] .feature-item,
+.modal-container.track-modal[dir="rtl"] .feature-item {
   flex-direction: row-reverse;
   text-align: right;
 }
 
-[dir="rtl"] .track-modal .feature-icon {
+[dir="rtl"] .track-modal .feature-icon,
+.track-modal[dir="rtl"] .feature-icon,
+.modal-container.track-modal[dir="rtl"] .feature-icon {
   margin-left: 12px;
   margin-right: 0;
 }
 
-[dir="rtl"] .track-modal .feature-text {
+[dir="rtl"] .track-modal .feature-text,
+.track-modal[dir="rtl"] .feature-text,
+.modal-container.track-modal[dir="rtl"] .feature-text {
   text-align: right;
   direction: rtl;
 }
 
 [dir="rtl"] .track-modal .feature-text strong,
-[dir="rtl"] .track-modal .feature-text span {
+[dir="rtl"] .track-modal .feature-text span,
+.track-modal[dir="rtl"] .feature-text strong,
+.track-modal[dir="rtl"] .feature-text span,
+.modal-container.track-modal[dir="rtl"] .feature-text strong,
+.modal-container.track-modal[dir="rtl"] .feature-text span {
   display: block;
   text-align: right;
+  direction: rtl;
 }
 
-[dir="rtl"] .track-modal .modal-stats {
+[dir="rtl"] .track-modal .modal-stats,
+.track-modal[dir="rtl"] .modal-stats,
+.modal-container.track-modal[dir="rtl"] .modal-stats {
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .track-modal .modal-stat {
+[dir="rtl"] .track-modal .modal-stat,
+.track-modal[dir="rtl"] .modal-stat,
+.modal-container.track-modal[dir="rtl"] .modal-stat {
   text-align: center;
 }
 
-[dir="rtl"] .track-modal .modal-action-btn {
+[dir="rtl"] .track-modal .modal-action-btn,
+.track-modal[dir="rtl"] .modal-action-btn,
+.modal-container.track-modal[dir="rtl"] .modal-action-btn {
+  direction: rtl;
+}
+
+/* Skip modal option RTL */
+[dir="rtl"] .track-modal .skip-modal-option,
+.track-modal[dir="rtl"] .skip-modal-option,
+.modal-container.track-modal[dir="rtl"] .skip-modal-option {
+  flex-direction: row-reverse;
+  text-align: right;
   direction: rtl;
 }
 
