@@ -618,7 +618,7 @@
   <!-- Track Trail Modal -->
   <div id="trackTrailModal" class="modal hidden">
     <div class="modal-backdrop" onclick="closeTrackModal()"></div>
-    <div class="modal-container track-modal">
+    <div class="modal-container track-modal" id="trackModalContainer">
       <div class="modal-header">
         <h2 data-i18n="trackModal.title">📍 Map a New Trail</h2>
         <button class="modal-close" onclick="closeTrackModal()" aria-label="Close">✕</button>
@@ -627,7 +627,12 @@
       <div class="modal-content">
         <p class="modal-description" data-i18n="trackModal.description">Use GPS tracking to document accessible routes. Record accessibility features, take photos, and create trail guides for the community.</p>
         
-        <div class="feature-list">
+        <!-- Primary CTA after description -->
+        <button class="modal-action-btn primary" onclick="goToTracker()" data-i18n="trackModal.startTracking">
+          📍 Start Tracking Now
+        </button>
+        
+        <div class="feature-list compact">
           <div class="feature-item">
             <span class="feature-icon">📱</span>
             <div class="feature-text">
@@ -636,24 +641,10 @@
             </div>
           </div>
           <div class="feature-item">
-            <span class="feature-icon">📝</span>
+            <span class="feature-icon">♿</span>
             <div class="feature-text">
               <strong data-i18n="trackModal.survey">Accessibility Survey</strong>
               <span data-i18n="trackModal.surveyDesc">Document surface, slope, and obstacles</span>
-            </div>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">📷</span>
-            <div class="feature-text">
-              <strong data-i18n="trackModal.photos">Photo Documentation</strong>
-              <span data-i18n="trackModal.photosDesc">Add photos with accessibility notes</span>
-            </div>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">☁️</span>
-            <div class="feature-text">
-              <strong data-i18n="trackModal.sync">Cloud Sync</strong>
-              <span data-i18n="trackModal.syncDesc">Save and access trails from any device</span>
             </div>
           </div>
         </div>
@@ -669,9 +660,17 @@
           </div>
         </div>
         
-        <button class="modal-action-btn primary" onclick="window.location.href='tracker.html'" data-i18n="trackModal.startTracking">
-          📍 Start Tracking Now
-        </button>
+        <!-- Modal preference radio buttons -->
+        <div class="modal-preference-group">
+          <label class="modal-preference-option">
+            <input type="radio" name="trackModalPref" id="showModalAlways" value="show" checked onchange="setTrackModalPref('show')">
+            <span data-i18n="trackModal.showAlways">Show this window always</span>
+          </label>
+          <label class="modal-preference-option">
+            <input type="radio" name="trackModalPref" id="skipModalNext" value="skip" onchange="setTrackModalPref('skip')">
+            <span data-i18n="trackModal.skipNext">Next time go straight to tracker</span>
+          </label>
+        </div>
       </div>
     </div>
   </div>
@@ -877,14 +876,14 @@
     
     try {
       btn.disabled = true;
-      btn.querySelector('.btn-text').textContent = 'Signing in...';
+      btn.querySelector('.btn-text').textContent = window.t?.('auth.signingIn') || 'Signing in...';
       await signInWithEmailAndPassword(auth, email, password);
       closeAuthModal();
     } catch (error) {
-      alert('Sign in failed: ' + error.message);
+      alert((window.t?.('auth.signInFailed') || 'Sign in failed') + ': ' + error.message);
     } finally {
       btn.disabled = false;
-      btn.querySelector('.btn-text').textContent = 'Sign In';
+      btn.querySelector('.btn-text').textContent = window.t?.('auth.signIn') || 'Sign In';
     }
   });
   
@@ -898,15 +897,15 @@
     
     try {
       btn.disabled = true;
-      btn.querySelector('.btn-text').textContent = 'Creating account...';
+      btn.querySelector('.btn-text').textContent = window.t?.('auth.creatingAccount') || 'Creating account...';
       const result = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(result.user, { displayName: name });
       closeAuthModal();
     } catch (error) {
-      alert('Sign up failed: ' + error.message);
+      alert((window.t?.('auth.signUpFailed') || 'Sign up failed') + ': ' + error.message);
     } finally {
       btn.disabled = false;
-      btn.querySelector('.btn-text').textContent = 'Create Account';
+      btn.querySelector('.btn-text').textContent = window.t?.('authModal.createAccount') || 'Create Account';
     }
   });
   
@@ -927,7 +926,7 @@
           if (truncatedName) profileLabel.textContent = truncatedName;
         } else {
           profileItem.classList.remove('signed-in');
-          profileLabel.textContent = 'Sign In';
+          profileLabel.textContent = window.t?.('auth.signIn') || 'Sign In';
         }
         return true;
       }
@@ -946,7 +945,7 @@
       
       indicator?.classList.add('signed-in');
       if (text) text.textContent = user.displayName || user.email?.split('@')[0];
-      if (btn) { btn.textContent = 'Sign Out'; btn.onclick = () => signOut(auth); }
+      if (btn) { btn.textContent = window.t?.('auth.signOut') || 'Sign Out'; btn.onclick = () => signOut(auth); }
       
       // Update global nav immediately and with retries
       if (!updateGlobalNavProfile()) {
@@ -960,9 +959,9 @@
       }
     } else {
       indicator?.classList.remove('signed-in');
-      if (text) text.textContent = 'Guest';
+      if (text) text.textContent = window.t?.('auth.guest') || 'Guest';
       if (btn) { 
-        btn.textContent = 'Sign In'; 
+        btn.textContent = window.t?.('auth.signIn') || 'Sign In'; 
         btn.onclick = openAuthModal;
       }
       
