@@ -1637,9 +1637,14 @@
             const truncatedName = displayName && displayName.length > 10 ? displayName.substring(0, 10) + '…' : displayName;
             profileItem.classList.add('signed-in');
             if (truncatedName) profileLabel.textContent = truncatedName;
+            // Save to localStorage for persistence across language toggles
+            if (displayName && displayName !== 'User') {
+              localStorage.setItem('accessNature_userName', displayName);
+            }
           } else {
             profileItem.classList.remove('signed-in');
-            profileLabel.textContent = 'Sign In';
+            profileLabel.textContent = window.t?.('auth.signIn') || 'Sign In';
+            localStorage.removeItem('accessNature_userName');
           }
           return true;
         }
