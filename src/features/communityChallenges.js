@@ -130,6 +130,12 @@ class CommunityChallengesUI {
   async initialize() {
     this.injectStyles();
     await this.loadUserProgress();
+    
+    // Listen for language changes
+    window.addEventListener('languageChanged', () => {
+      this.refresh();
+    });
+    
     console.log('🏆 Community Challenges initialized');
   }
 
