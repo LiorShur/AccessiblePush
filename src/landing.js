@@ -430,12 +430,60 @@ class LandingPageController {
     // Show track trail modal
     const modal = document.getElementById('trackTrailModal');
     if (modal) {
-      // Apply current language direction to entire modal
+      // Apply current language direction to entire modal and container
       const currentLang = localStorage.getItem('accessNature_language') || 'en';
       const isRTL = currentLang === 'he';
+      const dir = isRTL ? 'rtl' : 'ltr';
       
-      // Set dir on the outer modal div for proper RTL inheritance
-      modal.setAttribute('dir', isRTL ? 'rtl' : 'ltr');
+      // Set dir on outer modal div
+      modal.setAttribute('dir', dir);
+      
+      // Also set dir on modal container for better inheritance
+      const modalContainer = modal.querySelector('.track-modal');
+      if (modalContainer) {
+        modalContainer.setAttribute('dir', dir);
+        modalContainer.style.direction = dir;
+        modalContainer.style.textAlign = isRTL ? 'right' : 'left';
+      }
+      
+      // Apply RTL styles to feature items programmatically
+      const featureItems = modal.querySelectorAll('.feature-item');
+      featureItems.forEach(item => {
+        item.style.flexDirection = isRTL ? 'row-reverse' : 'row';
+        item.style.textAlign = isRTL ? 'right' : 'left';
+        
+        const icon = item.querySelector('.feature-icon');
+        if (icon) {
+          icon.style.marginLeft = isRTL ? '12px' : '0';
+          icon.style.marginRight = isRTL ? '0' : '12px';
+        }
+        
+        const text = item.querySelector('.feature-text');
+        if (text) {
+          text.style.textAlign = isRTL ? 'right' : 'left';
+          text.style.direction = dir;
+        }
+      });
+      
+      // Apply RTL styles to modal preference options
+      const prefOptions = modal.querySelectorAll('.modal-preference-option');
+      prefOptions.forEach(opt => {
+        opt.style.flexDirection = isRTL ? 'row-reverse' : 'row';
+        opt.style.textAlign = isRTL ? 'right' : 'left';
+        opt.style.direction = dir;
+      });
+      
+      // Apply RTL to modal stats
+      const modalStats = modal.querySelector('.modal-stats');
+      if (modalStats) {
+        modalStats.style.flexDirection = isRTL ? 'row-reverse' : 'row';
+      }
+      
+      // Apply RTL to modal header
+      const modalHeader = modal.querySelector('.modal-header');
+      if (modalHeader) {
+        modalHeader.style.flexDirection = isRTL ? 'row-reverse' : 'row';
+      }
       
       modal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
@@ -462,19 +510,38 @@ class LandingPageController {
     }
   }
   
-  updateTrackModalStats() {
+  async updateTrackModalStats() {
     const modalRoutes = document.getElementById('modalTotalRoutes');
     const modalDistance = document.getElementById('modalTotalDistance');
     
-    // Try to get from userService first
+    // Try to get from userService first (Firebase data)
     if (window.userService?.userData) {
       const usage = window.userService.userData.usage || {};
       const engagement = window.userService.userData.engagement || {};
-      const routeCount = usage.savedRoutes || usage.guidesCreated || 0;
+      const routeCount = usage.savedRoutes || 0;
       const totalDist = engagement.totalTrackedDistance || 0;
       if (modalRoutes) modalRoutes.textContent = routeCount;
       if (modalDistance) modalDistance.textContent = totalDist.toFixed(1);
+      console.log('[TrackModal] Stats from userService:', { routeCount, totalDist });
       return;
+    }
+    
+    // Try IndexedDB next
+    try {
+      const { RouteDB } = await import('./core/indexeddb.js');
+      const routeDB = new RouteDB();
+      await routeDB.init();
+      const routes = await routeDB.getAllRoutes();
+      if (routes && routes.length > 0) {
+        const routeCount = routes.length;
+        const totalDist = routes.reduce((sum, r) => sum + (r.totalDistance || 0), 0);
+        if (modalRoutes) modalRoutes.textContent = routeCount;
+        if (modalDistance) modalDistance.textContent = totalDist.toFixed(1);
+        console.log('[TrackModal] Stats from IndexedDB:', { routeCount, totalDist });
+        return;
+      }
+    } catch (e) {
+      console.warn('[TrackModal] IndexedDB not available:', e);
     }
     
     // Fallback to localStorage
@@ -484,8 +551,9 @@ class LandingPageController {
       const totalDist = sessions.reduce((sum, s) => sum + (s.totalDistance || 0), 0);
       if (modalRoutes) modalRoutes.textContent = routeCount;
       if (modalDistance) modalDistance.textContent = totalDist.toFixed(1);
+      console.log('[TrackModal] Stats from localStorage:', { routeCount, totalDist });
     } catch (e) {
-      console.warn('Could not load track modal stats:', e);
+      console.warn('[TrackModal] Could not load track modal stats:', e);
     }
   }
   
