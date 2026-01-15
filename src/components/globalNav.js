@@ -160,19 +160,79 @@ export class GlobalNav {
     const addLabel = this.navElement?.querySelector('[data-page="add"] .nav-label');
     const searchLabel = this.navElement?.querySelector('[data-page="search"] .nav-label');
     const profileLabel = this.navElement?.querySelector('#profileLabel');
+    const profileItem = this.navElement?.querySelector('#globalNavProfile');
     
     if (homeLabel) homeLabel.textContent = this.t('home');
     if (addLabel) addLabel.textContent = this.t('add');
     if (searchLabel) searchLabel.textContent = this.t('search');
     
-    // Profile label - only update if not showing user name
-    if (profileLabel && !this.isSignedIn) {
-      profileLabel.textContent = this.t('signIn');
-    } else if (profileLabel && this.isSignedIn && !this.userName) {
-      profileLabel.textContent = this.t('profile');
+    // Profile label - check DOM state directly for signed-in status
+    if (profileLabel && profileItem) {
+      const isSignedInByDOM = profileItem.classList.contains('signed-in');
+      const currentLabel = profileLabel.textContent?.trim();
+      
+      // Try to get userName from multiple sources
+      const storedUserName = localStorage.getItem('accessNature_userName');
+      const firebaseUser = window.auth?.currentUser;
+      const firebaseUserName = firebaseUser?.email?.split('@')[0] || firebaseUser?.displayName;
+      
+      // Update our cached userName if we found one
+      if (!this.userName && (storedUserName || firebaseUserName)) {
+        this.userName = storedUserName || firebaseUserName;
+      }
+      
+      // Check if current label looks like a user name (not a translation key result)
+      const looksLikeUserName = currentLabel && 
+        currentLabel !== 'Sign In' && 
+        currentLabel !== 'התחבר' && 
+        currentLabel !== 'Profile' && 
+        currentLabel !== 'פרופיל' &&
+        currentLabel !== 'User' &&
+        !currentLabel.toLowerCase().includes('sign');
+      
+      if (isSignedInByDOM) {
+        // User is signed in - preserve their name
+        if (looksLikeUserName) {
+          // Current label already shows a name, keep it
+          // Also save it to our cache and localStorage for future use
+          if (!this.userName) {
+            this.userName = currentLabel;
+            localStorage.setItem('accessNature_userName', currentLabel);
+          }
+        } else if (this.userName) {
+          // Current label is generic but we have a cached name
+          const displayName = this.userName.length > 10 
+            ? this.userName.substring(0, 10) + '…' 
+            : this.userName;
+          profileLabel.textContent = displayName;
+        } else if (storedUserName) {
+          // Get from localStorage
+          const displayName = storedUserName.length > 10 
+            ? storedUserName.substring(0, 10) + '…' 
+            : storedUserName;
+          profileLabel.textContent = displayName;
+          this.userName = storedUserName;
+        }
+        // If we can't find a name, leave the label as is
+      } else {
+        // Not signed in - show translated "Sign In"
+        profileLabel.textContent = this.t('signIn');
+      }
     }
     
-    console.log('[GlobalNav] Labels refreshed for language:', this.lang);
+    console.log('[GlobalNav] Labels refreshed for language:', this.lang, 'isSignedIn:', this.isSignedIn, 'userName:', this.userName);
+  }
+  
+  /**
+   * Set auth state from external source (e.g., page's auth handler)
+   * This ensures refreshLabels() knows the correct auth state
+   */
+  setAuthState(isSignedIn, userName = null) {
+    this.isSignedIn = isSignedIn;
+    if (userName) {
+      this.userName = userName;
+    }
+    console.log('[GlobalNav] Auth state set:', { isSignedIn, userName });
   }
 
   /**
@@ -335,6 +395,8 @@ export class GlobalNav {
         
         if (userName) {
           this.userName = userName;
+          // Save to localStorage for persistence across language toggles
+          localStorage.setItem('accessNature_userName', userName);
           
           // Truncate long names
           const displayName = userName.length > 10 
@@ -350,7 +412,10 @@ export class GlobalNav {
         }
       } else {
         profileItem.classList.remove('signed-in');
-        profileLabel.textContent = 'Sign In';
+        profileLabel.textContent = this.t('signIn');
+        // Clear stored userName on sign out
+        localStorage.removeItem('accessNature_userName');
+        this.userName = null;
       }
     };
     
