@@ -2766,9 +2766,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       i18n.translatePage();
       
       // Listen for language changes to retranslate
-      i18n.onLanguageChange((newLang, prevLang) => {
+      i18n.onLanguageChange(async (newLang, prevLang) => {
         console.log(`🌐 Language changed: ${prevLang} → ${newLang}`);
         i18n.translatePage();
+        
+        // Refresh dynamic content that doesn't use data-i18n
+        if (window.communityChallenges?.refresh) {
+          await window.communityChallenges.refresh();
+        }
+        
+        // Refresh featured trails to update accessibility badges
+        if (window.landingController?.filteredTrails?.length > 0) {
+          window.landingController.displayFeaturedTrails(
+            window.landingController.filteredTrails.slice(0, window.landingController.displayedFeaturedCount)
+          );
+        }
       });
       console.log('🌐 i18n initialized successfully');
     } catch (i18nError) {
