@@ -392,15 +392,48 @@ html[dir="rtl"] .leaflet-control-layers {
 }
 
 /* Track Modal RTL */
+[dir="rtl"] .track-modal {
+  text-align: right;
+}
+
+[dir="rtl"] .track-modal .modal-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .track-modal .modal-header h2 {
+  text-align: right;
+}
+
 [dir="rtl"] .track-modal .modal-content {
   text-align: right;
 }
 
-[dir="rtl"] .track-modal .feature-text {
+[dir="rtl"] .track-modal .modal-description {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .track-modal .feature-list {
   text-align: right;
 }
 
-[dir="rtl"] .track-modal .feature-text strong {
+[dir="rtl"] .track-modal .feature-item {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .track-modal .feature-icon {
+  margin-left: 12px;
+  margin-right: 0;
+}
+
+[dir="rtl"] .track-modal .feature-text {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .track-modal .feature-text strong,
+[dir="rtl"] .track-modal .feature-text span {
   display: block;
   text-align: right;
 }
@@ -411,6 +444,10 @@ html[dir="rtl"] .leaflet-control-layers {
 
 [dir="rtl"] .track-modal .modal-stat {
   text-align: center;
+}
+
+[dir="rtl"] .track-modal .modal-action-btn {
+  direction: rtl;
 }
 
 /* ========== Cards ========== */
