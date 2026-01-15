@@ -391,108 +391,110 @@ html[dir="rtl"] .leaflet-control-layers {
   flex-direction: row-reverse;
 }
 
-/* Track Modal RTL - dir="rtl" is set on #trackTrailModal outer div */
+/* Track Modal RTL - dir="rtl" is set on both #trackTrailModal and .track-modal */
 #trackTrailModal[dir="rtl"] .track-modal,
-[dir="rtl"] .track-modal,
+#trackTrailModal[dir="rtl"] .modal-container,
 .track-modal[dir="rtl"] {
   text-align: right;
   direction: rtl;
 }
 
 #trackTrailModal[dir="rtl"] .modal-header,
-[dir="rtl"] .track-modal .modal-header,
 .track-modal[dir="rtl"] .modal-header {
-  flex-direction: row-reverse;
+  flex-direction: row-reverse !important;
 }
 
 #trackTrailModal[dir="rtl"] .modal-header h2,
-[dir="rtl"] .track-modal .modal-header h2,
 .track-modal[dir="rtl"] .modal-header h2 {
-  text-align: right;
+  text-align: right !important;
   direction: rtl;
 }
 
 #trackTrailModal[dir="rtl"] .modal-content,
-[dir="rtl"] .track-modal .modal-content,
 .track-modal[dir="rtl"] .modal-content {
   text-align: right;
   direction: rtl;
 }
 
 #trackTrailModal[dir="rtl"] .modal-description,
-[dir="rtl"] .track-modal .modal-description,
 .track-modal[dir="rtl"] .modal-description {
-  text-align: right;
+  text-align: right !important;
   direction: rtl;
-}
-
-#trackTrailModal[dir="rtl"] .feature-list,
-[dir="rtl"] .track-modal .feature-list,
-.track-modal[dir="rtl"] .feature-list {
-  text-align: right;
-}
-
-#trackTrailModal[dir="rtl"] .feature-item,
-[dir="rtl"] .track-modal .feature-item,
-.track-modal[dir="rtl"] .feature-item {
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
-#trackTrailModal[dir="rtl"] .feature-icon,
-[dir="rtl"] .track-modal .feature-icon,
-.track-modal[dir="rtl"] .feature-icon {
-  margin-left: 12px;
-  margin-right: 0;
-}
-
-#trackTrailModal[dir="rtl"] .feature-text,
-[dir="rtl"] .track-modal .feature-text,
-.track-modal[dir="rtl"] .feature-text {
-  text-align: right;
-  direction: rtl;
-}
-
-#trackTrailModal[dir="rtl"] .feature-text strong,
-#trackTrailModal[dir="rtl"] .feature-text span,
-[dir="rtl"] .track-modal .feature-text strong,
-[dir="rtl"] .track-modal .feature-text span,
-.track-modal[dir="rtl"] .feature-text strong,
-.track-modal[dir="rtl"] .feature-text span {
-  display: block;
-  text-align: right;
-  direction: rtl;
-}
-
-#trackTrailModal[dir="rtl"] .modal-stats,
-[dir="rtl"] .track-modal .modal-stats,
-.track-modal[dir="rtl"] .modal-stats {
-  flex-direction: row-reverse;
-}
-
-#trackTrailModal[dir="rtl"] .modal-stat,
-[dir="rtl"] .track-modal .modal-stat,
-.track-modal[dir="rtl"] .modal-stat {
-  text-align: center;
 }
 
 #trackTrailModal[dir="rtl"] .modal-action-btn,
-[dir="rtl"] .track-modal .modal-action-btn,
 .track-modal[dir="rtl"] .modal-action-btn {
   direction: rtl;
 }
 
-/* Modal preference radio buttons RTL */
-#trackTrailModal[dir="rtl"] .modal-preference-group,
-[dir="rtl"] .track-modal .modal-preference-group,
-.track-modal[dir="rtl"] .modal-preference-group {
+#trackTrailModal[dir="rtl"] .feature-list,
+.track-modal[dir="rtl"] .feature-list {
   text-align: right;
 }
 
+#trackTrailModal[dir="rtl"] .feature-list .feature-item,
+.track-modal[dir="rtl"] .feature-list .feature-item,
+#trackTrailModal[dir="rtl"] .feature-item,
+.track-modal[dir="rtl"] .feature-item {
+  flex-direction: row-reverse !important;
+  text-align: right !important;
+}
+
+#trackTrailModal[dir="rtl"] .feature-item .feature-icon,
+.track-modal[dir="rtl"] .feature-item .feature-icon {
+  margin-left: 12px !important;
+  margin-right: 0 !important;
+}
+
+#trackTrailModal[dir="rtl"] .feature-item .feature-text,
+.track-modal[dir="rtl"] .feature-item .feature-text {
+  text-align: right !important;
+  direction: rtl !important;
+  align-items: flex-end;
+}
+
+#trackTrailModal[dir="rtl"] .feature-item .feature-text strong,
+#trackTrailModal[dir="rtl"] .feature-item .feature-text span,
+.track-modal[dir="rtl"] .feature-item .feature-text strong,
+.track-modal[dir="rtl"] .feature-item .feature-text span {
+  display: block;
+  text-align: right !important;
+  direction: rtl !important;
+  width: 100%;
+}
+
+#trackTrailModal[dir="rtl"] .modal-stats,
+.track-modal[dir="rtl"] .modal-stats {
+  flex-direction: row-reverse !important;
+}
+
+#trackTrailModal[dir="rtl"] .modal-stat,
+.track-modal[dir="rtl"] .modal-stat {
+  text-align: center;
+}
+
+/* Modal preference radio buttons RTL */
+#trackTrailModal[dir="rtl"] .modal-preference-group,
+.track-modal[dir="rtl"] .modal-preference-group {
+  text-align: right;
+  direction: rtl;
+}
+
 #trackTrailModal[dir="rtl"] .modal-preference-option,
-[dir="rtl"] .track-modal .modal-preference-option,
 .track-modal[dir="rtl"] .modal-preference-option {
-  flex-direction: row-reverse;
+  flex-direction: row-reverse !important;
+  text-align: right !important;
+  direction: rtl !important;
+}
+
+#trackTrailModal[dir="rtl"] .modal-preference-option input[type="radio"],
+.track-modal[dir="rtl"] .modal-preference-option input[type="radio"] {
+  margin-left: 10px;
+  margin-right: 0;
+}
+
+#trackTrailModal[dir="rtl"] .modal-preference-option span,
+.track-modal[dir="rtl"] .modal-preference-option span {
   text-align: right;
   direction: rtl;
 }
