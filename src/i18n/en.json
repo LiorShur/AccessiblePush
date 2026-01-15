@@ -123,7 +123,9 @@
     "communityStats": "Community Stats",
     "routesMapped": "Routes Mapped",
     "kmDocumented": "km Documented",
-    "startTracking": "📍 Start Tracking Now"
+    "startTracking": "📍 Start Tracking Now",
+    "showAlways": "Show this window always",
+    "skipNext": "Next time go straight to tracker"
   },
   "trailBrowser": {
     "title": "🔍 Browse Accessible Trails",

@@ -123,7 +123,9 @@
     "communityStats": "סטטיסטיקות קהילה",
     "routesMapped": "מסלולים מופו",
     "kmDocumented": "ק״מ תועדו",
-    "startTracking": "📍 התחל הקלטה עכשיו"
+    "startTracking": "📍 התחל הקלטה עכשיו",
+    "showAlways": "הצג חלון זה תמיד",
+    "skipNext": "בפעם הבאה עבור ישירות להקלטה"
   },
   "trailBrowser": {
     "title": "🔍 עיין בשבילים נגישים",
