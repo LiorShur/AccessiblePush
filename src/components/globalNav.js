@@ -141,7 +141,38 @@ export class GlobalNav {
       }
     });
     
+    // Listen for language changes to update labels
+    window.addEventListener('languageChanged', () => {
+      this.refreshLabels();
+    });
+    
     console.log('[GlobalNav] Initialized on page:', this.currentPage);
+  }
+  
+  /**
+   * Refresh nav labels after language change
+   */
+  refreshLabels() {
+    this.lang = localStorage.getItem('accessNature_language') || 'en';
+    
+    // Update nav item labels
+    const homeLabel = this.navElement?.querySelector('[data-page="home"] .nav-label');
+    const addLabel = this.navElement?.querySelector('[data-page="add"] .nav-label');
+    const searchLabel = this.navElement?.querySelector('[data-page="search"] .nav-label');
+    const profileLabel = this.navElement?.querySelector('#profileLabel');
+    
+    if (homeLabel) homeLabel.textContent = this.t('home');
+    if (addLabel) addLabel.textContent = this.t('add');
+    if (searchLabel) searchLabel.textContent = this.t('search');
+    
+    // Profile label - only update if not showing user name
+    if (profileLabel && !this.isSignedIn) {
+      profileLabel.textContent = this.t('signIn');
+    } else if (profileLabel && this.isSignedIn && !this.userName) {
+      profileLabel.textContent = this.t('profile');
+    }
+    
+    console.log('[GlobalNav] Labels refreshed for language:', this.lang);
   }
 
   /**
