@@ -23,7 +23,10 @@ window.openTrailBrowser = () => {
   setTimeout(() => window.landingController?.openTrailBrowser(), 100);
 };
 window.closeTrailBrowser = () => window.landingController?.closeTrailBrowser();
-window.openTracker = () => { window.location.href = 'tracker.html'; };
+window.openTracker = () => window.landingController?.openTracker() || (window.location.href = 'tracker.html');
+window.closeTrackModal = () => window.landingController?.closeTrackModal();
+window.goToTracker = () => window.landingController?.goToTracker() || (window.location.href = 'tracker.html');
+window.toggleSkipTrackModal = (checked) => window.landingController?.toggleSkipTrackModal(checked);
 window.quickSearch = () => window.landingController?.quickSearch();
 window.searchTrails = () => window.landingController?.searchTrails();
 window.applyFilters = () => window.landingController?.applyFilters();
@@ -416,22 +419,69 @@ class LandingPageController {
   }
 
   openTracker() {
+    // Check if user wants to skip modal
+    const skipModal = localStorage.getItem('accessNature_skipTrackModal') === 'true';
+    if (skipModal) {
+      window.location.href = 'tracker.html';
+      return;
+    }
+    
     // Show track trail modal
     const modal = document.getElementById('trackTrailModal');
     if (modal) {
+      // Apply current language direction to modal
+      const currentLang = localStorage.getItem('accessNature_language') || 'en';
+      const modalContainer = modal.querySelector('.track-modal');
+      if (modalContainer) {
+        modalContainer.setAttribute('dir', currentLang === 'he' ? 'rtl' : 'ltr');
+      }
+      
       modal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
       
-      // Update stats in modal
-      const totalRoutes = document.getElementById('totalRoutes')?.textContent || '0';
-      const totalDistance = document.getElementById('totalDistance')?.textContent || '0';
-      const modalRoutes = document.getElementById('modalTotalRoutes');
-      const modalDistance = document.getElementById('modalTotalDistance');
-      if (modalRoutes) modalRoutes.textContent = totalRoutes;
-      if (modalDistance) modalDistance.textContent = totalDistance;
+      // Update stats in modal from userService or localStorage
+      this.updateTrackModalStats();
+      
+      // Restore checkbox state
+      const skipCheckbox = document.getElementById('skipTrackModal');
+      if (skipCheckbox) {
+        skipCheckbox.checked = false; // Always unchecked when showing
+      }
+      
+      // Translate modal content
+      if (window.i18n?.translatePage) {
+        window.i18n.translatePage();
+      }
     } else {
       // Fallback: redirect to tracker
       window.location.href = 'tracker.html';
+    }
+  }
+  
+  updateTrackModalStats() {
+    const modalRoutes = document.getElementById('modalTotalRoutes');
+    const modalDistance = document.getElementById('modalTotalDistance');
+    
+    // Try to get from userService first
+    if (window.userService?.userData) {
+      const usage = window.userService.userData.usage || {};
+      const engagement = window.userService.userData.engagement || {};
+      const routeCount = usage.savedRoutes || usage.guidesCreated || 0;
+      const totalDist = engagement.totalTrackedDistance || 0;
+      if (modalRoutes) modalRoutes.textContent = routeCount;
+      if (modalDistance) modalDistance.textContent = totalDist.toFixed(1);
+      return;
+    }
+    
+    // Fallback to localStorage
+    try {
+      const sessions = JSON.parse(localStorage.getItem('sessions') || '[]');
+      const routeCount = sessions.length;
+      const totalDist = sessions.reduce((sum, s) => sum + (s.totalDistance || 0), 0);
+      if (modalRoutes) modalRoutes.textContent = routeCount;
+      if (modalDistance) modalDistance.textContent = totalDist.toFixed(1);
+    } catch (e) {
+      console.warn('Could not load track modal stats:', e);
     }
   }
   
@@ -441,6 +491,20 @@ class LandingPageController {
       modal.classList.add('hidden');
       document.body.style.overflow = '';
     }
+  }
+  
+  goToTracker() {
+    // Save skip preference if checked
+    const skipCheckbox = document.getElementById('skipTrackModal');
+    if (skipCheckbox?.checked) {
+      localStorage.setItem('accessNature_skipTrackModal', 'true');
+    }
+    window.location.href = 'tracker.html';
+  }
+  
+  toggleSkipTrackModal(checked) {
+    // Just update the checkbox state, actual save happens on goToTracker
+    console.log('Skip track modal preference:', checked);
   }
 
   // Search Functions
