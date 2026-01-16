@@ -140,6 +140,12 @@ textarea:focus-visible,
     .top-nav {
       padding-right: 230px; /* Space for top toolbar */
     }
+    .top-nav::after {
+      display: none; /* Remove pseudo-element spacer from unified-nav.css */
+    }
+    .nav-brand {
+      margin-right: 0 !important; /* Override unified-nav.css margin-right: auto */
+    }
     .menu-toggle { display: none !important; }
     .nav-menu {
       display: flex !important;
@@ -150,14 +156,11 @@ textarea:focus-visible,
       gap: 4px;
       align-items: center;
       flex-shrink: 0;
+      margin-left: 16px; /* Space after nav-brand */
     }
     /* Hide emoji icons on desktop to save space */
     .nav-menu .nav-icon-emoji {
       display: none;
-    }
-    /* Hide mobility profile on desktop - available in profile page */
-    .nav-menu .nav-mobility-profile {
-      display: none !important;
     }
     .nav-menu .nav-link,
     .nav-menu #profileNavLink {
@@ -173,6 +176,10 @@ textarea:focus-visible,
       height: 32px;
       box-sizing: border-box;
       vertical-align: middle;
+    }
+    /* Hide mobility profile on desktop - MUST come after .nav-link rule */
+    .nav-menu .nav-mobility-profile {
+      display: none !important;
     }
     .nav-menu .nav-link:hover {
       background: rgba(255,255,255,0.15);

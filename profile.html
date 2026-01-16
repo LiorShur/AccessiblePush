@@ -123,6 +123,12 @@
       .top-nav {
         padding-right: 230px; /* Space for top toolbar */
       }
+      .top-nav::after {
+        display: none; /* Remove pseudo-element spacer from unified-nav.css */
+      }
+      .nav-brand {
+        margin-right: 0 !important; /* Override unified-nav.css margin-right: auto */
+      }
       .menu-toggle { display: none !important; }
       .nav-menu {
         display: flex !important;
@@ -133,23 +139,26 @@
         gap: 4px;
         align-items: center;
         flex-shrink: 0;
+        margin-left: 16px; /* Space after nav-brand */
       }
       /* Hide emoji icons on desktop to save space */
       .nav-menu .nav-icon-emoji {
         display: none;
       }
-      .nav-menu .nav-link {
+      .nav-menu .nav-link,
+      .nav-menu #profileNavLink {
         padding: 6px 10px;
         border-radius: 6px;
         color: #fff;
         text-decoration: none;
         font-size: 0.8rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         line-height: 1;
         height: 32px;
         box-sizing: border-box;
+        vertical-align: middle;
       }
       .nav-menu .nav-link:hover {
         background: rgba(255,255,255,0.15);
