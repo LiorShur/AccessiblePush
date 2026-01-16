@@ -724,13 +724,14 @@
       position: fixed;
       top: 0;
       left: 0;
-      right: 220px; /* Leave space for top toolbar */
+      right: 0;
       height: 60px;
       background: #000;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
       padding: 0 16px;
+      padding-right: 230px; /* Space for top toolbar on desktop */
       z-index: 9999;
     }
     .nav-brand {
@@ -752,64 +753,75 @@
     .nav-menu {
       display: none;
     }
+    
+    /* Desktop: show nav-menu */
     @media (min-width: 769px) {
+      .menu-toggle { display: none !important; }
       .nav-menu {
-        display: flex;
-        align-items: center;
+        display: flex !important;
+        position: static;
+        background: none;
+        box-shadow: none;
+        padding: 0;
         gap: 4px;
-        background: transparent;
+        align-items: center;
       }
       /* Hide emoji icons on desktop to save space */
       .nav-menu .nav-icon-emoji {
         display: none;
       }
       .nav-menu .nav-link {
-        padding: 6px 8px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: #fff;
+        text-decoration: none;
         font-size: 0.8rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         line-height: 1;
+        height: 32px;
+        box-sizing: border-box;
+      }
+      .nav-menu .nav-link:hover {
+        background: rgba(255,255,255,0.15);
+      }
+      .nav-menu .nav-link.active {
+        background: #667eea;
+        color: white;
       }
       .nav-menu .nav-auth {
+        margin-left: 8px;
         display: flex;
         align-items: center;
       }
       .nav-menu .nav-auth .btn {
-        padding: 6px 10px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        background: #667eea;
+        color: white;
+        cursor: pointer;
         font-size: 0.8rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 6px;
+        height: 32px;
+        box-sizing: border-box;
       }
-    }
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 8px;
-      transition: all 0.2s;
-    }
-    .nav-link:hover {
-      background: rgba(255,255,255,0.15);
-      color: #fff;
-    }
-    .nav-link.active {
-      background: #667eea;
-      color: white;
-    }
-    .nav-auth {
-      margin-left: 16px;
+      .nav-menu .nav-auth .btn:hover {
+        background: #5a6fd6;
+      }
     }
     
-    /* Mobile: reset top-nav to full width */
+    /* Mobile: reset padding, hide nav-menu */
     @media (max-width: 768px) {
       .top-nav {
-        right: 0;
+        padding-right: 16px;
       }
+      .menu-toggle { display: none !important; }
+      .nav-menu { display: none !important; }
     }
     
     .menu-toggle {
@@ -3210,7 +3222,13 @@
       };
       
       if (user) {
-        if (navAuthBtn) navAuthBtn.textContent = window.t?.('auth.signOut') || 'Sign Out';
+        if (navAuthBtn) {
+          const displayName = user.email?.split('@')[0] || user.displayName || 'User';
+          const shortName = displayName.length > 8 ? displayName.substring(0, 8) + '…' : displayName;
+          navAuthBtn.innerHTML = `<span aria-hidden="true">🚪</span> ${shortName}`;
+          navAuthBtn.title = window.t?.('auth.signOut') || 'Sign Out';
+          navAuthBtn.setAttribute('aria-label', `${window.t?.('auth.signOut') || 'Sign Out'} (${displayName})`);
+        }
         if (indicator) indicator.classList.add('signed-in');
         if (statusText) statusText.textContent = user.displayName || user.email?.split('@')[0] || 'User';
         if (profileNavLink) profileNavLink.style.display = 'block';
@@ -3220,7 +3238,11 @@
           [100, 300, 500, 1000].forEach(delay => setTimeout(updateGlobalNavProfile, delay));
         }
       } else {
-        if (navAuthBtn) navAuthBtn.textContent = window.t?.('auth.signIn') || 'Sign In';
+        if (navAuthBtn) {
+          navAuthBtn.innerHTML = window.t?.('auth.signIn') || 'Sign In';
+          navAuthBtn.title = '';
+          navAuthBtn.setAttribute('aria-label', window.t?.('auth.signIn') || 'Sign In');
+        }
         if (indicator) indicator.classList.remove('signed-in');
         if (statusText) statusText.textContent = window.t?.('auth.guest') || 'Guest';
         if (profileNavLink) profileNavLink.style.display = 'none';

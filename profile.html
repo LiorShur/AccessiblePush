@@ -85,11 +85,12 @@
       position: fixed;
       top: 0;
       left: 0;
-      right: 220px; /* Leave space for top toolbar */
+      right: 0;
       height: 60px;
       background: #000;
       color: white;
       padding: 0 16px;
+      padding-right: 230px; /* Space for top toolbar on desktop */
       display: flex;
       align-items: center;
       z-index: 9999;
@@ -125,13 +126,14 @@
         box-shadow: none;
         padding: 0;
         gap: 4px;
+        align-items: center;
       }
       /* Hide emoji icons on desktop to save space */
       .nav-menu .nav-icon-emoji {
         display: none;
       }
       .nav-menu .nav-link {
-        padding: 6px 8px;
+        padding: 6px 10px;
         border-radius: 6px;
         color: #fff;
         text-decoration: none;
@@ -140,6 +142,8 @@
         align-items: center;
         justify-content: center;
         line-height: 1;
+        height: 32px;
+        box-sizing: border-box;
       }
       .nav-menu .nav-link:hover {
         background: rgba(255,255,255,0.15);
@@ -154,15 +158,28 @@
         align-items: center;
       }
       .nav-menu .nav-auth .btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        background: #667eea;
+        color: white;
+        cursor: pointer;
+        font-size: 0.8rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 6px;
+        height: 32px;
+        box-sizing: border-box;
+      }
+      .nav-menu .nav-auth .btn:hover {
+        background: #5a6fd6;
       }
     }
     
-    /* Mobile: hide hamburger (replaced by bottom nav), reset top-nav to full width */
+    /* Mobile: reset padding, hide hamburger (replaced by bottom nav) */
     @media (max-width: 768px) {
-      .top-nav { right: 0; }
+      .top-nav { padding-right: 16px; }
       .menu-toggle { display: none !important; }
       .nav-menu { display: none !important; }
     }
@@ -1706,15 +1723,25 @@
           if (user) {
             indicator?.classList.add('signed-in');
             if (text) text.textContent = user.displayName || user.email?.split('@')[0] || 'User';
-            if (btn) { 
-              btn.textContent = 'Sign Out'; 
-              btn.onclick = () => signOut(auth).then(() => window.location.href = 'index.html');
+            if (btn) {
+              const displayName = user.email?.split('@')[0] || user.displayName || 'User';
+              const shortName = displayName.length > 8 ? displayName.substring(0, 8) + '…' : displayName;
+              btn.innerHTML = `<span aria-hidden="true">🚪</span> ${shortName}`;
+              btn.title = window.t?.('auth.signOut') || 'Sign Out';
+              btn.setAttribute('aria-label', `${window.t?.('auth.signOut') || 'Sign Out'} (${displayName})`);
+              btn.onclick = () => {
+                if (confirm(window.t?.('auth.signOutConfirm') || 'Sign out of Access Nature?')) {
+                  signOut(auth).then(() => window.location.href = 'index.html');
+                }
+              };
             }
           } else {
             indicator?.classList.remove('signed-in');
             if (text) text.textContent = 'Guest';
-            if (btn) { 
-              btn.textContent = 'Sign In'; 
+            if (btn) {
+              btn.innerHTML = window.t?.('auth.signIn') || 'Sign In';
+              btn.title = '';
+              btn.setAttribute('aria-label', window.t?.('auth.signIn') || 'Sign In');
               btn.onclick = () => window.location.href = 'index.html';
             }
           }

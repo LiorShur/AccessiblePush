@@ -106,13 +106,14 @@ textarea:focus-visible,
     position: fixed;
     top: 0;
     left: 0;
-    right: 220px; /* Leave space for top toolbar */
+    right: 0;
     height: 60px;
     background: #000;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     display: flex;
     align-items: center;
     padding: 0 16px;
+    padding-right: 230px; /* Space for top toolbar on desktop */
     z-index: 9999;
   }
   .nav-brand {
@@ -138,10 +139,15 @@ textarea:focus-visible,
   
   /* Desktop: show nav-menu inline */
   @media (min-width: 769px) {
+    .menu-toggle { display: none !important; }
     .nav-menu {
-      display: flex;
+      display: flex !important;
+      position: static;
+      background: none;
+      box-shadow: none;
+      padding: 0;
+      gap: 4px;
       align-items: center;
-      gap: 2px;
     }
     /* Hide emoji icons on desktop to save space */
     .nav-menu .nav-icon-emoji {
@@ -149,55 +155,60 @@ textarea:focus-visible,
     }
     /* Hide mobility profile on desktop - available in profile page */
     .nav-menu .nav-mobility-profile {
-      display: none;
+      display: none !important;
     }
     .nav-menu .nav-link {
-      padding: 5px 7px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      color: #fff;
+      text-decoration: none;
       font-size: 0.8rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       line-height: 1;
+      height: 32px;
+      box-sizing: border-box;
+    }
+    .nav-menu .nav-link:hover {
+      background: rgba(255,255,255,0.15);
+    }
+    .nav-menu .nav-link.active {
+      background: #667eea;
+      color: white;
     }
     .nav-menu .nav-auth {
+      margin-left: 8px;
       display: flex;
       align-items: center;
     }
     .nav-menu .nav-auth .btn {
-      padding: 5px 8px;
-      font-size: 0.75rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      background: #667eea;
+      color: white;
+      cursor: pointer;
+      font-size: 0.8rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
+      height: 32px;
+      box-sizing: border-box;
     }
-  }
-  .nav-menu .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 6px;
-    font-size: 0.85rem;
-  }
-  .nav-menu .nav-link:hover { background: rgba(255,255,255,0.1); }
-  .nav-menu .nav-link.active { background: #667eea; color: white; }
-  .nav-menu .nav-auth .btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: none;
-    background: #667eea;
-    color: white;
-    cursor: pointer;
-    font-size: 0.75rem;
+    .nav-menu .nav-auth .btn:hover {
+      background: #5a6fd6;
+    }
   }
   
-  /* Mobile: reset top-nav to full width */
+  /* Mobile: reset padding, hide nav-menu */
   @media (max-width: 768px) {
     .top-nav {
-      right: 0;
+      padding-right: 16px;
     }
+    .menu-toggle { display: none !important; }
+    .nav-menu { display: none !important; }
   }
   
   /* Hamburger button - hidden on desktop */
@@ -1557,7 +1568,11 @@ textarea:focus-visible,
         indicator?.classList.add('signed-in');
         if (text) text.textContent = user.displayName || user.email?.split('@')[0];
         if (btn) {
-          btn.textContent = window.t?.('auth.signOut') || 'Sign Out';
+          const displayName = user.email?.split('@')[0] || user.displayName || 'User';
+          const shortName = displayName.length > 8 ? displayName.substring(0, 8) + '…' : displayName;
+          btn.innerHTML = `<span aria-hidden="true">🚪</span> ${shortName}`;
+          btn.title = window.t?.('auth.signOut') || 'Sign Out';
+          btn.setAttribute('aria-label', `${window.t?.('auth.signOut') || 'Sign Out'} (${displayName})`);
           btn.onclick = () => {
             if (confirm(window.t?.('auth.signOutConfirm') || 'Sign out of Access Nature?')) {
               signOut(auth);
@@ -1573,7 +1588,9 @@ textarea:focus-visible,
         indicator?.classList.remove('signed-in');
         if (text) text.textContent = window.t?.('auth.guest') || 'Guest';
         if (btn) {
-          btn.textContent = window.t?.('auth.signIn') || 'Sign In';
+          btn.innerHTML = window.t?.('auth.signIn') || 'Sign In';
+          btn.title = '';
+          btn.setAttribute('aria-label', window.t?.('auth.signIn') || 'Sign In');
           btn.onclick = () => {
             // Open existing auth modal instead of Google popup
             if (window.openAuthModal) {
