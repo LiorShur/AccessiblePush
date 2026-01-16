@@ -343,6 +343,17 @@
   .auth-status-landing { display: none !important; }
   
   @media (max-width: 768px) {
+    /* Keep nav-brand left-aligned on mobile */
+    .top-nav {
+      justify-content: flex-start !important;
+    }
+    .top-nav::after {
+      display: none !important;
+    }
+    .nav-brand {
+      margin-right: 0 !important;
+    }
+    
     .nav-menu .nav-auth { width: 100%; margin-top: 8px; }
     .nav-menu .nav-auth .btn { width: 100%; padding: 12px; font-size: 0.9rem; }
     

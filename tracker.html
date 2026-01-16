@@ -214,8 +214,17 @@ textarea:focus-visible,
     }
   }
   
-  /* Mobile: hide nav-menu */
+  /* Mobile: hide nav-menu and keep nav-brand left */
   @media (max-width: 768px) {
+    .top-nav {
+      justify-content: flex-start !important;
+    }
+    .top-nav::after {
+      display: none !important;
+    }
+    .nav-brand {
+      margin-right: 0 !important;
+    }
     .menu-toggle { display: none !important; }
     .nav-menu { display: none !important; }
   }

@@ -193,8 +193,17 @@
       }
     }
     
-    /* Mobile: hide hamburger (replaced by bottom nav) */
+    /* Mobile: hide hamburger (replaced by bottom nav) and keep nav-brand left */
     @media (max-width: 768px) {
+      .top-nav {
+        justify-content: flex-start !important;
+      }
+      .top-nav::after {
+        display: none !important;
+      }
+      .nav-brand {
+        margin-right: 0 !important;
+      }
       .menu-toggle { display: none !important; }
       .nav-menu { display: none !important; }
     }
