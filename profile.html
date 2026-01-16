@@ -85,7 +85,7 @@
       position: fixed;
       top: 0;
       left: 0;
-      right: 0;
+      right: 220px; /* Leave space for top toolbar */
       height: 60px;
       background: #000;
       color: white;
@@ -115,13 +115,6 @@
       display: none;
     }
     
-    /* Leave space for toolbar on the right */
-    .top-nav::after {
-      content: '';
-      width: 150px;
-      flex-shrink: 0;
-    }
-    
     /* Desktop: show nav-menu, hide hamburger */
     @media (min-width: 769px) {
       .menu-toggle { display: none !important; }
@@ -143,6 +136,10 @@
         color: #fff;
         text-decoration: none;
         font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
       }
       .nav-menu .nav-link:hover {
         background: rgba(255,255,255,0.15);
@@ -153,11 +150,19 @@
       }
       .nav-menu .nav-auth {
         margin-left: 8px;
+        display: flex;
+        align-items: center;
+      }
+      .nav-menu .nav-auth .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
     }
     
-    /* Mobile: hide hamburger (replaced by bottom nav) */
+    /* Mobile: hide hamburger (replaced by bottom nav), reset top-nav to full width */
     @media (max-width: 768px) {
+      .top-nav { right: 0; }
       .menu-toggle { display: none !important; }
       .nav-menu { display: none !important; }
     }

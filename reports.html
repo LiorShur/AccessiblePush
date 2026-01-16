@@ -724,7 +724,7 @@
       position: fixed;
       top: 0;
       left: 0;
-      right: 0;
+      right: 220px; /* Leave space for top toolbar */
       height: 60px;
       background: #000;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -749,12 +749,6 @@
     .nav-auth-indicator {
       display: none;
     }
-    /* Leave space for toolbar on the right */
-    .top-nav::after {
-      content: '';
-      width: 150px;
-      flex-shrink: 0;
-    }
     .nav-menu {
       display: none;
     }
@@ -772,10 +766,21 @@
       .nav-menu .nav-link {
         padding: 6px 8px;
         font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+      .nav-menu .nav-auth {
+        display: flex;
+        align-items: center;
       }
       .nav-menu .nav-auth .btn {
         padding: 6px 10px;
         font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
     }
     .nav-link {
@@ -799,6 +804,14 @@
     .nav-auth {
       margin-left: 16px;
     }
+    
+    /* Mobile: reset top-nav to full width */
+    @media (max-width: 768px) {
+      .top-nav {
+        right: 0;
+      }
+    }
+    
     .menu-toggle {
       display: none;
       align-items: center;

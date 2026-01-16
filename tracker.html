@@ -106,7 +106,7 @@ textarea:focus-visible,
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
+    right: 220px; /* Leave space for top toolbar */
     height: 60px;
     background: #000;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -135,12 +135,6 @@ textarea:focus-visible,
   .nav-menu {
     display: none;
   }
-  /* Leave space for toolbar on the right */
-  .top-nav::after {
-    content: '';
-    width: 150px;
-    flex-shrink: 0;
-  }
   
   /* Desktop: show nav-menu inline */
   @media (min-width: 769px) {
@@ -153,13 +147,28 @@ textarea:focus-visible,
     .nav-menu .nav-icon-emoji {
       display: none;
     }
+    /* Hide mobility profile on desktop - available in profile page */
+    .nav-menu .nav-mobility-profile {
+      display: none;
+    }
     .nav-menu .nav-link {
       padding: 5px 7px;
       font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .nav-menu .nav-auth {
+      display: flex;
+      align-items: center;
     }
     .nav-menu .nav-auth .btn {
       padding: 5px 8px;
       font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
   }
   .nav-menu .nav-link {
@@ -182,6 +191,13 @@ textarea:focus-visible,
     color: white;
     cursor: pointer;
     font-size: 0.75rem;
+  }
+  
+  /* Mobile: reset top-nav to full width */
+  @media (max-width: 768px) {
+    .top-nav {
+      right: 0;
+    }
   }
   
   /* Hamburger button - hidden on desktop */
@@ -543,7 +559,7 @@ textarea:focus-visible,
     <a href="tracker.html" class="nav-link active"><span class="nav-icon-emoji" aria-hidden="true">🗺️ </span>Track</a>
     <a href="reports.html" class="nav-link"><span class="nav-icon-emoji" aria-hidden="true">📋 </span>Reports</a>
     <a href="profile.html" class="nav-link" id="profileNavLink" style="display: none;"><span class="nav-icon-emoji" aria-hidden="true">👤 </span>Profile</a>
-    <button class="nav-link" onclick="window.mobilityProfileUI?.open()" style="background: none; border: none; cursor: pointer; text-align: left;">
+    <button class="nav-link nav-mobility-profile" onclick="window.mobilityProfileUI?.open()" style="background: none; border: none; cursor: pointer; text-align: left;">
       <span class="nav-icon-emoji" aria-hidden="true">♿ </span>Mobility Profile
     </button>
     <div class="nav-auth">

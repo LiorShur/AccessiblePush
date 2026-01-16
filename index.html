@@ -60,7 +60,7 @@
       position: fixed;
       top: 0;
       left: 0;
-      right: 0;
+      right: 220px; /* Leave space for top toolbar */
       height: 60px;
       background: #000;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -86,12 +86,6 @@
     .nav-menu {
       display: none;
     }
-    /* Leave space for toolbar on the right */
-    .top-nav::after {
-      content: '';
-      width: 150px;
-      flex-shrink: 0;
-    }
     
     /* Desktop: show nav-menu, hide hamburger */
     @media (min-width: 769px) {
@@ -104,13 +98,28 @@
       .nav-menu .nav-icon-emoji {
         display: none;
       }
+      /* Hide mobility profile on desktop - available in profile page */
+      .nav-menu .nav-mobility-profile {
+        display: none;
+      }
       .nav-menu .nav-link {
         padding: 6px 8px;
         font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+      .nav-menu .nav-auth {
+        display: flex;
+        align-items: center;
       }
       .nav-menu .nav-auth .btn {
         padding: 6px 10px;
         font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
     }
     .nav-menu .nav-link {
@@ -119,10 +128,19 @@
       text-decoration: none;
       border-radius: 6px;
       font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
     }
     .nav-menu .nav-link:hover { background: rgba(255,255,255,0.15); }
     .nav-menu .nav-link.active { background: #667eea; color: white; }
     .menu-toggle { display: none; }
+    
+    /* Mobile: reset top-nav to full width */
+    @media (max-width: 768px) {
+      .top-nav {
+        right: 0;
+      }
+    }
     
     /* Mobile nav styles now handled by unified-nav.css */
     /* Hamburger icon styles */
@@ -385,7 +403,7 @@
     <a href="tracker.html" class="nav-link" role="menuitem"><span class="nav-icon-emoji" aria-hidden="true">🗺️ </span>Track</a>
     <a href="reports.html" class="nav-link" role="menuitem"><span class="nav-icon-emoji" aria-hidden="true">📋 </span>Reports</a>
     <a href="profile.html" class="nav-link" id="profileNavLink" style="display: none;" role="menuitem"><span class="nav-icon-emoji" aria-hidden="true">👤 </span>Profile</a>
-    <button class="nav-link" onclick="window.mobilityProfileUI?.open()" style="background: none; border: none; cursor: pointer; text-align: left;" role="menuitem" aria-label="Open mobility profile settings">
+    <button class="nav-link nav-mobility-profile" onclick="window.mobilityProfileUI?.open()" style="background: none; border: none; cursor: pointer; text-align: left;" role="menuitem" aria-label="Open mobility profile settings">
       <span class="nav-icon-emoji" aria-hidden="true">♿ </span>Mobility Profile
     </button>
     <div class="nav-auth">
