@@ -133,6 +133,10 @@
         padding: 0;
         gap: 8px;
       }
+      /* Hide emoji icons on desktop to save space */
+      .nav-menu .nav-icon-emoji {
+        display: none;
+      }
       .nav-menu .nav-link {
         padding: 8px 12px;
         border-radius: 6px;
@@ -812,10 +816,10 @@
       </span>
     </button>
     <div class="nav-menu" id="navMenu" role="menu">
-      <a href="index.html" class="nav-link" role="menuitem">🏠 Home</a>
-      <a href="tracker.html" class="nav-link" role="menuitem">🗺️ Track</a>
-      <a href="reports.html" class="nav-link" role="menuitem">📋 Reports</a>
-      <a href="profile.html" class="nav-link active" role="menuitem">👤 Profile</a>
+      <a href="index.html" class="nav-link" role="menuitem"><span class="nav-icon-emoji" aria-hidden="true">🏠 </span>Home</a>
+      <a href="tracker.html" class="nav-link" role="menuitem"><span class="nav-icon-emoji" aria-hidden="true">🗺️ </span>Track</a>
+      <a href="reports.html" class="nav-link" role="menuitem"><span class="nav-icon-emoji" aria-hidden="true">📋 </span>Reports</a>
+      <a href="profile.html" class="nav-link active" role="menuitem"><span class="nav-icon-emoji" aria-hidden="true">👤 </span>Profile</a>
       <div class="nav-auth">
         <button id="navAuthBtn" class="btn" aria-label="Sign in to your account">Sign In</button>
       </div>

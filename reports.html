@@ -765,6 +765,10 @@
         gap: 8px;
         background: transparent;
       }
+      /* Hide emoji icons on desktop to save space */
+      .nav-menu .nav-icon-emoji {
+        display: none;
+      }
     }
     .nav-link {
       display: flex;
@@ -1034,10 +1038,10 @@
       </span>
     </button>
     <div class="nav-menu" id="navMenu" role="menu">
-      <a href="index.html" class="nav-link" role="menuitem">🏠 Home</a>
-      <a href="tracker.html" class="nav-link" role="menuitem">🗺️ Track</a>
-      <a href="reports.html" class="nav-link active" role="menuitem" aria-current="page">📋 Reports</a>
-      <a href="profile.html" class="nav-link" id="profileNavLink" style="display: none;" role="menuitem">👤 Profile</a>
+      <a href="index.html" class="nav-link" role="menuitem"><span class="nav-icon-emoji" aria-hidden="true">🏠 </span>Home</a>
+      <a href="tracker.html" class="nav-link" role="menuitem"><span class="nav-icon-emoji" aria-hidden="true">🗺️ </span>Track</a>
+      <a href="reports.html" class="nav-link active" role="menuitem" aria-current="page"><span class="nav-icon-emoji" aria-hidden="true">📋 </span>Reports</a>
+      <a href="profile.html" class="nav-link" id="profileNavLink" style="display: none;" role="menuitem"><span class="nav-icon-emoji" aria-hidden="true">👤 </span>Profile</a>
       <div class="nav-auth">
         <button id="navAuthBtn" class="btn btn-primary" aria-label="Sign in to your account" data-i18n="auth.signIn">Sign In</button>
       </div>
