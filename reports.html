@@ -756,9 +756,10 @@
     @media (min-width: 769px) {
       .top-nav {
         padding-right: 230px; /* Space for top toolbar */
+        justify-content: flex-start !important; /* Override unified-nav.css space-between */
       }
       .top-nav::after {
-        display: none; /* Remove pseudo-element spacer from unified-nav.css */
+        display: none !important; /* Remove pseudo-element spacer from unified-nav.css */
       }
       .nav-brand {
         margin-right: 0 !important; /* Override unified-nav.css margin-right: auto */
