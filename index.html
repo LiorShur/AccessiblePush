@@ -304,6 +304,24 @@
     fill: #fff;
     stroke: #fff;
   }
+  
+  /* DESKTOP NAV OVERRIDES - Must be after unified-nav.css loads */
+  @media (min-width: 769px) {
+    .top-nav {
+      padding-right: 230px !important;
+      justify-content: flex-start !important;
+    }
+    .top-nav::after {
+      display: none !important;
+    }
+    .nav-brand {
+      margin-right: 0 !important;
+    }
+    .nav-menu {
+      margin-left: auto !important;
+    }
+  }
+  
   /* nav-menu display is handled by critical CSS above */
   .nav-menu .nav-link {
     padding: 8px 16px;
