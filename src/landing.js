@@ -1876,7 +1876,7 @@ Happy trail mapping! 🥾`);
       
       // Show profile link in nav
       if (profileNavLink) {
-        profileNavLink.style.display = 'block';
+        profileNavLink.style.display = 'inline-flex';
         console.log('📍 Profile nav link shown');
       }
       
@@ -2776,7 +2776,7 @@ async updateAuthStatus() {
     if (userInfo) userInfo.classList.remove('hidden');
     if (authPrompt) authPrompt.classList.add('hidden');
     if (userEmail) userEmail.textContent = this.currentUser.displayName || this.currentUser.email;
-    if (profileNavLink) profileNavLink.style.display = 'block';
+    if (profileNavLink) profileNavLink.style.display = 'inline-flex';
     if (navAuthBtn) navAuthBtn.textContent = 'Sign Out';
   } else {
     // User is signed out
