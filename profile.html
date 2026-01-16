@@ -90,7 +90,6 @@
       background: #000;
       color: white;
       padding: 0 16px;
-      padding-right: 230px; /* Space for top toolbar on desktop */
       display: flex;
       align-items: center;
       z-index: 9999;
@@ -116,8 +115,15 @@
       display: none;
     }
     
+    .nav-menu {
+      display: none;
+    }
+    
     /* Desktop: show nav-menu, hide hamburger */
     @media (min-width: 769px) {
+      .top-nav {
+        padding-right: 230px; /* Space for top toolbar */
+      }
       .menu-toggle { display: none !important; }
       .nav-menu {
         display: flex !important;
@@ -127,6 +133,7 @@
         padding: 0;
         gap: 4px;
         align-items: center;
+        flex-shrink: 0;
       }
       /* Hide emoji icons on desktop to save space */
       .nav-menu .nav-icon-emoji {
@@ -177,9 +184,8 @@
       }
     }
     
-    /* Mobile: reset padding, hide hamburger (replaced by bottom nav) */
+    /* Mobile: hide hamburger (replaced by bottom nav) */
     @media (max-width: 768px) {
-      .top-nav { padding-right: 16px; }
       .menu-toggle { display: none !important; }
       .nav-menu { display: none !important; }
     }
@@ -1726,7 +1732,8 @@
             if (btn) {
               const displayName = user.email?.split('@')[0] || user.displayName || 'User';
               const shortName = displayName.length > 8 ? displayName.substring(0, 8) + '…' : displayName;
-              btn.innerHTML = `<span aria-hidden="true">🚪</span> ${shortName}`;
+              const exitDoorSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink:0;"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z" transform="rotate(180 12 12)"/><path d="M19 3H5c-1.1 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/><path d="M10 17l1.41-1.41L8.83 13H16v-2H8.83l2.58-2.59L10 7l-5 5 5 5z"/></svg>`;
+              btn.innerHTML = `${exitDoorSvg} ${shortName}`;
               btn.title = window.t?.('auth.signOut') || 'Sign Out';
               btn.setAttribute('aria-label', `${window.t?.('auth.signOut') || 'Sign Out'} (${displayName})`);
               btn.onclick = () => {
