@@ -80,9 +80,6 @@
       flex-shrink: 0;
       margin-right: auto;
     }
-    .nav-auth-indicator {
-      display: none;
-    }
     .menu-toggle {
       display: none;
     }
@@ -101,18 +98,26 @@
       .nav-menu {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 4px;
       }
       /* Hide emoji icons on desktop to save space */
       .nav-menu .nav-icon-emoji {
         display: none;
+      }
+      .nav-menu .nav-link {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+      }
+      .nav-menu .nav-auth .btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
       }
     }
     .nav-menu .nav-link {
       padding: 8px 12px;
       color: #fff;
       text-decoration: none;
-      border-radius: 8px;
+      border-radius: 6px;
       font-size: 0.9rem;
     }
     .nav-menu .nav-link:hover { background: rgba(255,255,255,0.15); }
@@ -368,12 +373,6 @@
 <!-- Navigation -->
 <nav class="top-nav" role="navigation" aria-label="Main navigation">
   <a href="index.html" class="nav-brand">♿ Accessible</a>
-  <div class="nav-auth-indicator">
-    <div class="auth-status" id="navAuthIndicator">
-      <span aria-hidden="true">👤</span>
-      <span id="navAuthStatusText">Guest</span>
-    </div>
-  </div>
   <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navMenu">
     <span class="hamburger-icon" aria-hidden="true">
       <span></span>
