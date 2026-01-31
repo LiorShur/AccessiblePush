@@ -13,6 +13,7 @@ import {
   signOut,
   onAuthStateChanged,
   GoogleAuthProvider,
+  OAuthProvider,
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
@@ -108,6 +109,16 @@ setupEventListeners() {
   }
   if (googleSignupBtn) {
     googleSignupBtn.addEventListener('click', () => this.handleGoogleAuth());
+  }
+
+  // Apple login buttons
+  const appleLoginBtn = document.getElementById('appleLoginBtn');
+  const appleSignupBtn = document.getElementById('appleSignupBtn');
+  if (appleLoginBtn) {
+    appleLoginBtn.addEventListener('click', () => this.handleAppleAuth());
+  }
+  if (appleSignupBtn) {
+    appleSignupBtn.addEventListener('click', () => this.handleAppleAuth());
   }
 
   // Logout button
@@ -432,14 +443,59 @@ setupCloudButtonsWithRetry() {
       console.log('✅ Google sign-in successful:', user.email);
       this.closeAuthModal();
       this.showSuccessMessage('Successfully connected with Google! 🎉');
-      
+
     } catch (error) {
       console.error('❌ Google sign-in failed:', error);
-      
+
       if (error.code === 'auth/popup-closed-by-user') {
         this.showAuthError('Sign-in was cancelled');
       } else {
         this.showAuthError('Google sign-in failed. Please try again.');
+      }
+    }
+  }
+
+  async handleAppleAuth() {
+    try {
+      this.showCloudSyncIndicator('Connecting to Apple...');
+
+      const provider = new OAuthProvider('apple.com');
+      provider.addScope('email');
+      provider.addScope('name');
+
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Check if this is a new user and save profile
+      if (result._tokenResponse?.isNewUser) {
+        // Apple may not provide name on subsequent logins, so try to get it from the credential
+        const credential = OAuthProvider.credentialFromResult(result);
+        const displayName = user.displayName || 'Apple User';
+
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          email: user.email,
+          name: displayName,
+          createdAt: new Date().toISOString(),
+          routesCount: 0,
+          totalDistance: 0,
+          provider: 'apple'
+        });
+      }
+
+      console.log('✅ Apple sign-in successful:', user.email);
+      this.closeAuthModal();
+      this.showSuccessMessage('Successfully connected with Apple! 🎉');
+
+    } catch (error) {
+      console.error('❌ Apple sign-in failed:', error);
+
+      if (error.code === 'auth/popup-closed-by-user') {
+        this.showAuthError('Sign-in was cancelled');
+      } else if (error.code === 'auth/operation-not-allowed') {
+        this.showAuthError('Apple sign-in is not enabled. Please contact support.');
+      } else {
+        this.showAuthError('Apple sign-in failed. Please try again.');
       }
     }
   }
@@ -998,6 +1054,16 @@ setupEventListeners() {
   }
   if (googleSignupBtn) {
     googleSignupBtn.addEventListener('click', () => this.handleGoogleAuth());
+  }
+
+  // Apple login buttons
+  const appleLoginBtn = document.getElementById('appleLoginBtn');
+  const appleSignupBtn = document.getElementById('appleSignupBtn');
+  if (appleLoginBtn) {
+    appleLoginBtn.addEventListener('click', () => this.handleAppleAuth());
+  }
+  if (appleSignupBtn) {
+    appleSignupBtn.addEventListener('click', () => this.handleAppleAuth());
   }
 
   // Logout button

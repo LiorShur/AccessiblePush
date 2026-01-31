@@ -307,6 +307,13 @@
   to { transform: rotate(360deg); }
 }
 
+/* Social Auth Buttons Container */
+.social-auth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* Google Button */
 .google-btn {
   width: 100%;
@@ -332,7 +339,48 @@
   box-shadow: 0 5px 15px rgba(66, 133, 244, 0.2);
 }
 
+.google-btn:focus {
+  outline: none;
+  border-color: #4285F4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
+}
+
 .google-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Apple Button */
+.apple-btn {
+  width: 100%;
+  padding: 14px;
+  background: #000;
+  border: 2px solid #000;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #fff;
+}
+
+.apple-btn:hover {
+  background: #333;
+  border-color: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.apple-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+.apple-icon {
   width: 20px;
   height: 20px;
 }
@@ -476,6 +524,22 @@ body.dark-mode .google-btn {
   background: #333;
   border-color: #555;
   color: white;
+}
+
+body.dark-mode .google-btn:hover {
+  background: #444;
+  border-color: #4285F4;
+}
+
+body.dark-mode .apple-btn {
+  background: #fff;
+  border-color: #fff;
+  color: #000;
+}
+
+body.dark-mode .apple-btn:hover {
+  background: #e5e5e5;
+  border-color: #e5e5e5;
 }
 
 body.dark-mode .auth-divider span {
