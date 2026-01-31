@@ -2730,11 +2730,11 @@ async handleGoogleAuth() {
     const { GoogleAuthProvider, signInWithPopup } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js");
     const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
     const { auth, db } = await import('../firebase-setup.js');
-    
+
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    
+
     // Check if this is a new user and save profile
     if (result._tokenResponse?.isNewUser) {
       await setDoc(doc(db, "users", user.uid), {
@@ -2747,14 +2747,14 @@ async handleGoogleAuth() {
         provider: 'google'
       });
     }
-    
+
     console.log('✅ Google sign-in successful:', user.email);
     this.closeAuthModal();
     this.showSuccessMessage('Successfully connected with Google! 🎉');
-    
+
   } catch (error) {
     console.error('❌ Google sign-in failed:', error);
-    
+
     if (error.code === 'auth/popup-closed-by-user') {
       this.showAuthError('Sign-in was cancelled');
     } else {
@@ -2763,6 +2763,50 @@ async handleGoogleAuth() {
   }
 }
 
+async handleAppleAuth() {
+  try {
+    const { OAuthProvider, signInWithPopup } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js");
+    const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
+    const { auth, db } = await import('../firebase-setup.js');
+
+    const provider = new OAuthProvider('apple.com');
+    provider.addScope('email');
+    provider.addScope('name');
+
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // Check if this is a new user and save profile
+    if (result._tokenResponse?.isNewUser) {
+      const displayName = user.displayName || 'Apple User';
+
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        email: user.email,
+        name: displayName,
+        createdAt: new Date().toISOString(),
+        routesCount: 0,
+        totalDistance: 0,
+        provider: 'apple'
+      });
+    }
+
+    console.log('✅ Apple sign-in successful:', user.email);
+    this.closeAuthModal();
+    this.showSuccessMessage('Successfully connected with Apple! 🎉');
+
+  } catch (error) {
+    console.error('❌ Apple sign-in failed:', error);
+
+    if (error.code === 'auth/popup-closed-by-user') {
+      this.showAuthError('Sign-in was cancelled');
+    } else if (error.code === 'auth/operation-not-allowed') {
+      this.showAuthError('Apple sign-in is not enabled. Please contact support.');
+    } else {
+      this.showAuthError('Apple sign-in failed. Please try again.');
+    }
+  }
+}
 
 async updateAuthStatus() {
   const userInfo = document.getElementById('userInfo');

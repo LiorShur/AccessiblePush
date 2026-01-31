@@ -9,7 +9,7 @@
  * - Images: Cache First
  */
 
-const CACHE_VERSION = 'v2.9.70-mobile-brand-left';
+const CACHE_VERSION = 'v2.9.71-indexeddb-sync';
 const APP_CACHE = `access-nature-app-${CACHE_VERSION}`;
 const DATA_CACHE = `access-nature-data-${CACHE_VERSION}`;
 const MAP_CACHE = `access-nature-maps-${CACHE_VERSION}`;
@@ -434,14 +434,146 @@ async function syncPendingGuides() {
 
 // ==================== IndexedDB Helpers ====================
 
-async function getPendingData(storeName) {
-  // This would use IndexedDB - simplified placeholder
-  return [];
+const SW_DB_NAME = 'AccessNatureSyncDB';
+const SW_DB_VERSION = 1;
+
+/**
+ * Open or create the IndexedDB database for background sync
+ * @returns {Promise<IDBDatabase>}
+ */
+function openSyncDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(SW_DB_NAME, SW_DB_VERSION);
+
+    request.onerror = () => {
+      console.error('[SW] Failed to open IndexedDB:', request.error);
+      reject(request.error);
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      console.log('[SW] Creating IndexedDB stores for background sync...');
+
+      // Create stores for pending data if they don't exist
+      const stores = ['pending-routes', 'pending-reports', 'pending-guides'];
+      stores.forEach(storeName => {
+        if (!db.objectStoreNames.contains(storeName)) {
+          const store = db.createObjectStore(storeName, { keyPath: 'id' });
+          store.createIndex('timestamp', 'timestamp');
+          console.log(`[SW] Created store: ${storeName}`);
+        }
+      });
+    };
+  });
 }
 
+/**
+ * Get all pending data from a specific store
+ * @param {string} storeName - Name of the object store
+ * @returns {Promise<Array>} - Array of pending items
+ */
+async function getPendingData(storeName) {
+  try {
+    const db = await openSyncDatabase();
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([storeName], 'readonly');
+      const store = transaction.objectStore(storeName);
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        const items = request.result || [];
+        console.log(`[SW] Retrieved ${items.length} pending items from ${storeName}`);
+        db.close();
+        resolve(items);
+      };
+
+      request.onerror = () => {
+        console.error(`[SW] Failed to get pending data from ${storeName}:`, request.error);
+        db.close();
+        reject(request.error);
+      };
+    });
+  } catch (error) {
+    console.error('[SW] getPendingData error:', error);
+    return [];
+  }
+}
+
+/**
+ * Remove a pending item from a store by ID
+ * @param {string} storeName - Name of the object store
+ * @param {string} id - ID of the item to remove
+ * @returns {Promise<boolean>} - Success status
+ */
 async function removePendingData(storeName, id) {
-  // This would remove from IndexedDB - simplified placeholder
-  return true;
+  try {
+    const db = await openSyncDatabase();
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([storeName], 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.delete(id);
+
+      request.onsuccess = () => {
+        console.log(`[SW] Removed item ${id} from ${storeName}`);
+        db.close();
+        resolve(true);
+      };
+
+      request.onerror = () => {
+        console.error(`[SW] Failed to remove item from ${storeName}:`, request.error);
+        db.close();
+        reject(request.error);
+      };
+    });
+  } catch (error) {
+    console.error('[SW] removePendingData error:', error);
+    return false;
+  }
+}
+
+/**
+ * Add a pending item to a store (called from client via message)
+ * @param {string} storeName - Name of the object store
+ * @param {object} data - Data to store (must have 'id' property)
+ * @returns {Promise<boolean>} - Success status
+ */
+async function addPendingData(storeName, data) {
+  try {
+    const db = await openSyncDatabase();
+
+    // Ensure the data has a timestamp
+    const itemWithTimestamp = {
+      ...data,
+      timestamp: data.timestamp || Date.now()
+    };
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([storeName], 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.put(itemWithTimestamp);
+
+      request.onsuccess = () => {
+        console.log(`[SW] Added item ${data.id} to ${storeName}`);
+        db.close();
+        resolve(true);
+      };
+
+      request.onerror = () => {
+        console.error(`[SW] Failed to add item to ${storeName}:`, request.error);
+        db.close();
+        reject(request.error);
+      };
+    });
+  } catch (error) {
+    console.error('[SW] addPendingData error:', error);
+    return false;
+  }
 }
 
 // ==================== Client Communication ====================
@@ -532,6 +664,43 @@ self.addEventListener('message', (event) => {
       event.waitUntil(getCacheSize().then(size => {
         event.ports[0]?.postMessage({ size });
       }));
+      break;
+
+    case 'ADD_PENDING_DATA':
+      // Add data to pending sync queue
+      event.waitUntil(
+        addPendingData(payload.storeName, payload.data)
+          .then(success => {
+            event.ports[0]?.postMessage({ success });
+          })
+          .catch(error => {
+            event.ports[0]?.postMessage({ success: false, error: error.message });
+          })
+      );
+      break;
+
+    case 'GET_PENDING_DATA':
+      // Get all pending data from a store
+      event.waitUntil(
+        getPendingData(payload.storeName)
+          .then(data => {
+            event.ports[0]?.postMessage({ data });
+          })
+          .catch(error => {
+            event.ports[0]?.postMessage({ data: [], error: error.message });
+          })
+      );
+      break;
+
+    case 'TRIGGER_SYNC':
+      // Manually trigger background sync
+      if (payload.tag === 'sync-routes') {
+        event.waitUntil(syncPendingRoutes());
+      } else if (payload.tag === 'sync-reports') {
+        event.waitUntil(syncPendingReports());
+      } else if (payload.tag === 'sync-guides') {
+        event.waitUntil(syncPendingGuides());
+      }
       break;
   }
 });
