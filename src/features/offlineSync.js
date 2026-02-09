@@ -1018,8 +1018,8 @@ class OfflineSync {
     };
     
     const routeCards = routes.map(r => `
-      <div class="pending-item" data-type="route" data-id="${r.localId}" 
-           style="background: ${r.status === 'uploaded' ? '#dcfce7' : '#fef3c7'}; 
+      <div class="pending-item" data-type="route" data-id="${r.localId}"
+           style="background: ${r.status === 'uploaded' ? '#dcfce7' : '#fef3c7'};
                   padding: 12px; margin-bottom: 8px; border-radius: 8px;
                   border-left: 4px solid ${r.status === 'uploaded' ? '#22c55e' : '#f59e0b'};">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1033,22 +1033,29 @@ class OfflineSync {
         </div>
         <div style="font-size: 0.75em; color: #9ca3af; margin-top: 4px;">
           Saved: ${formatDate(r.timestamp)}
+          ${r.cloudId ? `<br>Cloud ID: ${r.cloudId.substring(0, 8)}...` : ''}
         </div>
-        <div style="display: flex; gap: 6px; margin-top: 8px;">
+        <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
           ${r.status !== 'uploaded' ? `
-            <button onclick="offlineSync.uploadSingleRoute(${r.localId})" 
-                    style="padding: 4px 10px; font-size: 0.8em; background: #3b82f6; 
+            <button onclick="offlineSync.uploadSingleRoute(${r.localId})"
+                    style="padding: 4px 10px; font-size: 0.8em; background: #3b82f6;
                            color: white; border: none; border-radius: 4px; cursor: pointer;">
               ☁️ Upload
             </button>
-          ` : ''}
-          <button onclick="offlineSync.exportRouteAsFile(${r.localId})" 
-                  style="padding: 4px 10px; font-size: 0.8em; background: #6b7280; 
+          ` : `
+            <button onclick="offlineSync.regenerateGuideForRoute(${r.localId})"
+                    style="padding: 4px 10px; font-size: 0.8em; background: #8b5cf6;
+                           color: white; border: none; border-radius: 4px; cursor: pointer;">
+              📖 Generate Guide
+            </button>
+          `}
+          <button onclick="offlineSync.exportRouteAsFile(${r.localId})"
+                  style="padding: 4px 10px; font-size: 0.8em; background: #6b7280;
                          color: white; border: none; border-radius: 4px; cursor: pointer;">
             📥 Export
           </button>
-          <button onclick="offlineSync.deleteRoute(${r.localId})" 
-                  style="padding: 4px 10px; font-size: 0.8em; background: #ef4444; 
+          <button onclick="offlineSync.deleteRoute(${r.localId})"
+                  style="padding: 4px 10px; font-size: 0.8em; background: #ef4444;
                          color: white; border: none; border-radius: 4px; cursor: pointer;">
             🗑️ Delete
           </button>
@@ -1476,6 +1483,100 @@ class OfflineSync {
       // Always clear the uploading flag
       this.uploadingGuides.delete(localId);
     }
+  }
+
+  /**
+   * Regenerate and upload trail guide for an already-uploaded route
+   * This is useful when the route was uploaded but the guide generation failed
+   * @param {number} localId - Local storage ID of the route
+   */
+  async regenerateGuideForRoute(localId) {
+    try {
+      // Get the route from local storage
+      const route = await this.getRouteById(localId);
+      if (!route) {
+        toast.error('Route not found in local storage');
+        return;
+      }
+
+      if (!route.cloudId) {
+        toast.error('Route has no cloud ID - please upload the route first');
+        return;
+      }
+
+      // Check for user
+      const { auth } = await import('../../firebase-setup.js');
+      const user = auth.currentUser;
+      if (!user) {
+        toast.error('Please sign in to generate trail guide');
+        return;
+      }
+
+      // Show progress
+      toast.info('Generating trail guide...');
+
+      // Extract route data, routeInfo, and accessibilityData from the saved route
+      const routeData = route.data?.routeData || route.data?.data?.routeData || [];
+      const routeInfo = route.data?.routeInfo || route.data?.data?.routeInfo || {
+        name: route.data?.name || 'Trail Guide',
+        totalDistance: route.data?.totalDistance || 0,
+        elapsedTime: route.data?.elapsedTime || 0,
+        date: route.data?.date || route.timestamp
+      };
+      const accessibilityData = route.data?.accessibilityData || route.data?.data?.accessibilityData || {};
+
+      // Validate we have route data
+      if (!routeData || routeData.length === 0) {
+        toast.error('No route data found - cannot generate guide');
+        console.error('Route data structure:', route.data);
+        return;
+      }
+
+      console.log('📖 Regenerating trail guide for route:', route.cloudId);
+      console.log('  - Route points:', routeData.length);
+      console.log('  - Route name:', routeInfo.name);
+
+      // Generate and upload the trail guide
+      const guideId = await this.generateAndUploadTrailGuide(
+        route.cloudId,
+        routeData,
+        routeInfo,
+        accessibilityData,
+        user
+      );
+
+      toast.success('Trail guide generated and uploaded! 📚');
+      console.log('✅ Trail guide created with ID:', guideId);
+
+      // Refresh modal
+      document.getElementById('pending-uploads-modal')?.remove();
+      this.showPendingUploadsModal();
+
+    } catch (error) {
+      console.error('❌ Failed to regenerate trail guide:', error);
+      toast.error('Failed to generate trail guide: ' + error.message);
+    }
+  }
+
+  /**
+   * Get a specific route by local ID
+   * @param {number} localId - Local storage ID
+   * @returns {object|null} - Route data or null
+   */
+  async getRouteById(localId) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error('Database not initialized'));
+        return;
+      }
+
+      const transaction = this.db.transaction(['pending_routes'], 'readonly');
+      const store = transaction.objectStore('pending_routes');
+      const request = store.get(localId);
+
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
   }
 
   async deleteRoute(localId) {
