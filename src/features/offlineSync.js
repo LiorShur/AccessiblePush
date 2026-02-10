@@ -498,7 +498,7 @@ class OfflineSync {
   async uploadRouteToCloud(routeData, user, onProgress = null) {
     try {
       const { db } = await import('../../firebase-setup.js');
-      const { collection, addDoc, serverTimestamp } = await import(
+      const { collection, addDoc, serverTimestamp, waitForPendingWrites } = await import(
         'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js'
       );
 
@@ -606,8 +606,16 @@ class OfflineSync {
       };
 
       const docRef = await addDoc(collection(db, 'routes'), docData);
-      console.log('☁️ Route uploaded to cloud:', docRef.id);
-      
+      console.log('☁️ Route saved locally, waiting for server sync...');
+
+      // Wait for the route to actually sync to Firebase server
+      try {
+        await waitForPendingWrites(db);
+        console.log('✅ Route synced to server:', docRef.id);
+      } catch (syncError) {
+        console.warn('⚠️ Route sync may be pending (offline?):', syncError.message);
+      }
+
       if (onProgress) {
         onProgress('route-done', docRef.id.slice(0, 8) + '...');
         onProgress('guide', null, 80);
@@ -640,7 +648,7 @@ class OfflineSync {
     try {
       const { trailGuideGeneratorV2 } = await import('./trailGuideGeneratorV2.js');
       const { db } = await import('../../firebase-setup.js');
-      const { collection, addDoc, serverTimestamp } = await import(
+      const { collection, addDoc, serverTimestamp, waitForPendingWrites } = await import(
         'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js'
       );
 
@@ -690,8 +698,18 @@ class OfflineSync {
       };
 
       const guideRef = await addDoc(collection(db, 'trail_guides'), guideDoc);
-      console.log('📚 Trail guide uploaded:', guideRef.id);
-      
+      console.log('📚 Trail guide saved locally, waiting for server sync...');
+
+      // Wait for the write to actually sync to Firebase server
+      // This prevents the issue where data stays in local cache but never uploads
+      try {
+        await waitForPendingWrites(db);
+        console.log('✅ Trail guide synced to server:', guideRef.id);
+      } catch (syncError) {
+        console.warn('⚠️ Server sync may be pending (offline?):', syncError.message);
+        // Don't throw - the write is saved locally and will sync when online
+      }
+
       return guideRef.id;
     } catch (error) {
       console.error('❌ Trail guide generation failed:', error);
