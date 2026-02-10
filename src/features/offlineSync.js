@@ -1491,13 +1491,24 @@ class OfflineSync {
    * @param {number} localId - Local storage ID of the route
    */
   async regenerateGuideForRoute(localId) {
+    console.log('🔄 regenerateGuideForRoute called with localId:', localId);
+
     try {
       // Get the route from local storage
       const route = await this.getRouteById(localId);
+      console.log('📦 Retrieved route from local storage:', route ? 'found' : 'not found');
+
       if (!route) {
         toast.error('Route not found in local storage');
         return;
       }
+
+      console.log('📦 Route data:', {
+        localId: route.localId,
+        cloudId: route.cloudId,
+        status: route.status,
+        hasData: !!route.data
+      });
 
       if (!route.cloudId) {
         toast.error('Route has no cloud ID - please upload the route first');
@@ -1507,28 +1518,63 @@ class OfflineSync {
       // Check for user
       const { auth } = await import('../../firebase-setup.js');
       const user = auth.currentUser;
+      console.log('👤 Current user:', user ? user.email : 'not signed in');
+
       if (!user) {
         toast.error('Please sign in to generate trail guide');
         return;
       }
 
-      // Show progress
-      toast.info('Generating trail guide...');
+      // Show progress toast
+      toast.info('Generating trail guide... ⏳');
 
-      // Extract route data, routeInfo, and accessibilityData from the saved route
-      const routeData = route.data?.routeData || route.data?.data?.routeData || [];
-      const routeInfo = route.data?.routeInfo || route.data?.data?.routeInfo || {
-        name: route.data?.name || 'Trail Guide',
-        totalDistance: route.data?.totalDistance || 0,
-        elapsedTime: route.data?.elapsedTime || 0,
-        date: route.data?.date || route.timestamp
-      };
-      const accessibilityData = route.data?.accessibilityData || route.data?.data?.accessibilityData || {};
+      // Extract route data - try multiple possible data structures
+      let routeData = null;
+      let routeInfo = null;
+      let accessibilityData = null;
+
+      // The data structure can vary depending on how the route was saved
+      if (route.data) {
+        // Try direct properties first
+        if (Array.isArray(route.data.routeData)) {
+          routeData = route.data.routeData;
+          routeInfo = route.data.routeInfo || {};
+          accessibilityData = route.data.accessibilityData || {};
+        }
+        // Try nested data property
+        else if (route.data.data && Array.isArray(route.data.data.routeData)) {
+          routeData = route.data.data.routeData;
+          routeInfo = route.data.data.routeInfo || {};
+          accessibilityData = route.data.data.accessibilityData || {};
+        }
+        // Try if data itself is the route array
+        else if (Array.isArray(route.data)) {
+          routeData = route.data;
+          routeInfo = {};
+          accessibilityData = {};
+        }
+      }
+
+      // Build routeInfo from available data if not found
+      if (!routeInfo || Object.keys(routeInfo).length === 0) {
+        routeInfo = {
+          name: route.data?.name || route.data?.routeInfo?.name || 'Trail Guide',
+          totalDistance: route.data?.totalDistance || route.data?.routeInfo?.totalDistance || 0,
+          elapsedTime: route.data?.elapsedTime || route.data?.routeInfo?.elapsedTime || 0,
+          date: route.data?.date || route.timestamp
+        };
+      }
+
+      console.log('📊 Extracted data:', {
+        routeDataLength: routeData?.length || 0,
+        routeInfoName: routeInfo?.name,
+        hasAccessibilityData: !!accessibilityData && Object.keys(accessibilityData).length > 0
+      });
 
       // Validate we have route data
       if (!routeData || routeData.length === 0) {
         toast.error('No route data found - cannot generate guide');
-        console.error('Route data structure:', route.data);
+        console.error('❌ Route data structure:', JSON.stringify(route.data, null, 2).substring(0, 500));
         return;
       }
 
@@ -1541,12 +1587,17 @@ class OfflineSync {
         route.cloudId,
         routeData,
         routeInfo,
-        accessibilityData,
+        accessibilityData || {},
         user
       );
 
-      toast.success('Trail guide generated and uploaded! 📚');
       console.log('✅ Trail guide created with ID:', guideId);
+
+      // Show success toast
+      toast.success('Trail guide generated and uploaded! 📚');
+
+      // Wait a moment for toast to be visible before refreshing modal
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Refresh modal
       document.getElementById('pending-uploads-modal')?.remove();
@@ -1554,7 +1605,8 @@ class OfflineSync {
 
     } catch (error) {
       console.error('❌ Failed to regenerate trail guide:', error);
-      toast.error('Failed to generate trail guide: ' + error.message);
+      console.error('Error stack:', error.stack);
+      toast.error('Failed to generate trail guide: ' + (error.message || 'Unknown error'));
     }
   }
 
