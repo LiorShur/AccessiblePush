@@ -1988,23 +1988,32 @@ Happy trail mapping! 🥾`);
       }
       
       console.log('📍 Importing Firebase modules...');
-      const { collection, query, where, orderBy, getDocs } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
+      const { collection, query, where, orderBy, getDocs, getDocsFromServer } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
       const { db, auth } = await import('../firebase-setup.js');
       console.log('📍 Firebase imported, auth.currentUser:', auth.currentUser?.uid);
-      
+
       if (!auth.currentUser) {
         console.warn('📍 auth.currentUser is null');
         return;
       }
-      
+
       // Load all user's trail guides (no limit, sorted newest first)
       const guidesQuery = query(
         collection(db, 'trail_guides'),
         where('userId', '==', auth.currentUser.uid),
         orderBy('generatedAt', 'desc')
       );
-      
-      const guidesSnapshot = await getDocs(guidesQuery);
+
+      // Force fetch from server to ensure we get latest data (not just local cache)
+      let guidesSnapshot;
+      try {
+        console.log('📡 Fetching trail guides from server...');
+        guidesSnapshot = await getDocsFromServer(guidesQuery);
+        console.log('✅ Fetched from server');
+      } catch (serverError) {
+        console.warn('⚠️ Server fetch failed, falling back to cache:', serverError.message);
+        guidesSnapshot = await getDocs(guidesQuery);
+      }
       const guides = [];
       
       guidesSnapshot.forEach(doc => {
@@ -2404,17 +2413,26 @@ Happy trail mapping! 🥾`);
       }
 
       // Import Firestore functions
-      const { collection, query, where, orderBy, getDocs } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
+      const { collection, query, where, orderBy, getDocs, getDocsFromServer } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
       const { db, auth } = await import('../firebase-setup.js');
-      
+
       // Query user's trail guides
       const guidesQuery = query(
         collection(db, 'trail_guides'),
         where('userId', '==', auth.currentUser.uid),
         orderBy('generatedAt', 'desc')
       );
-      
-      const querySnapshot = await getDocs(guidesQuery);
+
+      // Force fetch from server to ensure we get latest data (not just local cache)
+      let querySnapshot;
+      try {
+        console.log('📡 Fetching trail guides from server...');
+        querySnapshot = await getDocsFromServer(guidesQuery);
+        console.log('✅ Fetched from server');
+      } catch (serverError) {
+        console.warn('⚠️ Server fetch failed, falling back to cache:', serverError.message);
+        querySnapshot = await getDocs(guidesQuery);
+      }
       const guides = [];
       
       querySnapshot.forEach(doc => {
