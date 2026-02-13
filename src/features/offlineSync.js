@@ -1505,119 +1505,91 @@ class OfflineSync {
 
   /**
    * Regenerate and upload trail guide for an already-uploaded route
-   * This is useful when the route was uploaded but the guide generation failed
+   * Fetches route data directly from Firestore (source of truth) instead of local storage
    * @param {number} localId - Local storage ID of the route
    */
   async regenerateGuideForRoute(localId) {
     console.log('🔄 regenerateGuideForRoute called with localId:', localId);
 
     try {
-      // Get the route from local storage
-      const route = await this.getRouteById(localId);
-      console.log('📦 Retrieved route from local storage:', route ? 'found' : 'not found');
+      // Get the local route record to get the cloudId
+      const localRoute = await this.getRouteById(localId);
 
-      if (!route) {
+      if (!localRoute) {
         toast.error('Route not found in local storage');
         return;
       }
 
-      console.log('📦 Route data:', {
-        localId: route.localId,
-        cloudId: route.cloudId,
-        status: route.status,
-        hasData: !!route.data
-      });
-
-      if (!route.cloudId) {
+      if (!localRoute.cloudId) {
         toast.error('Route has no cloud ID - please upload the route first');
         return;
       }
 
-      // Check for user
-      const { auth } = await import('../../firebase-setup.js');
-      const user = auth.currentUser;
-      console.log('👤 Current user:', user ? user.email : 'not signed in');
+      console.log('📍 Found local route with cloudId:', localRoute.cloudId);
 
+      // Check for user
+      const { auth, db } = await import('../../firebase-setup.js');
+      const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js');
+
+      const user = auth.currentUser;
       if (!user) {
         toast.error('Please sign in to generate trail guide');
         return;
       }
 
       // Show progress toast
-      toast.info('Generating trail guide... ⏳');
+      toast.info('Fetching route from cloud... ⏳');
 
-      // Extract route data - try multiple possible data structures
-      let routeData = null;
-      let routeInfo = null;
-      let accessibilityData = null;
+      // Fetch the route directly from Firestore - this is the source of truth
+      console.log('📡 Fetching route from Firestore:', localRoute.cloudId);
+      const routeDoc = await getDoc(doc(db, 'routes', localRoute.cloudId));
 
-      // The data structure can vary depending on how the route was saved
-      if (route.data) {
-        // Try direct properties first
-        if (Array.isArray(route.data.routeData)) {
-          routeData = route.data.routeData;
-          routeInfo = route.data.routeInfo || {};
-          accessibilityData = route.data.accessibilityData || {};
-        }
-        // Try nested data property
-        else if (route.data.data && Array.isArray(route.data.data.routeData)) {
-          routeData = route.data.data.routeData;
-          routeInfo = route.data.data.routeInfo || {};
-          accessibilityData = route.data.data.accessibilityData || {};
-        }
-        // Try if data itself is the route array
-        else if (Array.isArray(route.data)) {
-          routeData = route.data;
-          routeInfo = {};
-          accessibilityData = {};
-        }
-      }
-
-      // Build routeInfo from available data if not found
-      if (!routeInfo || Object.keys(routeInfo).length === 0) {
-        routeInfo = {
-          name: route.data?.name || route.data?.routeInfo?.name || 'Trail Guide',
-          totalDistance: route.data?.totalDistance || route.data?.routeInfo?.totalDistance || 0,
-          elapsedTime: route.data?.elapsedTime || route.data?.routeInfo?.elapsedTime || 0,
-          date: route.data?.date || route.timestamp
-        };
-      }
-
-      console.log('📊 Extracted data:', {
-        routeDataLength: routeData?.length || 0,
-        routeInfoName: routeInfo?.name,
-        hasAccessibilityData: !!accessibilityData && Object.keys(accessibilityData).length > 0
-      });
-
-      // Validate we have route data
-      if (!routeData || routeData.length === 0) {
-        toast.error('No route data found - cannot generate guide');
-        console.error('❌ Route data structure:', JSON.stringify(route.data, null, 2).substring(0, 500));
+      if (!routeDoc.exists()) {
+        toast.error('Route not found in cloud database');
+        console.error('❌ Route document does not exist:', localRoute.cloudId);
         return;
       }
 
-      console.log('📖 Regenerating trail guide for route:', route.cloudId);
+      const cloudRouteData = routeDoc.data();
+      console.log('✅ Fetched route from Firestore:', {
+        routeName: cloudRouteData.routeName,
+        hasRouteData: !!cloudRouteData.routeData,
+        routeDataLength: cloudRouteData.routeData?.length || 0
+      });
+
+      // Extract data from the Firestore document (standard format)
+      const routeData = cloudRouteData.routeData;
+      const routeInfo = {
+        name: cloudRouteData.routeName || 'Trail Guide',
+        totalDistance: cloudRouteData.totalDistance || 0,
+        elapsedTime: cloudRouteData.elapsedTime || 0,
+        date: cloudRouteData.originalDate || cloudRouteData.createdAt
+      };
+      const accessibilityData = cloudRouteData.accessibilityData || {};
+
+      if (!routeData || routeData.length === 0) {
+        toast.error('Route has no data points - cannot generate guide');
+        return;
+      }
+
+      console.log('📖 Generating trail guide for:', routeInfo.name);
       console.log('  - Route points:', routeData.length);
-      console.log('  - Route name:', routeInfo.name);
+      toast.info('Generating trail guide... 📚');
 
       // Generate and upload the trail guide
       const guideId = await this.generateAndUploadTrailGuide(
-        route.cloudId,
+        localRoute.cloudId,
         routeData,
         routeInfo,
-        accessibilityData || {},
+        accessibilityData,
         user
       );
 
       console.log('✅ Trail guide created with ID:', guideId);
-
-      // Show success toast
       toast.success('Trail guide generated and uploaded! 📚');
 
-      // Wait a moment for toast to be visible before refreshing modal
+      // Wait for toast, then refresh modal
       await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Refresh modal
       document.getElementById('pending-uploads-modal')?.remove();
       this.showPendingUploadsModal();
 
