@@ -832,13 +832,13 @@ export class TrailGuideGeneratorV2 {
       `;
     }
 
-    // Calculate cumulative distance and build elevation data
+    // Calculate cumulative distance and build raw elevation data
     let cumulativeDistance = 0;
-    const elevationData = [];
-    
+    const rawElevationData = [];
+
     for (let i = 0; i < locationPoints.length; i++) {
       const point = locationPoints[i];
-      
+
       if (i > 0) {
         const prevPoint = locationPoints[i - 1];
         const distance = this.haversineDistance(
@@ -848,50 +848,27 @@ export class TrailGuideGeneratorV2 {
         cumulativeDistance += distance;
       }
 
-      elevationData.push({
+      rawElevationData.push({
         distance: cumulativeDistance,
         elevation: point.elevation
       });
     }
 
-    // Calculate stats
+    // Apply smoothing to reduce GPS noise
+    const elevationData = this.smoothElevationData(rawElevationData);
+
+    // Calculate stats from smoothed data
     const elevations = elevationData.map(p => p.elevation);
     const minElevation = Math.min(...elevations);
     const maxElevation = Math.max(...elevations);
-    
-    // Calculate total ascent and descent
-    let totalAscent = 0;
-    let totalDescent = 0;
-    
-    for (let i = 1; i < elevationData.length; i++) {
-      const diff = elevationData[i].elevation - elevationData[i - 1].elevation;
-      if (diff > 0) {
-        totalAscent += diff;
-      } else {
-        totalDescent += Math.abs(diff);
-      }
-    }
 
-    // Calculate gradients for coloring
-    const segments = [];
-    for (let i = 1; i < elevationData.length; i++) {
-      const prev = elevationData[i - 1];
-      const curr = elevationData[i];
-      const horizontalDistance = (curr.distance - prev.distance) * 1000;
-      const elevationChange = curr.elevation - prev.elevation;
-      const gradient = horizontalDistance > 0 ? (elevationChange / horizontalDistance) * 100 : 0;
-      
-      segments.push({
-        startDistance: prev.distance,
-        endDistance: curr.distance,
-        startElevation: prev.elevation,
-        endElevation: curr.elevation,
-        gradient: gradient,
-        category: this.getGradientCategory(Math.abs(gradient))
-      });
-    }
+    // Calculate total ascent and descent with threshold to ignore noise
+    const { totalAscent, totalDescent } = this.calculateElevationGainLoss(elevationData, 3);
 
-    // Analyze steep sections
+    // Calculate gradient segments with minimum segment length to reduce noise
+    const segments = this.calculateGradientSegments(elevationData, 0.015);
+
+    // Analyze steep sections (only significant ones will remain after smoothing)
     const steepAnalysis = this.analyzeSteepSections(segments);
 
     // Generate SVG chart
@@ -1109,12 +1086,195 @@ export class TrailGuideGeneratorV2 {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
+    const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
+  }
+
+  /**
+   * Smooth elevation data to reduce GPS noise
+   * Uses a combination of outlier removal and moving average
+   * @param {Array} elevationData - Array of {distance, elevation} objects
+   * @returns {Array} - Smoothed elevation data
+   */
+  smoothElevationData(elevationData) {
+    if (elevationData.length < 3) return elevationData;
+
+    // Step 1: Remove outliers using median-based detection
+    const cleaned = this.removeElevationOutliers(elevationData);
+
+    // Step 2: Apply weighted moving average
+    const windowSize = Math.min(5, Math.floor(cleaned.length / 3));
+    if (windowSize < 2) return cleaned;
+
+    const smoothed = [];
+    for (let i = 0; i < cleaned.length; i++) {
+      const start = Math.max(0, i - Math.floor(windowSize / 2));
+      const end = Math.min(cleaned.length, i + Math.floor(windowSize / 2) + 1);
+
+      // Weighted average - center point has more weight
+      let weightedSum = 0;
+      let totalWeight = 0;
+      for (let j = start; j < end; j++) {
+        const distFromCenter = Math.abs(j - i);
+        const weight = 1 / (distFromCenter + 1); // Center gets weight 1, neighbors get 0.5, 0.33, etc.
+        weightedSum += cleaned[j].elevation * weight;
+        totalWeight += weight;
+      }
+
+      smoothed.push({
+        distance: cleaned[i].distance,
+        elevation: weightedSum / totalWeight
+      });
+    }
+
+    return smoothed;
+  }
+
+  /**
+   * Remove elevation outliers using median-based detection
+   * @param {Array} elevationData - Array of {distance, elevation} objects
+   * @returns {Array} - Cleaned elevation data
+   */
+  removeElevationOutliers(elevationData) {
+    if (elevationData.length < 5) return elevationData;
+
+    const cleaned = [elevationData[0]]; // Keep first point
+
+    for (let i = 1; i < elevationData.length - 1; i++) {
+      const prev = elevationData[i - 1];
+      const curr = elevationData[i];
+      const next = elevationData[i + 1];
+
+      // Calculate distances
+      const distToPrev = (curr.distance - prev.distance) * 1000; // meters
+      const distToNext = (next.distance - curr.distance) * 1000; // meters
+
+      // Calculate elevation changes
+      const elevChangeToPrev = curr.elevation - prev.elevation;
+      const elevChangeToNext = next.elevation - curr.elevation;
+
+      // Detect spike: large change then reversal, over short distance
+      const isSpike = (
+        Math.abs(elevChangeToPrev) > 10 && // More than 10m change
+        Math.sign(elevChangeToPrev) !== Math.sign(elevChangeToNext) && // Direction reversal
+        Math.abs(elevChangeToNext) > 10 && // Reverses significantly
+        distToPrev < 50 && distToNext < 50 // Over short distance
+      );
+
+      // Detect unrealistic gradient (>100% grade is very rare in nature)
+      const gradientToPrev = distToPrev > 0 ? Math.abs(elevChangeToPrev / distToPrev) * 100 : 0;
+      const gradientToNext = distToNext > 0 ? Math.abs(elevChangeToNext / distToNext) * 100 : 0;
+      const hasUnrealisticGradient = gradientToPrev > 100 || gradientToNext > 100;
+
+      if (isSpike || hasUnrealisticGradient) {
+        // Replace with interpolated value
+        const interpolatedElev = (prev.elevation + next.elevation) / 2;
+        cleaned.push({
+          distance: curr.distance,
+          elevation: interpolatedElev
+        });
+      } else {
+        cleaned.push(curr);
+      }
+    }
+
+    cleaned.push(elevationData[elevationData.length - 1]); // Keep last point
+    return cleaned;
+  }
+
+  /**
+   * Calculate elevation gain/loss with a threshold to ignore small fluctuations
+   * @param {Array} elevationData - Smoothed elevation data
+   * @param {number} threshold - Minimum elevation change to count (meters)
+   * @returns {Object} - {totalAscent, totalDescent}
+   */
+  calculateElevationGainLoss(elevationData, threshold = 2) {
+    if (elevationData.length < 2) {
+      return { totalAscent: 0, totalDescent: 0 };
+    }
+
+    let totalAscent = 0;
+    let totalDescent = 0;
+    let pendingChange = 0;
+    let lastSignificantElev = elevationData[0].elevation;
+    let direction = 0; // 0 = undetermined, 1 = ascending, -1 = descending
+
+    for (let i = 1; i < elevationData.length; i++) {
+      const diff = elevationData[i].elevation - lastSignificantElev;
+
+      // Check if we've accumulated enough change to count
+      if (Math.abs(diff) >= threshold) {
+        if (diff > 0) {
+          // If we were descending, first apply any pending descent
+          if (direction === -1 && pendingChange < 0) {
+            totalDescent += Math.abs(pendingChange);
+          }
+          totalAscent += diff;
+          direction = 1;
+          pendingChange = 0;
+        } else {
+          // If we were ascending, first apply any pending ascent
+          if (direction === 1 && pendingChange > 0) {
+            totalAscent += pendingChange;
+          }
+          totalDescent += Math.abs(diff);
+          direction = -1;
+          pendingChange = 0;
+        }
+        lastSignificantElev = elevationData[i].elevation;
+      } else {
+        // Accumulate small changes
+        pendingChange = diff;
+      }
+    }
+
+    return {
+      totalAscent: Math.round(totalAscent),
+      totalDescent: Math.round(totalDescent)
+    };
+  }
+
+  /**
+   * Calculate gradient segments from smoothed data with minimum segment length
+   * @param {Array} elevationData - Smoothed elevation data
+   * @param {number} minSegmentLength - Minimum segment length in km
+   * @returns {Array} - Gradient segments
+   */
+  calculateGradientSegments(elevationData, minSegmentLength = 0.02) {
+    if (elevationData.length < 2) return [];
+
+    const segments = [];
+    let segmentStart = 0;
+
+    for (let i = 1; i < elevationData.length; i++) {
+      const segmentDist = elevationData[i].distance - elevationData[segmentStart].distance;
+
+      // Only calculate gradient for segments that are long enough
+      if (segmentDist >= minSegmentLength || i === elevationData.length - 1) {
+        const startElev = elevationData[segmentStart].elevation;
+        const endElev = elevationData[i].elevation;
+        const horizontalDistance = segmentDist * 1000; // Convert to meters
+        const elevationChange = endElev - startElev;
+        const gradient = horizontalDistance > 0 ? (elevationChange / horizontalDistance) * 100 : 0;
+
+        segments.push({
+          startDistance: elevationData[segmentStart].distance,
+          endDistance: elevationData[i].distance,
+          startElevation: startElev,
+          endElevation: endElev,
+          gradient: gradient,
+          category: this.getGradientCategory(Math.abs(gradient))
+        });
+
+        segmentStart = i;
+      }
+    }
+
+    return segments;
   }
 
   renderGoodForSection(data, lang = 'en') {
