@@ -584,17 +584,53 @@
   <section class="featured-section" aria-label="Featured accessible trails">
     <div class="section-container">
       <h2 class="section-title">⭐ <span data-i18n="index.featuredTrails">Featured Accessible Trails</span></h2>
-      
+
       <!-- Trail Search & Filters -->
       <div id="trailSearchContainer"></div>
-      
+
+      <!-- View Toggle -->
+      <div class="trails-view-toggle">
+        <button class="view-toggle-btn active" id="mapViewBtn" onclick="switchTrailsView('map')" aria-label="Map view">
+          <span class="toggle-icon">🗺️</span>
+          <span data-i18n="index.mapView">Map</span>
+        </button>
+        <button class="view-toggle-btn" id="gridViewBtn" onclick="switchTrailsView('grid')" aria-label="Grid view">
+          <span class="toggle-icon">▦</span>
+          <span data-i18n="index.gridView">Grid</span>
+        </button>
+      </div>
+
       <!-- Results Header -->
       <div id="trailResultsHeader"></div>
-      
-      <div id="featuredTrails" class="featured-grid">
+
+      <!-- Interactive Trails Map -->
+      <div id="trailsMapContainer" class="trails-map-container">
+        <div id="trailsMap" class="trails-map"></div>
+        <div class="trails-map-controls">
+          <button class="map-ctrl-btn" id="centerTrailsMapBtn" title="Center on my location" aria-label="Center map on my location">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+            </svg>
+          </button>
+          <button class="map-ctrl-btn" id="zoomInTrailsBtn" title="Zoom in" aria-label="Zoom in">+</button>
+          <button class="map-ctrl-btn" id="zoomOutTrailsBtn" title="Zoom out" aria-label="Zoom out">−</button>
+          <button class="map-ctrl-btn" id="fullscreenTrailsBtn" title="Fullscreen" aria-label="Toggle fullscreen">⛶</button>
+        </div>
+        <div class="trails-map-legend">
+          <span class="legend-item"><span class="legend-marker legend-full">♿</span> Fully Accessible</span>
+          <span class="legend-item"><span class="legend-marker legend-partial">♿</span> Partial</span>
+          <span class="legend-item"><span class="legend-marker legend-none">♿</span> Limited</span>
+        </div>
+        <div class="trails-map-info">
+          <span id="visibleTrailsCount">0 trails in view</span>
+        </div>
+      </div>
+
+      <!-- Trail Grid View -->
+      <div id="featuredTrails" class="featured-grid hidden">
         <!-- Dynamically populated -->
       </div>
-      <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreFeatured()" data-i18n="index.loadMore">Load More Trails</button>
+      <button class="load-more-btn hidden" id="loadMoreBtn" onclick="loadMoreFeatured()" data-i18n="index.loadMore">Load More Trails</button>
     </div>
   </section>
   </main>
@@ -970,6 +1006,12 @@
       });
     })();
   </script>
+
+  <!-- Leaflet Map Libraries -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 
   <!-- Firebase Setup -->
   <script type="module" src="firebase-setup.js"></script>

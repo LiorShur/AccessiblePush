@@ -2074,3 +2074,675 @@ body {
     display: none;
   }
 }
+
+/* ========================================
+   TRAILS MAP SECTION
+   ======================================== */
+
+/* View Toggle */
+.trails-view-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+
+.view-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.view-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e5e7eb;
+}
+
+.view-toggle-btn.active {
+  background: linear-gradient(135deg, #4a7c59 0%, #3d6b4a 100%);
+  border-color: #4a7c59;
+  color: white;
+}
+
+.toggle-icon {
+  font-size: 1.1rem;
+}
+
+/* Map Container */
+.trails-map-container {
+  position: relative;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #1a1a2e;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.trails-map-container.hidden {
+  display: none;
+}
+
+.trails-map {
+  height: 450px;
+  width: 100%;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .trails-map {
+    height: 350px;
+  }
+}
+
+/* Map Controls */
+.trails-map-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.map-ctrl-btn {
+  width: 36px;
+  height: 36px;
+  background: rgba(26, 26, 46, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.map-ctrl-btn:hover {
+  background: rgba(74, 124, 89, 0.9);
+  border-color: #4a7c59;
+}
+
+.map-ctrl-btn svg {
+  fill: currentColor;
+}
+
+/* Map Legend */
+.trails-map-legend {
+  position: absolute;
+  bottom: 40px;
+  left: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(26, 26, 46, 0.95);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #e5e7eb;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 10px;
+}
+
+.legend-marker.legend-full {
+  background: #22c55e;
+  color: white;
+}
+
+.legend-marker.legend-partial {
+  background: #f59e0b;
+  color: white;
+}
+
+.legend-marker.legend-none {
+  background: #ef4444;
+  color: white;
+}
+
+/* Map Info Bar */
+.trails-map-info {
+  position: absolute;
+  bottom: 8px;
+  left: 12px;
+  padding: 6px 12px;
+  background: rgba(26, 26, 46, 0.9);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  z-index: 1000;
+}
+
+/* Trail Markers */
+.trail-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: 3px solid white;
+}
+
+.trail-marker:hover {
+  transform: scale(1.15);
+}
+
+.trail-marker.accessible-full {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.trail-marker.accessible-partial {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.trail-marker.accessible-none {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.trail-marker.accessible-unknown {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+}
+
+/* Marker Cluster Styling */
+.trails-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  color: white;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+  border: 3px solid white;
+}
+
+.trails-cluster.cluster-small {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+  background: linear-gradient(135deg, #4a7c59 0%, #3d6b4a 100%);
+}
+
+.trails-cluster.cluster-medium {
+  width: 50px;
+  height: 50px;
+  font-size: 16px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.trails-cluster.cluster-large {
+  width: 60px;
+  height: 60px;
+  font-size: 18px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+/* Trail Tooltip */
+.trail-tooltip {
+  background: rgba(26, 26, 46, 0.98) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  color: #e5e7eb !important;
+  font-size: 0.85rem !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+  max-width: 220px !important;
+}
+
+.trail-tooltip .tooltip-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  color: white;
+}
+
+.trail-tooltip .tooltip-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.trail-tooltip .tooltip-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Trail Popup Card */
+.trail-popup-card {
+  min-width: 280px;
+  max-width: 320px;
+  background: transparent;
+  padding: 0;
+}
+
+.trail-popup-image {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+
+.trail-popup-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px 8px 0 0;
+}
+
+.trail-popup-content {
+  padding: 12px;
+}
+
+.trail-popup-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.trail-popup-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.popup-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #4b5563;
+  padding: 4px 8px;
+  background: #f3f4f6;
+  border-radius: 6px;
+}
+
+.trail-popup-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.popup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.popup-badge.badge-accessible {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.popup-badge.badge-partial {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.popup-badge.badge-difficult {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.popup-badge.badge-easy {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.trail-popup-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.popup-action-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.popup-action-btn.primary {
+  background: linear-gradient(135deg, #4a7c59 0%, #3d6b4a 100%);
+  color: white;
+}
+
+.popup-action-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 124, 89, 0.4);
+}
+
+.popup-action-btn.secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.popup-action-btn.secondary:hover {
+  background: #e5e7eb;
+}
+
+/* Leaflet Popup Override for Trail Cards */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.leaflet-popup-tip {
+  background: white !important;
+}
+
+/* Trail Detail Modal (Expanded) */
+.trail-detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.trail-detail-card {
+  background: #1a1a2e;
+  border-radius: 16px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.trail-detail-header {
+  position: relative;
+  height: 180px;
+  background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.trail-detail-header img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trail-detail-header .placeholder-icon {
+  font-size: 4rem;
+  opacity: 0.5;
+}
+
+.trail-detail-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.trail-detail-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.trail-detail-body {
+  padding: 20px;
+}
+
+.trail-detail-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 6px;
+}
+
+.trail-detail-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.trail-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.detail-stat {
+  text-align: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.detail-stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: white;
+}
+
+.detail-stat-label {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.trail-detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.detail-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.detail-badge.badge-green {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.detail-badge.badge-yellow {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.detail-badge.badge-red {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.detail-badge.badge-blue {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.trail-detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-action-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.detail-action-btn.primary {
+  background: linear-gradient(135deg, #4a7c59 0%, #3d6b4a 100%);
+  color: white;
+}
+
+.detail-action-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 124, 89, 0.4);
+}
+
+.detail-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.detail-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Fullscreen Map Modal */
+.fullscreen-trails-map {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: #0f0f1a;
+}
+
+.fullscreen-trails-map .trails-map {
+  height: 100% !important;
+  border-radius: 0;
+}
+
+.fullscreen-trails-map .trails-map-controls {
+  top: 20px;
+  right: 20px;
+}
+
+.fullscreen-trails-map .trails-map-legend {
+  bottom: 60px;
+  left: 20px;
+}
+
+.fullscreen-trails-map .close-fullscreen-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 10px 16px;
+  background: rgba(26, 26, 46, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  z-index: 1001;
+  backdrop-filter: blur(8px);
+}
+
+.fullscreen-trails-map .close-fullscreen-btn:hover {
+  background: rgba(74, 124, 89, 0.9);
+}
