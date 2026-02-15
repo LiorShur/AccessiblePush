@@ -2876,7 +2876,7 @@ Happy trail mapping! 🥾`);
    * Open trails map in fullscreen mode
    */
   openTrailsMapFullscreen() {
-    const mapContainer = document.getElementById('trailsMapContainer');
+    const mapWrapper = document.querySelector('.trails-map-wrapper');
     const modal = document.createElement('div');
     modal.id = 'fullscreenTrailsModal';
     modal.className = 'fullscreen-trails-map';
@@ -2885,6 +2885,11 @@ Happy trail mapping! 🥾`);
       <button class="close-fullscreen-btn" onclick="closeTrailsMapFullscreen()">
         ✕ Close
       </button>
+      <div class="trails-map-legend">
+        <span class="legend-item"><span class="legend-marker legend-full">♿</span> Fully Accessible</span>
+        <span class="legend-item"><span class="legend-marker legend-partial">♿</span> Partial</span>
+        <span class="legend-item"><span class="legend-marker legend-none">♿</span> Limited</span>
+      </div>
     `;
 
     document.body.appendChild(modal);
@@ -2894,8 +2899,8 @@ Happy trail mapping! 🥾`);
     const mapEl = document.getElementById('trailsMap');
     modal.appendChild(mapEl);
 
-    // Store original parent
-    window._trailsMapOriginalParent = mapContainer;
+    // Store original parent (the wrapper, not the container)
+    window._trailsMapOriginalParent = mapWrapper;
 
     // Refresh map size
     setTimeout(() => {
