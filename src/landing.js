@@ -40,6 +40,13 @@ window.showPrivacy = () => window.landingController?.showPrivacy();
 window.showContact = () => window.landingController?.showContact();
 window.showHelp = () => window.landingController?.showHelp();
 
+// Trails Map global functions
+window.switchTrailsView = (view) => window.landingController?.switchTrailsView(view);
+window.viewTrailOnMap = (trailId) => window.landingController?.viewTrailOnMap(trailId);
+window.navigateToTrail = (lat, lng) => window.landingController?.navigateToTrail(lat, lng);
+window.showTrailDetailModal = (trailId) => window.landingController?.showTrailDetailModal(trailId);
+window.closeTrailDetailModal = () => window.landingController?.closeTrailDetailModal();
+
 class LandingPageController {
   constructor() {
     this.authController = null;
@@ -52,6 +59,13 @@ class LandingPageController {
     this.displayedFeaturedCount = 0;  // How many currently shown
     this.featuredBatchSize = 6;       // Load 6 at a time
     this.publicGuidesCache = null;    // Cache for shared queries
+
+    // Trails Map properties
+    this.trailsMap = null;
+    this.trailsMarkerCluster = null;
+    this.trailMarkers = new Map();    // Map of trailId -> marker
+    this.currentView = 'map';         // 'map' or 'grid'
+    this.trailsWithCoords = [];       // Trails that have coordinates
   }
 
   /**
@@ -1091,7 +1105,10 @@ async loadFeaturedTrails() {
     // Display first batch
     this.displayedFeaturedCount = 0;
     this.displayFeaturedBatch();
-    
+
+    // Initialize trails map with the loaded data
+    this.initializeTrailsMap();
+
   } catch (error) {
     console.error('❌ Failed to load featured trails:', error);
     
@@ -2478,8 +2495,549 @@ Happy trail mapping! 🥾`);
       await this.viewTrailGuide(guides[choice].id);
     }
   }
+
+  // ==========================================
+  // TRAILS MAP METHODS
+  // ==========================================
+
+  /**
+   * Initialize the interactive trails map
+   */
+  initializeTrailsMap() {
+    const mapContainer = document.getElementById('trailsMap');
+    if (!mapContainer || typeof L === 'undefined') {
+      console.warn('⚠️ Trails map container or Leaflet not found');
+      return;
+    }
+
+    // Don't re-initialize if already exists
+    if (this.trailsMap) {
+      this.updateTrailsMapMarkers();
+      return;
+    }
+
+    console.log('🗺️ Initializing trails map...');
+
+    // Initialize map centered on a default location (will adjust based on trails)
+    this.trailsMap = L.map('trailsMap').setView([32.0853, 34.7818], 8);
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(this.trailsMap);
+
+    // Initialize marker cluster group
+    this.trailsMarkerCluster = L.markerClusterGroup({
+      maxClusterRadius: 60,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount();
+        let sizeClass = 'cluster-small';
+        if (count > 20) sizeClass = 'cluster-large';
+        else if (count > 8) sizeClass = 'cluster-medium';
+
+        return L.divIcon({
+          html: `<div class="trails-cluster ${sizeClass}">${count}</div>`,
+          className: 'marker-cluster-custom',
+          iconSize: L.point(50, 50)
+        });
+      }
+    });
+
+    this.trailsMap.addLayer(this.trailsMarkerCluster);
+
+    // Set up map controls
+    this.setupTrailsMapControls();
+
+    // Add trail markers
+    this.updateTrailsMapMarkers();
+
+    console.log('✅ Trails map initialized');
+  }
+
+  /**
+   * Setup map control button handlers
+   */
+  setupTrailsMapControls() {
+    // Center on user location
+    document.getElementById('centerTrailsMapBtn')?.addEventListener('click', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            this.trailsMap.setView([pos.coords.latitude, pos.coords.longitude], 12);
+          },
+          (err) => {
+            console.warn('Location error:', err);
+            toast.warning('Could not get your location');
+          }
+        );
+      }
+    });
+
+    // Zoom controls
+    document.getElementById('zoomInTrailsBtn')?.addEventListener('click', () => {
+      this.trailsMap.zoomIn();
+    });
+
+    document.getElementById('zoomOutTrailsBtn')?.addEventListener('click', () => {
+      this.trailsMap.zoomOut();
+    });
+
+    // Fullscreen toggle
+    document.getElementById('fullscreenTrailsBtn')?.addEventListener('click', () => {
+      this.toggleTrailsMapFullscreen();
+    });
+
+    // Update visible trails count on map move
+    this.trailsMap.on('moveend', () => {
+      this.updateVisibleTrailsCount();
+    });
+  }
+
+  /**
+   * Update markers on the trails map
+   */
+  updateTrailsMapMarkers() {
+    if (!this.trailsMap || !this.trailsMarkerCluster) return;
+
+    // Clear existing markers
+    this.trailsMarkerCluster.clearLayers();
+    this.trailMarkers.clear();
+    this.trailsWithCoords = [];
+
+    const bounds = L.latLngBounds();
+    let markersAdded = 0;
+
+    // Process each trail to extract coordinates
+    this.allFeaturedTrails.forEach(trail => {
+      const coords = this.extractTrailCoordinates(trail);
+      if (!coords) return;
+
+      this.trailsWithCoords.push({ ...trail, coords });
+
+      // Determine accessibility level for marker color
+      const accessLevel = this.getAccessibilityLevel(trail);
+
+      // Create custom marker icon
+      const icon = L.divIcon({
+        html: `<div class="trail-marker accessible-${accessLevel}">♿</div>`,
+        className: 'trail-marker-container',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      });
+
+      // Create marker
+      const marker = L.marker([coords.lat, coords.lng], { icon });
+
+      // Add tooltip (on hover)
+      const tooltipContent = this.createTrailTooltip(trail);
+      marker.bindTooltip(tooltipContent, {
+        direction: 'top',
+        offset: [0, -20],
+        opacity: 0.98,
+        className: 'trail-tooltip'
+      });
+
+      // Add popup (on click)
+      const popupContent = this.createTrailPopup(trail, coords);
+      marker.bindPopup(popupContent, {
+        maxWidth: 320,
+        minWidth: 280,
+        className: 'trail-popup'
+      });
+
+      // Store reference
+      this.trailMarkers.set(trail.id, marker);
+
+      // Add to cluster
+      this.trailsMarkerCluster.addLayer(marker);
+      bounds.extend([coords.lat, coords.lng]);
+      markersAdded++;
+    });
+
+    // Fit map to show all markers
+    if (markersAdded > 0) {
+      this.trailsMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+    }
+
+    // Update count
+    this.updateVisibleTrailsCount();
+    console.log(`🗺️ Added ${markersAdded} trail markers to map`);
+  }
+
+  /**
+   * Extract coordinates from trail data
+   */
+  extractTrailCoordinates(trail) {
+    // Try to get coordinates from the trail's route data
+    // First check if we have routeData with location points
+    if (trail.routeData && Array.isArray(trail.routeData)) {
+      const locationPoints = trail.routeData.filter(p => p.type === 'location' && p.coords);
+      if (locationPoints.length > 0) {
+        // Use the first location point as the trail location
+        const firstPoint = locationPoints[0];
+        return {
+          lat: firstPoint.coords.lat,
+          lng: firstPoint.coords.lng || firstPoint.coords.lon
+        };
+      }
+    }
+
+    // Try to extract from htmlContent (embedded map data)
+    if (trail.htmlContent) {
+      // Look for map center coordinates in the HTML
+      const mapMatch = trail.htmlContent.match(/setView\(\[(-?\d+\.?\d*),\s*(-?\d+\.?\d*)\]/);
+      if (mapMatch) {
+        return {
+          lat: parseFloat(mapMatch[1]),
+          lng: parseFloat(mapMatch[2])
+        };
+      }
+
+      // Look for marker coordinates
+      const markerMatch = trail.htmlContent.match(/L\.marker\(\[(-?\d+\.?\d*),\s*(-?\d+\.?\d*)\]/);
+      if (markerMatch) {
+        return {
+          lat: parseFloat(markerMatch[1]),
+          lng: parseFloat(markerMatch[2])
+        };
+      }
+    }
+
+    // No coordinates found
+    return null;
+  }
+
+  /**
+   * Get accessibility level for marker coloring
+   */
+  getAccessibilityLevel(trail) {
+    const wheelchair = trail.accessibility?.wheelchairAccess?.toLowerCase() || '';
+
+    if (wheelchair.includes('fully') || wheelchair.includes('full')) {
+      return 'full';
+    } else if (wheelchair.includes('partial')) {
+      return 'partial';
+    } else if (wheelchair.includes('not') || wheelchair.includes('none') || wheelchair.includes('limited')) {
+      return 'none';
+    }
+    return 'unknown';
+  }
+
+  /**
+   * Create tooltip HTML for trail marker
+   */
+  createTrailTooltip(trail) {
+    const distance = trail.metadata?.totalDistance?.toFixed(1) || '?';
+    const difficulty = trail.accessibility?.difficulty || 'Unknown';
+    const wheelchair = trail.accessibility?.wheelchairAccess || 'Unknown';
+
+    return `
+      <div class="tooltip-name">${this.escapeHtml(trail.routeName || 'Trail')}</div>
+      <div class="tooltip-meta">
+        <span class="tooltip-badge">📏 ${distance} km</span>
+        <span class="tooltip-badge">♿ ${wheelchair}</span>
+        <span class="tooltip-badge">🥾 ${difficulty}</span>
+      </div>
+    `;
+  }
+
+  /**
+   * Create popup HTML for trail marker
+   */
+  createTrailPopup(trail, coords) {
+    const distance = trail.metadata?.totalDistance?.toFixed(1) || '?';
+    const difficulty = trail.accessibility?.difficulty || 'Unknown';
+    const wheelchair = trail.accessibility?.wheelchairAccess || 'Unknown';
+    const location = trail.accessibility?.location || '';
+    const views = trail.community?.views || 0;
+    const photoCount = trail.metadata?.photoCount || 0;
+
+    // Try to extract an image from the trail
+    let imageHtml = '<div class="trail-popup-image">🌲</div>';
+    if (trail.htmlContent) {
+      const imgMatch = trail.htmlContent.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/);
+      if (imgMatch && imgMatch[1] && !imgMatch[1].startsWith('data:')) {
+        imageHtml = `<div class="trail-popup-image"><img src="${imgMatch[1]}" alt="${this.escapeHtml(trail.routeName)}" onerror="this.parentElement.innerHTML='🌲'"></div>`;
+      }
+    }
+
+    // Determine badge classes
+    const wheelchairBadge = wheelchair.toLowerCase().includes('fully') ? 'badge-accessible' :
+                           wheelchair.toLowerCase().includes('partial') ? 'badge-partial' : 'badge-difficult';
+    const difficultyBadge = difficulty.toLowerCase().includes('easy') ? 'badge-easy' :
+                           difficulty.toLowerCase().includes('moderate') ? 'badge-partial' : 'badge-difficult';
+
+    return `
+      <div class="trail-popup-card">
+        ${imageHtml}
+        <div class="trail-popup-content">
+          <div class="trail-popup-name">${this.escapeHtml(trail.routeName || 'Trail Guide')}</div>
+          <div class="trail-popup-stats">
+            <span class="popup-stat">📏 ${distance} km</span>
+            <span class="popup-stat">👁️ ${views}</span>
+            <span class="popup-stat">📷 ${photoCount}</span>
+          </div>
+          <div class="trail-popup-badges">
+            <span class="popup-badge ${wheelchairBadge}">♿ ${wheelchair}</span>
+            <span class="popup-badge ${difficultyBadge}">🥾 ${difficulty}</span>
+          </div>
+          <div class="trail-popup-actions">
+            <button class="popup-action-btn primary" onclick="viewTrailGuide('${trail.id}')">
+              📖 View Guide
+            </button>
+            <button class="popup-action-btn secondary" onclick="navigateToTrail(${coords.lat}, ${coords.lng})">
+              🧭 Navigate
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Navigate to trail location (opens in maps app)
+   */
+  navigateToTrail(lat, lng) {
+    // Try to open in native maps app
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+    window.open(mapsUrl, '_blank');
+  }
+
+  /**
+   * Switch between map and grid view
+   */
+  switchTrailsView(view) {
+    this.currentView = view;
+
+    const mapContainer = document.getElementById('trailsMapContainer');
+    const gridContainer = document.getElementById('featuredTrails');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const mapBtn = document.getElementById('mapViewBtn');
+    const gridBtn = document.getElementById('gridViewBtn');
+
+    if (view === 'map') {
+      mapContainer?.classList.remove('hidden');
+      gridContainer?.classList.add('hidden');
+      loadMoreBtn?.classList.add('hidden');
+      mapBtn?.classList.add('active');
+      gridBtn?.classList.remove('active');
+
+      // Refresh map size (in case it was hidden)
+      setTimeout(() => {
+        this.trailsMap?.invalidateSize();
+      }, 100);
+    } else {
+      mapContainer?.classList.add('hidden');
+      gridContainer?.classList.remove('hidden');
+      loadMoreBtn?.classList.remove('hidden');
+      mapBtn?.classList.remove('active');
+      gridBtn?.classList.add('active');
+    }
+  }
+
+  /**
+   * Update visible trails count in map info bar
+   */
+  updateVisibleTrailsCount() {
+    if (!this.trailsMap) return;
+
+    const bounds = this.trailsMap.getBounds();
+    let visibleCount = 0;
+
+    this.trailsWithCoords.forEach(trail => {
+      if (bounds.contains([trail.coords.lat, trail.coords.lng])) {
+        visibleCount++;
+      }
+    });
+
+    const countEl = document.getElementById('visibleTrailsCount');
+    if (countEl) {
+      countEl.textContent = `${visibleCount} trail${visibleCount !== 1 ? 's' : ''} in view`;
+    }
+  }
+
+  /**
+   * Toggle fullscreen mode for trails map
+   */
+  toggleTrailsMapFullscreen() {
+    const existingModal = document.getElementById('fullscreenTrailsModal');
+
+    if (existingModal) {
+      this.closeTrailsMapFullscreen();
+    } else {
+      this.openTrailsMapFullscreen();
+    }
+  }
+
+  /**
+   * Open trails map in fullscreen mode
+   */
+  openTrailsMapFullscreen() {
+    const mapContainer = document.getElementById('trailsMapContainer');
+    const modal = document.createElement('div');
+    modal.id = 'fullscreenTrailsModal';
+    modal.className = 'fullscreen-trails-map';
+
+    modal.innerHTML = `
+      <button class="close-fullscreen-btn" onclick="closeTrailsMapFullscreen()">
+        ✕ Close
+      </button>
+    `;
+
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+
+    // Move map to fullscreen modal
+    const mapEl = document.getElementById('trailsMap');
+    modal.appendChild(mapEl);
+
+    // Store original parent
+    window._trailsMapOriginalParent = mapContainer;
+
+    // Refresh map size
+    setTimeout(() => {
+      this.trailsMap?.invalidateSize();
+    }, 100);
+
+    // ESC key handler
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        this.closeTrailsMapFullscreen();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+  }
+
+  /**
+   * Close fullscreen trails map
+   */
+  closeTrailsMapFullscreen() {
+    const modal = document.getElementById('fullscreenTrailsModal');
+    if (!modal) return;
+
+    // Move map back
+    const mapEl = document.getElementById('trailsMap');
+    const originalParent = window._trailsMapOriginalParent;
+
+    if (originalParent && mapEl) {
+      originalParent.insertBefore(mapEl, originalParent.firstChild);
+    }
+
+    modal.remove();
+    document.body.style.overflow = '';
+
+    // Refresh map size
+    setTimeout(() => {
+      this.trailsMap?.invalidateSize();
+    }, 100);
+  }
+
+  /**
+   * Show detailed trail modal
+   */
+  showTrailDetailModal(trailId) {
+    const trail = this.allFeaturedTrails.find(t => t.id === trailId);
+    if (!trail) return;
+
+    const coords = this.extractTrailCoordinates(trail);
+    const distance = trail.metadata?.totalDistance?.toFixed(1) || '?';
+    const difficulty = trail.accessibility?.difficulty || 'Unknown';
+    const wheelchair = trail.accessibility?.wheelchairAccess || 'Unknown';
+    const location = trail.accessibility?.location || 'Unknown location';
+    const views = trail.community?.views || 0;
+    const photoCount = trail.metadata?.photoCount || 0;
+
+    // Try to get image
+    let imageHtml = '<span class="placeholder-icon">🌲</span>';
+    if (trail.htmlContent) {
+      const imgMatch = trail.htmlContent.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/);
+      if (imgMatch && imgMatch[1]) {
+        imageHtml = `<img src="${imgMatch[1]}" alt="${this.escapeHtml(trail.routeName)}" onerror="this.outerHTML='<span class=placeholder-icon>🌲</span>'">`;
+      }
+    }
+
+    // Badge colors
+    const wheelchairBadge = wheelchair.toLowerCase().includes('fully') ? 'badge-green' :
+                           wheelchair.toLowerCase().includes('partial') ? 'badge-yellow' : 'badge-red';
+    const difficultyBadge = difficulty.toLowerCase().includes('easy') ? 'badge-blue' :
+                           difficulty.toLowerCase().includes('moderate') ? 'badge-yellow' : 'badge-red';
+
+    const modal = document.createElement('div');
+    modal.className = 'trail-detail-modal';
+    modal.id = 'trailDetailModal';
+    modal.onclick = (e) => {
+      if (e.target === modal) this.closeTrailDetailModal();
+    };
+
+    modal.innerHTML = `
+      <div class="trail-detail-card">
+        <div class="trail-detail-header">
+          ${imageHtml}
+          <button class="trail-detail-close" onclick="closeTrailDetailModal()">✕</button>
+        </div>
+        <div class="trail-detail-body">
+          <h2 class="trail-detail-name">${this.escapeHtml(trail.routeName || 'Trail Guide')}</h2>
+          <div class="trail-detail-location">
+            <span>📍</span>
+            <span>${this.escapeHtml(location)}</span>
+          </div>
+
+          <div class="trail-detail-stats">
+            <div class="detail-stat">
+              <div class="detail-stat-value">${distance}</div>
+              <div class="detail-stat-label">km</div>
+            </div>
+            <div class="detail-stat">
+              <div class="detail-stat-value">${views}</div>
+              <div class="detail-stat-label">views</div>
+            </div>
+            <div class="detail-stat">
+              <div class="detail-stat-value">${photoCount}</div>
+              <div class="detail-stat-label">photos</div>
+            </div>
+          </div>
+
+          <div class="trail-detail-badges">
+            <span class="detail-badge ${wheelchairBadge}">♿ ${wheelchair}</span>
+            <span class="detail-badge ${difficultyBadge}">🥾 ${difficulty}</span>
+          </div>
+
+          <div class="trail-detail-actions">
+            <button class="detail-action-btn primary" onclick="viewTrailGuide('${trail.id}'); closeTrailDetailModal();">
+              📖 View Full Guide
+            </button>
+            ${coords ? `
+              <button class="detail-action-btn secondary" onclick="navigateToTrail(${coords.lat}, ${coords.lng})">
+                🧭 Get Directions
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+  }
+
+  /**
+   * Close trail detail modal
+   */
+  closeTrailDetailModal() {
+    const modal = document.getElementById('trailDetailModal');
+    if (modal) {
+      modal.remove();
+      document.body.style.overflow = '';
+    }
+  }
 }
 
+// Add global function for closing fullscreen
+window.closeTrailsMapFullscreen = () => window.landingController?.closeTrailsMapFullscreen();
 
 
 // FIXED: Landing page authentication integration
