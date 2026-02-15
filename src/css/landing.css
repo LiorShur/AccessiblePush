@@ -2739,27 +2739,39 @@ body {
   backdrop-filter: blur(8px);
 }
 
-/* Close button - positioned top right near toolbar */
+/* Close button - positioned to the LEFT of the top toolbar */
 .fullscreen-trails-map .close-fullscreen-btn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 10px 16px;
-  background: rgba(26, 26, 46, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  position: fixed;
+  top: 8px;
+  right: 220px; /* Left of toolbar (toolbar is ~200px from right edge) */
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.85);
+  border: none;
   border-radius: 8px;
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
   z-index: 10001;
-  backdrop-filter: blur(8px);
+  height: 42px; /* Match toolbar button height */
+  box-sizing: border-box;
+  transition: background 0.2s, transform 0.15s;
 }
 
 .fullscreen-trails-map .close-fullscreen-btn:hover {
-  background: rgba(74, 124, 89, 0.9);
+  background: rgba(0, 0, 0, 0.95);
+  transform: scale(1.02);
+}
+
+@media (max-width: 600px) {
+  .fullscreen-trails-map .close-fullscreen-btn {
+    right: auto;
+    left: 10px;
+    top: 8px;
+  }
 }
 
 /* Beta/Feedback modal should appear above fullscreen map */
