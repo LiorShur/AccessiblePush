@@ -146,7 +146,43 @@ export class TrailGuideGeneratorV2 {
       
       // Heads up section
       importantNotes: "Important Notes",
-      beAware: "Be aware of these observations"
+      beAware: "Be aware of these observations",
+
+      // Steep sections
+      steepSectionDesc: "{length}m section ({elevation}m elevation, max {grade}% grade)",
+
+      // Warning messages
+      warningAssistanceNeeded: "May require assistance in some areas",
+      warningSteepNotAccessible: "Steep slopes present - not wheelchair accessible",
+      warningModerateSlopes: "Moderate slopes - assistance may be needed",
+      warningNoShade: "No shade - bring sun protection and water",
+      warningPoorSurface: "Surface in poor condition - watch for obstacles",
+      warningOvergrown: "Trail may be overgrown in places",
+
+      // Survey detail labels
+      surveyTrailName: "Trail Name",
+      surveyLocation: "Location",
+      surveyRouteType: "Route Type",
+      surveyDifficulty: "Difficulty",
+      surveyWheelchairAccess: "Wheelchair Access",
+      surveyTrailSurface: "Trail Surface",
+      surveySurfaceQuality: "Surface Quality",
+      surveyTrailSlopes: "Trail Slopes",
+      surveyAccessibleParking: "Accessible Parking",
+      surveyParkingSpaces: "Parking Spaces",
+      surveyRestrooms: "Restrooms",
+      surveyWaterFountains: "Water Fountains",
+      surveySeating: "Seating",
+      surveyShadeCoverage: "Shade Coverage",
+      surveyLighting: "Lighting",
+      surveySignage: "Signage",
+      surveyVisualAccess: "Visual Access",
+      surveyTrailWidth: "Trail Width",
+      surveyPicnicAreas: "Picnic Areas",
+      surveyAccessibleViewpoint: "Accessible Viewpoint",
+      surveyEmergencyAccess: "Emergency Access",
+      surveyAdditionalNotes: "Additional Notes",
+      noSurveyData: "No survey data available."
     },
     he: {
       trailGuide: "מדריך שבילים נגיש",
@@ -275,7 +311,43 @@ export class TrailGuideGeneratorV2 {
       
       // Heads up section
       importantNotes: "הערות חשובות",
-      beAware: "שים לב לתצפיות הבאות"
+      beAware: "שים לב לתצפיות הבאות",
+
+      // Steep sections
+      steepSectionDesc: "קטע של {length} מ' (הפרש גובה {elevation} מ', שיפוע מקסימלי {grade}%)",
+
+      // Warning messages
+      warningAssistanceNeeded: "ייתכן שתידרש סיוע באזורים מסוימים",
+      warningSteepNotAccessible: "קיימים מדרונות תלולים - לא נגיש לכיסאות גלגלים",
+      warningModerateSlopes: "מדרונות בינוניים - ייתכן שתידרש עזרה",
+      warningNoShade: "אין צל - הביאו הגנה מפני השמש ומים",
+      warningPoorSurface: "המשטח במצב גרוע - היזהרו ממכשולים",
+      warningOvergrown: "השביל עשוי להיות צפוף בצמחייה במקומות מסוימים",
+
+      // Survey detail labels
+      surveyTrailName: "שם השביל",
+      surveyLocation: "מיקום",
+      surveyRouteType: "סוג המסלול",
+      surveyDifficulty: "רמת קושי",
+      surveyWheelchairAccess: "נגישות לכיסא גלגלים",
+      surveyTrailSurface: "משטח השביל",
+      surveySurfaceQuality: "איכות המשטח",
+      surveyTrailSlopes: "שיפועי השביל",
+      surveyAccessibleParking: "חניה נגישה",
+      surveyParkingSpaces: "מספר מקומות חניה",
+      surveyRestrooms: "שירותים",
+      surveyWaterFountains: "ברזיות מים",
+      surveySeating: "מקומות ישיבה",
+      surveyShadeCoverage: "כיסוי צל",
+      surveyLighting: "תאורה",
+      surveySignage: "שילוט",
+      surveyVisualAccess: "נגישות ויזואלית",
+      surveyTrailWidth: "רוחב השביל",
+      surveyPicnicAreas: "אזורי פיקניק",
+      surveyAccessibleViewpoint: "נקודת תצפית נגישה",
+      surveyEmergencyAccess: "גישה לשירותי חירום",
+      surveyAdditionalNotes: "הערות נוספות",
+      noSurveyData: "אין נתוני סקר זמינים."
     }
   };
 
@@ -406,15 +478,6 @@ export class TrailGuideGeneratorV2 {
                 📋 <span data-i18n="fullSurveyDetails">${t('fullSurveyDetails')}</span>
             </button>
         </div>
-        
-        <!-- PDF Loading Overlay -->
-        <div id="pdfLoadingOverlay" class="tg-pdf-overlay" style="display: none;">
-            <div class="tg-pdf-loading">
-                <div class="tg-pdf-spinner"></div>
-                <p>${t('generatingPdf')}</p>
-                <p class="tg-pdf-hint">${t('mayTakeSeconds')}</p>
-            </div>
-        </div>
 
         <!-- Hidden Survey Details Panel -->
         <div id="surveyDetails" class="tg-survey-panel">
@@ -489,6 +552,15 @@ export class TrailGuideGeneratorV2 {
             <p><span data-i18n="createdWith">${t('createdWith')}</span></p>
             <p><span data-i18n="makingAccessible">${t('makingAccessible')}</span></p>
         </footer>
+    </div>
+
+    <!-- PDF Loading Overlay (outside trailGuideContent to not be captured in PDF) -->
+    <div id="pdfLoadingOverlay" class="tg-pdf-overlay" style="display: none;">
+        <div class="tg-pdf-loading">
+            <div class="tg-pdf-spinner"></div>
+            <p>${t('generatingPdf')}</p>
+            <p class="tg-pdf-hint">${t('mayTakeSeconds')}</p>
+        </div>
     </div>
 
     <!-- Map Script -->
@@ -566,49 +638,82 @@ export class TrailGuideGeneratorV2 {
             }
         });
         
+        // Wait for all images to load before PDF generation
+        function waitForImages(element) {
+            const images = element.querySelectorAll('img');
+            const promises = Array.from(images).map(img => {
+                if (img.complete && img.naturalWidth > 0) {
+                    return Promise.resolve();
+                }
+                return new Promise((resolve) => {
+                    img.onload = resolve;
+                    img.onerror = () => {
+                        console.warn('Image failed to load:', img.src?.substring(0, 100));
+                        resolve(); // Continue even if image fails
+                    };
+                    // Timeout after 5 seconds
+                    setTimeout(resolve, 5000);
+                });
+            });
+            return Promise.all(promises);
+        }
+
         // PDF Download with loading overlay
-        function downloadPDF() {
+        async function downloadPDF() {
             // Show loading overlay
             const overlay = document.getElementById('pdfLoadingOverlay');
             const btn = document.getElementById('pdfBtn');
-            
+
             if (overlay) overlay.style.display = 'flex';
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '⏳ ' + (guideTranslations[currentGuideLang]?.generatingPdf || 'Generating...');
             }
-            
+
             // Close any open dropdowns
             closeNavDropdown();
-            
+
             // Hide action bar and show survey details for PDF
             const actionBar = document.getElementById('actionBar');
             const surveyPanel = document.getElementById('surveyDetails');
             if (actionBar) actionBar.style.display = 'none';
             if (surveyPanel) surveyPanel.classList.add('show');
-            
+
             const element = document.getElementById('trailGuideContent');
             const filename = '${routeInfo.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_trail_guide.pdf';
-            
-            const opt = {
-                margin: [10, 10, 10, 10],
-                filename: filename,
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { 
-                    scale: 2,
-                    useCORS: true,
-                    letterRendering: true,
-                    scrollY: 0
-                },
-                jsPDF: { 
-                    unit: 'mm', 
-                    format: 'a4', 
-                    orientation: 'portrait' 
-                },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-            };
-            
-            html2pdf().set(opt).from(element).save().then(() => {
+
+            // Determine if RTL mode
+            const isRTL = document.documentElement.dir === 'rtl';
+
+            try {
+                // Wait for all images to load before generating PDF
+                await waitForImages(element);
+
+                const opt = {
+                    margin: [10, 10, 10, 10],
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.95 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        // Disable letter rendering for RTL to prevent character spacing issues
+                        letterRendering: !isRTL,
+                        scrollY: 0,
+                        logging: false,
+                        // Force proper text rendering
+                        foreignObjectRendering: false
+                    },
+                    jsPDF: {
+                        unit: 'mm',
+                        format: 'a4',
+                        orientation: 'portrait'
+                    },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+
+                await html2pdf().set(opt).from(element).save();
+
                 // Restore UI
                 if (actionBar) actionBar.style.display = 'flex';
                 if (surveyPanel) surveyPanel.classList.remove('show');
@@ -617,7 +722,7 @@ export class TrailGuideGeneratorV2 {
                     btn.innerHTML = '📥 ' + (guideTranslations[currentGuideLang]?.downloadPdf || 'Download PDF');
                     btn.disabled = false;
                 }
-            }).catch(err => {
+            } catch (err) {
                 console.error('PDF generation failed:', err);
                 if (actionBar) actionBar.style.display = 'flex';
                 if (surveyPanel) surveyPanel.classList.remove('show');
@@ -627,7 +732,7 @@ export class TrailGuideGeneratorV2 {
                     btn.disabled = false;
                 }
                 alert('PDF generation failed. Please try again or use Print to PDF.');
-            });
+            }
         }
     </script>
 </body>
@@ -869,7 +974,7 @@ export class TrailGuideGeneratorV2 {
     const segments = this.calculateGradientSegments(elevationData, 0.015);
 
     // Analyze steep sections (only significant ones will remain after smoothing)
-    const steepAnalysis = this.analyzeSteepSections(segments);
+    const steepAnalysis = this.analyzeSteepSections(segments, lang);
 
     // Generate SVG chart
     const chartSvg = this.generateElevationSvg(elevationData, segments, 600, 180);
@@ -1037,8 +1142,9 @@ export class TrailGuideGeneratorV2 {
   /**
    * Analyze steep sections
    */
-  analyzeSteepSections(segments) {
-    const steepSegments = segments.filter(s => 
+  analyzeSteepSections(segments, lang = 'en') {
+    const t = (key) => this.t(key, lang);
+    const steepSegments = segments.filter(s =>
       s.category === 'steep' || s.category === 'verysteep'
     );
 
@@ -1062,14 +1168,18 @@ export class TrailGuideGeneratorV2 {
         currentGroup = { ...seg, maxGradient: Math.abs(seg.gradient) };
       }
     });
-    
+
     if (currentGroup) groups.push(currentGroup);
 
     const details = groups.map(g => {
       const length = ((g.endDistance - g.startDistance) * 1000).toFixed(0);
       const elevChange = Math.abs(g.endElevation - g.startElevation).toFixed(0);
       const direction = g.gradient > 0 ? '↗️' : '↘️';
-      return `<div class="tg-steep-item">${direction} ${length}m section (${elevChange}m elevation, max ${g.maxGradient.toFixed(0)}% grade)</div>`;
+      const desc = t('steepSectionDesc')
+        .replace('{length}', length)
+        .replace('{elevation}', elevChange)
+        .replace('{grade}', g.maxGradient.toFixed(0));
+      return `<div class="tg-steep-item">${direction} ${desc}</div>`;
     }).join('');
 
     return {
@@ -1570,48 +1680,48 @@ export class TrailGuideGeneratorV2 {
   renderHeadsUpSection(data, notes, lang = 'en') {
     const t = (key) => this.t(key, lang);
     const warnings = [];
-    
+
     // Check for accessibility concerns
     const wheelchair = data?.wheelchairAccess || '';
     if (wheelchair.toLowerCase().includes('not') || wheelchair.toLowerCase().includes('assistance')) {
-      warnings.push('May require assistance in some areas');
+      warnings.push(t('warningAssistanceNeeded'));
     }
-    
+
     const slopes = data?.trailSlopes || '';
     if (slopes.includes('Steep')) {
-      warnings.push('Steep slopes present - not wheelchair accessible');
+      warnings.push(t('warningSteepNotAccessible'));
     } else if (slopes.includes('Moderate')) {
-      warnings.push('Moderate slopes - assistance may be needed');
+      warnings.push(t('warningModerateSlopes'));
     }
-    
+
     const shade = data?.shadeCoverage || '';
     if (shade.includes('No shade')) {
-      warnings.push('No shade - bring sun protection and water');
+      warnings.push(t('warningNoShade'));
     }
-    
+
     const quality = data?.surfaceQuality || '';
     if (quality.includes('Poor')) {
-      warnings.push('Surface in poor condition - watch for obstacles');
+      warnings.push(t('warningPoorSurface'));
     } else if (quality.includes('Vegetation')) {
-      warnings.push('Trail may be overgrown in places');
+      warnings.push(t('warningOvergrown'));
     }
-    
-    // Add any notes as potential warnings
+
+    // Add any notes as potential warnings (user notes remain in original language)
     const warningNotes = notes.filter(n => {
       const text = (n.text || n.data || '').toLowerCase();
-      return text.includes('watch') || text.includes('careful') || text.includes('warning') || 
+      return text.includes('watch') || text.includes('careful') || text.includes('warning') ||
              text.includes('caution') || text.includes('avoid') || text.includes('note');
     });
-    
+
     warningNotes.forEach(n => {
       warnings.push(n.text || n.data);
     });
-    
-    // Additional notes
+
+    // Additional notes (user notes remain in original language)
     if (data?.additionalNotes) {
       warnings.push(data.additionalNotes);
     }
-    
+
     if (warnings.length === 0) return '';
     
     return `
@@ -1624,57 +1734,57 @@ export class TrailGuideGeneratorV2 {
     `;
   }
 
-  renderFullSurveyDetails(data) {
-    if (!data) return '<p style="color:#666;">No survey data available.</p>';
-    
+  renderFullSurveyDetails(data, lang = 'en') {
+    const t = (key) => this.t(key, lang);
+    if (!data) return `<p style="color:#666;">${t('noSurveyData')}</p>`;
+
     const items = [];
-    
+
     // Helper to add item if value exists
-    const addItem = (label, value) => {
+    const addItem = (labelKey, value) => {
       if (value && value !== 'Unknown' && value !== '') {
         const displayValue = Array.isArray(value) ? value.join(', ') : value;
-        items.push({ label, value: displayValue });
+        items.push({ label: t(labelKey), value: displayValue });
       }
     };
-    
+
     // Basic Info
-    addItem('Trail Name', data.trailName);
-    addItem('Location', data.location);
-    addItem('Route Type', data.routeType);
-    addItem('Difficulty', data.difficulty);
-    
+    addItem('surveyTrailName', data.trailName);
+    addItem('surveyLocation', data.location);
+    addItem('surveyRouteType', data.routeType);
+    addItem('surveyDifficulty', data.difficulty);
+
     // Accessibility
-    addItem('Wheelchair Access', data.wheelchairAccess);
-    addItem('Trail Surface', data.trailSurface);
-    addItem('Surface Quality', data.surfaceQuality);
-    addItem('Trail Slopes', data.trailSlopes);
-    
+    addItem('surveyWheelchairAccess', data.wheelchairAccess);
+    addItem('surveyTrailSurface', data.trailSurface);
+    addItem('surveySurfaceQuality', data.surfaceQuality);
+    addItem('surveyTrailSlopes', data.trailSlopes);
+
     // Facilities
-    addItem('Accessible Parking', data.disabledParking);
-    addItem('Parking Spaces', data.parkingSpaces);
-    addItem('Restrooms', data.restrooms);
-    addItem('Water Fountains', data.waterFountains);
-    addItem('Seating', data.seating);
-    
+    addItem('surveyAccessibleParking', data.disabledParking);
+    addItem('surveyParkingSpaces', data.parkingSpaces);
+    addItem('surveyRestrooms', data.restrooms);
+    addItem('surveyWaterFountains', data.waterFountains);
+    addItem('surveySeating', data.seating);
+
     // Environment
-    addItem('Shade Coverage', data.shadeCoverage);
-    addItem('Lighting', data.lighting);
-    addItem('Signage', data.signage);
-    addItem('Visual Access', data.visualAccess);
-    addItem('Trail Width', data.trailWidth);
-    
+    addItem('surveyShadeCoverage', data.shadeCoverage);
+    addItem('surveyLighting', data.lighting);
+    addItem('surveySignage', data.signage);
+    addItem('surveyVisualAccess', data.visualAccess);
+    addItem('surveyTrailWidth', data.trailWidth);
+
     // Extras
-    addItem('Picnic Areas', data.picnicAreas);
-    addItem('Accessible Viewpoint', data.accessibleViewpoint);
-    addItem('Environment', data.environment);
-    
+    addItem('surveyPicnicAreas', data.picnicAreas);
+    addItem('surveyAccessibleViewpoint', data.accessibleViewpoint);
+
     // Notes
-    addItem('Additional Notes', data.additionalNotes);
-    
+    addItem('surveyAdditionalNotes', data.additionalNotes);
+
     if (items.length === 0) {
-      return '<p style="color:#666;">No detailed survey data available.</p>';
+      return `<p style="color:#666;">${t('noSurveyData')}</p>`;
     }
-    
+
     return `
       <div class="tg-survey-grid">
         ${items.map(item => `
@@ -1777,8 +1887,26 @@ export class TrailGuideGeneratorV2 {
             color: #333;
             background: #f5f5f5;
             direction: ${isRTL ? 'rtl' : 'ltr'};
+            ${isRTL ? `
+            /* RTL-specific text rendering fixes for PDF export */
+            word-spacing: 0.05em;
+            letter-spacing: 0;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            ` : ''}
         }
-        
+
+        ${isRTL ? `
+        /* Hebrew/RTL text fixes for proper rendering in PDF */
+        * {
+            unicode-bidi: embed;
+        }
+        p, span, div, h1, h2, h3, h4, li, td, th {
+            word-spacing: normal;
+            white-space: normal;
+        }
+        ` : ''}
+
         .tg-container {
             max-width: 700px;
             margin: 0 auto;
