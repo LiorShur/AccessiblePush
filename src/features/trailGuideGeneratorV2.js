@@ -112,6 +112,10 @@ export class TrailGuideGeneratorV2 {
       notAvailable: "Not Available",
       nearby: "Nearby",
       easy: "Easy",
+      challenging: "Challenging",
+      concrete: "Concrete",
+      boardwalk: "Boardwalk",
+      unknown: "Unknown",
       difficulty: "Difficulty",
       accessibleParking: "Accessible Parking",
       accessibleRestrooms: "Accessible Restrooms",
@@ -277,6 +281,10 @@ export class TrailGuideGeneratorV2 {
       notAvailable: "לא זמין",
       nearby: "בקרבת מקום",
       easy: "קל",
+      challenging: "מאתגר",
+      concrete: "בטון",
+      boardwalk: "דק עץ",
+      unknown: "לא ידוע",
       difficulty: "רמת קושי",
       accessibleParking: "חניית נכים",
       accessibleRestrooms: "שירותים נגישים",
@@ -481,7 +489,7 @@ export class TrailGuideGeneratorV2 {
 
         <!-- Hidden Survey Details Panel -->
         <div id="surveyDetails" class="tg-survey-panel">
-            <h3>📋 ${t('completeSurvey')}</h3>
+            <h3>📋 <span data-i18n="completeSurvey">${t('completeSurvey')}</span></h3>
             ${this.renderFullSurveyDetails(accessibilityData, currentLang)}
         </div>
 
@@ -489,19 +497,19 @@ export class TrailGuideGeneratorV2 {
         <div class="tg-stats-row">
             <div class="tg-stat">
                 <span class="tg-stat-value">${(routeInfo.totalDistance || 0).toFixed(1)}</span>
-                <span class="tg-stat-label">${t('km')}</span>
+                <span class="tg-stat-label" data-i18n="km">${t('km')}</span>
             </div>
             <div class="tg-stat">
                 <span class="tg-stat-value">${this.formatDuration(routeInfo.elapsedTime || 0)}</span>
-                <span class="tg-stat-label">${t('duration')}</span>
+                <span class="tg-stat-label" data-i18n="duration">${t('duration')}</span>
             </div>
             <div class="tg-stat">
                 <span class="tg-stat-value">${this.getDifficultyEmoji(accessibilityData)}</span>
-                <span class="tg-stat-label">${this.getDifficultyLabel(accessibilityData, currentLang)}</span>
+                <span class="tg-stat-label" data-i18n="${this.getDifficultyKey(accessibilityData)}">${this.getDifficultyLabel(accessibilityData, currentLang)}</span>
             </div>
             <div class="tg-stat">
                 <span class="tg-stat-value">${this.getSurfaceIcon(accessibilityData)}</span>
-                <span class="tg-stat-label">${this.getSurfaceLabel(accessibilityData, currentLang)}</span>
+                <span class="tg-stat-label" data-i18n="${this.getSurfaceKey(accessibilityData)}">${this.getSurfaceLabel(accessibilityData, currentLang)}</span>
             </div>
         </div>
 
@@ -520,11 +528,11 @@ export class TrailGuideGeneratorV2 {
         <!-- Map Section -->
         ${locationPoints.length > 0 ? `
         <section class="tg-section">
-            <h2 class="tg-section-title">🗺️ ${t('routeMap')}</h2>
+            <h2 class="tg-section-title">🗺️ <span data-i18n="routeMap">${t('routeMap')}</span></h2>
             <div class="tg-map-container">
                 <div id="map"></div>
             </div>
-            <p class="tg-map-hint">${t('clickMarkers')}</p>
+            <p class="tg-map-hint" data-i18n="clickMarkers">${t('clickMarkers')}</p>
             <div class="tg-map-legend">
                 <div class="tg-legend-item"><div class="tg-legend-dot start"></div> <span data-i18n="start">${t('start')}</span></div>
                 <div class="tg-legend-item"><div class="tg-legend-dot end"></div> <span data-i18n="finish">${t('finish')}</span></div>
@@ -850,19 +858,16 @@ export class TrailGuideGeneratorV2 {
     return '😊';
   }
 
-  getDifficultyLabel(data, lang = 'en') {
+  getDifficultyKey(data) {
     const slopes = data?.trailSlopes || '';
     const quality = data?.surfaceQuality || '';
-    
-    const labels = {
-      en: { challenging: 'Challenging', moderate: 'Moderate', easy: 'Easy' },
-      he: { challenging: 'מאתגר', moderate: 'בינוני', easy: 'קל' }
-    };
-    const t = labels[lang] || labels['en'];
-    
-    if (slopes.includes('Steep') || quality.includes('Poor')) return t.challenging;
-    if (slopes.includes('Moderate') || quality.includes('Fair')) return t.moderate;
-    return t.easy;
+    if (slopes.includes('Steep') || quality.includes('Poor')) return 'challenging';
+    if (slopes.includes('Moderate') || quality.includes('Fair')) return 'moderate';
+    return 'easy';
+  }
+
+  getDifficultyLabel(data, lang = 'en') {
+    return this.t(this.getDifficultyKey(data), lang);
   }
 
   getSurfaceIcon(data) {
@@ -877,24 +882,21 @@ export class TrailGuideGeneratorV2 {
     return '🛤️';
   }
 
-  getSurfaceLabel(data, lang = 'en') {
+  getSurfaceKey(data) {
     const surfaces = data?.trailSurface || '';
     const surfaceStr = Array.isArray(surfaces) ? surfaces[0] : surfaces;
-    
-    const labels = {
-      en: { paved: 'Paved', concrete: 'Concrete', boardwalk: 'Boardwalk', gravel: 'Gravel', grass: 'Grass', mixed: 'Mixed', unknown: 'Unknown' },
-      he: { paved: 'סלול', concrete: 'בטון', boardwalk: 'דק עץ', gravel: 'חצץ', grass: 'דשא', mixed: 'מעורב', unknown: 'לא ידוע' }
-    };
-    const t = labels[lang] || labels['en'];
-    
-    if (!surfaceStr) return t.unknown;
-    if (surfaceStr.includes('Asphalt')) return t.paved;
-    if (surfaceStr.includes('Concrete')) return t.concrete;
-    if (surfaceStr.includes('Wood')) return t.boardwalk;
-    if (surfaceStr.includes('Gravel')) return t.gravel;
-    if (surfaceStr.includes('Grass')) return t.grass;
-    if (surfaceStr.includes('Mixed')) return t.mixed;
-    return surfaceStr.split(' ')[0];
+    if (!surfaceStr) return 'unknown';
+    if (surfaceStr.includes('Asphalt')) return 'paved';
+    if (surfaceStr.includes('Concrete')) return 'concrete';
+    if (surfaceStr.includes('Wood')) return 'boardwalk';
+    if (surfaceStr.includes('Gravel')) return 'gravel';
+    if (surfaceStr.includes('Grass')) return 'grass';
+    if (surfaceStr.includes('Mixed')) return 'mixed';
+    return 'unknown';
+  }
+
+  getSurfaceLabel(data, lang = 'en') {
+    return this.t(this.getSurfaceKey(data), lang);
   }
 
   /**
@@ -922,15 +924,15 @@ export class TrailGuideGeneratorV2 {
       const elevation = Math.round(locationPoints[0].elevation);
       return `
         <section class="tg-section tg-elevation">
-            <h2 class="tg-section-title">📈 ${t('elevationProfile')}</h2>
+            <h2 class="tg-section-title">📈 <span data-i18n="elevationProfile">${t('elevationProfile')}</span></h2>
             <div class="tg-elevation-stats" style="justify-content: center;">
                 <div class="tg-elev-stat">
                     <span class="tg-elev-icon" style="color: #4CAF50;">⛰️</span>
                     <span class="tg-elev-value">${elevation}m</span>
-                    <span class="tg-elev-label">${t('elevation')}</span>
+                    <span class="tg-elev-label" data-i18n="elevation">${t('elevation')}</span>
                 </div>
             </div>
-            <p style="text-align: center; color: #888; font-size: 0.85rem; margin-top: 12px;">
+            <p style="text-align: center; color: #888; font-size: 0.85rem; margin-top: 12px;" data-i18n="singlePointRecorded">
                 ${t('singlePointRecorded')}
             </p>
         </section>
@@ -981,51 +983,51 @@ export class TrailGuideGeneratorV2 {
 
     return `
         <section class="tg-section tg-elevation">
-            <h2 class="tg-section-title">📈 ${t('elevationProfile')}</h2>
-            
+            <h2 class="tg-section-title">📈 <span data-i18n="elevationProfile">${t('elevationProfile')}</span></h2>
+
             <!-- Elevation Stats -->
             <div class="tg-elevation-stats">
                 <div class="tg-elev-stat">
                     <span class="tg-elev-icon" style="color: #4CAF50;">↑</span>
                     <span class="tg-elev-value">${Math.round(totalAscent)}m</span>
-                    <span class="tg-elev-label">${t('ascent')}</span>
+                    <span class="tg-elev-label" data-i18n="ascent">${t('ascent')}</span>
                 </div>
                 <div class="tg-elev-stat">
                     <span class="tg-elev-icon" style="color: #f44336;">↓</span>
                     <span class="tg-elev-value">${Math.round(totalDescent)}m</span>
-                    <span class="tg-elev-label">${t('descent')}</span>
+                    <span class="tg-elev-label" data-i18n="descent">${t('descent')}</span>
                 </div>
                 <div class="tg-elev-stat">
                     <span class="tg-elev-icon" style="color: #2196F3;">▽</span>
                     <span class="tg-elev-value">${Math.round(minElevation)}m</span>
-                    <span class="tg-elev-label">${t('minElevation')}</span>
+                    <span class="tg-elev-label" data-i18n="minElevation">${t('minElevation')}</span>
                 </div>
                 <div class="tg-elev-stat">
                     <span class="tg-elev-icon" style="color: #FF9800;">△</span>
                     <span class="tg-elev-value">${Math.round(maxElevation)}m</span>
-                    <span class="tg-elev-label">${t('maxElevation')}</span>
+                    <span class="tg-elev-label" data-i18n="maxElevation">${t('maxElevation')}</span>
                 </div>
             </div>
-            
+
             <!-- Elevation Chart -->
             <div class="tg-elevation-chart">
                 ${chartSvg}
             </div>
-            
+
             <!-- Gradient Legend -->
             <div class="tg-gradient-legend">
-                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #4CAF50;"></span> 0-5% ${t('flat')}</span>
-                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #FFC107;"></span> 5-10% ${t('moderate')}</span>
-                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #FF9800;"></span> 10-15% ${t('steep')}</span>
-                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #f44336;"></span> >15% ${t('verySteep')}</span>
+                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #4CAF50;"></span> 0-5% <span data-i18n="flat">${t('flat')}</span></span>
+                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #FFC107;"></span> 5-10% <span data-i18n="moderate">${t('moderate')}</span></span>
+                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #FF9800;"></span> 10-15% <span data-i18n="steep">${t('steep')}</span></span>
+                <span class="tg-legend-item"><span class="tg-legend-color" style="background: #f44336;"></span> >15% <span data-i18n="verySteep">${t('verySteep')}</span></span>
             </div>
-            
+
             ${steepAnalysis.hasSteepSections ? `
             <!-- Steep Sections Warning -->
             <div class="tg-steep-warning">
                 <div class="tg-steep-header">
                     <span class="tg-steep-icon">⚠️</span>
-                    <span class="tg-steep-title">${t('steepSections')} (${steepAnalysis.count})</span>
+                    <span class="tg-steep-title"><span data-i18n="steepSections">${t('steepSections')}</span> (${steepAnalysis.count})</span>
                 </div>
                 <div class="tg-steep-details">
                     ${steepAnalysis.details}
@@ -1415,12 +1417,12 @@ export class TrailGuideGeneratorV2 {
     
     return `
         <section class="tg-section tg-good-for">
-            <h2 class="tg-section-title">✅ ${t('goodFor')}</h2>
+            <h2 class="tg-section-title">✅ <span data-i18n="goodFor">${t('goodFor')}</span></h2>
             <div class="tg-badges">
                 ${badges.map(b => `
                     <div class="tg-badge-item">
                         <span class="tg-badge-icon">${b.icon}</span>
-                        <span class="tg-badge-label">${t(b.labelKey)}</span>
+                        <span class="tg-badge-label" data-i18n="${b.labelKey}">${t(b.labelKey)}</span>
                     </div>
                 `).join('')}
             </div>
@@ -1470,15 +1472,15 @@ export class TrailGuideGeneratorV2 {
     
     return `
         <section class="tg-section">
-            <h2 class="tg-section-title">📊 ${t('trailConditions')}</h2>
+            <h2 class="tg-section-title">📊 <span data-i18n="trailConditions">${t('trailConditions')}</span></h2>
             <div class="tg-conditions">
                 ${conditions.map(c => `
                     <div class="tg-condition-row">
-                        <span class="tg-condition-label">${t(c.labelKey)}</span>
+                        <span class="tg-condition-label" data-i18n="${c.labelKey}">${t(c.labelKey)}</span>
                         <div class="tg-condition-bar">
                             <div class="tg-condition-fill ${this.getBarClass(c.percent)}" style="width: ${c.percent}%"></div>
                         </div>
-                        <span class="tg-condition-text">${t(c.textKey)}</span>
+                        <span class="tg-condition-text" data-i18n="${c.textKey}">${t(c.textKey)}</span>
                     </div>
                 `).join('')}
             </div>
@@ -1517,71 +1519,71 @@ export class TrailGuideGeneratorV2 {
     console.log('  - disabledParking:', parking, 'isAvailable:', isAvailable(parking));
     if (isAvailable(parking)) {
       const spaces = data?.parkingSpaces || '?';
-      facilities.push({ icon: '🅿️', labelKey: 'parking', status: `${spaces} ${t('spaces')}`, available: true });
+      facilities.push({ icon: '🅿️', labelKey: 'parking', statusKey: 'spaces', statusPrefix: spaces + ' ', available: true });
     } else {
-      facilities.push({ icon: '🅿️', labelKey: 'parking', status: t('none'), available: false });
+      facilities.push({ icon: '🅿️', labelKey: 'parking', statusKey: 'none', available: false });
     }
-    
+
     // Restrooms
     const restrooms = data?.restrooms || '';
     console.log('  - restrooms:', restrooms, 'isNone:', isNone(restrooms));
     if (restrooms && !isNone(restrooms)) {
-      facilities.push({ icon: '🚻', labelKey: 'restrooms', status: t('yes'), available: true });
+      facilities.push({ icon: '🚻', labelKey: 'restrooms', statusKey: 'yes', available: true });
     } else {
-      facilities.push({ icon: '🚻', labelKey: 'restrooms', status: t('none'), available: false });
+      facilities.push({ icon: '🚻', labelKey: 'restrooms', statusKey: 'none', available: false });
     }
-    
+
     // Water
     const water = data?.waterFountains || '';
     console.log('  - waterFountains:', water, 'isNone:', isNone(water));
     if (water && !isNone(water)) {
-      facilities.push({ icon: '🚰', labelKey: 'water', status: t('yes'), available: true });
+      facilities.push({ icon: '🚰', labelKey: 'water', statusKey: 'yes', available: true });
     } else {
-      facilities.push({ icon: '🚰', labelKey: 'water', status: t('none'), available: false });
+      facilities.push({ icon: '🚰', labelKey: 'water', statusKey: 'none', available: false });
     }
-    
+
     // Seating
     const seating = data?.seating || [];
     const seatingArr = Array.isArray(seating) ? seating : [seating];
     console.log('  - seating:', seating, 'arr:', seatingArr);
     if (seatingArr.some(s => s && !isNone(s))) {
-      facilities.push({ icon: '🪑', labelKey: 'benches', status: t('yes'), available: true });
+      facilities.push({ icon: '🪑', labelKey: 'benches', statusKey: 'yes', available: true });
     } else {
-      facilities.push({ icon: '🪑', labelKey: 'benches', status: t('none'), available: false });
+      facilities.push({ icon: '🪑', labelKey: 'benches', statusKey: 'none', available: false });
     }
-    
+
     // Picnic
     const picnic = data?.picnicAreas;
     console.log('  - picnicAreas:', picnic, 'isAvailable:', isAvailable(picnic));
     if (isAvailable(picnic)) {
-      facilities.push({ icon: '🧺', labelKey: 'restAreas', status: t('yes'), available: true });
+      facilities.push({ icon: '🧺', labelKey: 'restAreas', statusKey: 'yes', available: true });
     }
-    
+
     // Viewpoint
     const viewpoint = data?.accessibleViewpoint;
     console.log('  - accessibleViewpoint:', viewpoint, 'isAvailable:', isAvailable(viewpoint));
     if (isAvailable(viewpoint)) {
-      facilities.push({ icon: '🏔️', labelKey: 'facilities', status: t('yes'), available: true });
+      facilities.push({ icon: '🏔️', labelKey: 'facilities', statusKey: 'yes', available: true });
     }
-    
+
     // Lighting
     const lighting = data?.lighting;
     console.log('  - lighting:', lighting);
     if (lighting && (typeof lighting === 'string' || (Array.isArray(lighting) && lighting.length > 0))) {
-      facilities.push({ icon: '💡', labelKey: 'lighting', status: t('yes'), available: true });
+      facilities.push({ icon: '💡', labelKey: 'lighting', statusKey: 'yes', available: true });
     }
-    
+
     console.log('  - Final facilities count:', facilities.length);
-    
+
     return `
         <section class="tg-section">
-            <h2 class="tg-section-title">🏛️ ${t('facilities')}</h2>
+            <h2 class="tg-section-title">🏛️ <span data-i18n="facilities">${t('facilities')}</span></h2>
             <div class="tg-facilities">
                 ${facilities.map(f => `
                     <div class="tg-facility ${f.available ? 'available' : 'unavailable'}">
                         <span class="tg-facility-icon">${f.icon}</span>
-                        <span class="tg-facility-label">${t(f.labelKey)}</span>
-                        <span class="tg-facility-status">${f.status}</span>
+                        <span class="tg-facility-label" data-i18n="${f.labelKey}">${t(f.labelKey)}</span>
+                        <span class="tg-facility-status">${f.statusPrefix || ''}<span data-i18n="${f.statusKey}">${t(f.statusKey)}</span></span>
                     </div>
                 `).join('')}
             </div>
@@ -1594,16 +1596,17 @@ export class TrailGuideGeneratorV2 {
     console.log('📍 Building timeline with routeData:', routeData?.length, 'points');
     const items = [];
     const startTime = new Date(routeInfo.date).getTime();
-    
+
     // Add start point
     items.push({
       type: 'start',
       icon: '🟢',
+      titleKey: 'start',
       title: t('start'),
       time: null,
       distance: 0
     });
-    
+
     // Add photos and notes
     routeData.forEach((point, index) => {
       if (point.type === 'photo') {
@@ -1614,6 +1617,7 @@ export class TrailGuideGeneratorV2 {
           items.push({
             type: 'photo',
             icon: '📸',
+            titleKey: 'photo',
             title: t('photo'),
             content: photoContent,
             time: point.timestamp ? new Date(point.timestamp).toLocaleTimeString() : null,
@@ -1629,6 +1633,7 @@ export class TrailGuideGeneratorV2 {
           items.push({
             type: 'note',
             icon: '📝',
+            titleKey: 'note',
             title: t('note'),
             content: noteContent,
             time: point.timestamp ? new Date(point.timestamp).toLocaleTimeString() : null,
@@ -1638,37 +1643,38 @@ export class TrailGuideGeneratorV2 {
         }
       }
     });
-    
+
     // Add end point
     items.push({
       type: 'end',
       icon: '🔴',
+      titleKey: 'end',
       title: t('end'),
       time: null,
       distance: routeInfo.totalDistance || null
     });
-    
+
     console.log('  - Timeline items created:', items.length, '(start + end + photos + notes)');
     return items;
   }
 
   renderTimelineItem(item) {
     let content = '';
-    
+
     if (item.type === 'photo' && item.content) {
       content = `<img src="${item.content}" class="tg-timeline-photo" alt="Trail photo">`;
     } else if (item.type === 'note' && item.content) {
       content = `<p class="tg-timeline-text">"${item.content}"</p>`;
     }
-    
+
     const distanceText = item.distance ? `${(item.distance / 1000).toFixed(1)} km` : '';
-    
+
     return `
         <div class="tg-timeline-item ${item.type}">
             <div class="tg-timeline-marker">${item.icon}</div>
             <div class="tg-timeline-content">
                 <div class="tg-timeline-header">
-                    <span class="tg-timeline-title">${item.title}</span>
+                    <span class="tg-timeline-title" data-i18n="${item.titleKey}">${item.title}</span>
                     ${distanceText ? `<span class="tg-timeline-distance">${distanceText}</span>` : ''}
                 </div>
                 ${content}
@@ -1679,31 +1685,31 @@ export class TrailGuideGeneratorV2 {
 
   renderHeadsUpSection(data, notes, lang = 'en') {
     const t = (key) => this.t(key, lang);
-    const warnings = [];
+    const warnings = []; // Array of { key, text } or { text } for user notes
 
     // Check for accessibility concerns
     const wheelchair = data?.wheelchairAccess || '';
     if (wheelchair.toLowerCase().includes('not') || wheelchair.toLowerCase().includes('assistance')) {
-      warnings.push(t('warningAssistanceNeeded'));
+      warnings.push({ key: 'warningAssistanceNeeded' });
     }
 
     const slopes = data?.trailSlopes || '';
     if (slopes.includes('Steep')) {
-      warnings.push(t('warningSteepNotAccessible'));
+      warnings.push({ key: 'warningSteepNotAccessible' });
     } else if (slopes.includes('Moderate')) {
-      warnings.push(t('warningModerateSlopes'));
+      warnings.push({ key: 'warningModerateSlopes' });
     }
 
     const shade = data?.shadeCoverage || '';
     if (shade.includes('No shade')) {
-      warnings.push(t('warningNoShade'));
+      warnings.push({ key: 'warningNoShade' });
     }
 
     const quality = data?.surfaceQuality || '';
     if (quality.includes('Poor')) {
-      warnings.push(t('warningPoorSurface'));
+      warnings.push({ key: 'warningPoorSurface' });
     } else if (quality.includes('Vegetation')) {
-      warnings.push(t('warningOvergrown'));
+      warnings.push({ key: 'warningOvergrown' });
     }
 
     // Add any notes as potential warnings (user notes remain in original language)
@@ -1714,21 +1720,24 @@ export class TrailGuideGeneratorV2 {
     });
 
     warningNotes.forEach(n => {
-      warnings.push(n.text || n.data);
+      warnings.push({ text: n.text || n.data });
     });
 
     // Additional notes (user notes remain in original language)
     if (data?.additionalNotes) {
-      warnings.push(data.additionalNotes);
+      warnings.push({ text: data.additionalNotes });
     }
 
     if (warnings.length === 0) return '';
-    
+
     return `
         <section class="tg-section tg-heads-up">
-            <h2 class="tg-section-title">⚠️ ${t('headsUp')}</h2>
+            <h2 class="tg-section-title">⚠️ <span data-i18n="headsUp">${t('headsUp')}</span></h2>
             <ul class="tg-warnings">
-                ${warnings.map(w => `<li>${w}</li>`).join('')}
+                ${warnings.map(w => w.key
+                  ? `<li data-i18n="${w.key}">${t(w.key)}</li>`
+                  : `<li>${w.text}</li>`
+                ).join('')}
             </ul>
         </section>
     `;
@@ -1736,15 +1745,15 @@ export class TrailGuideGeneratorV2 {
 
   renderFullSurveyDetails(data, lang = 'en') {
     const t = (key) => this.t(key, lang);
-    if (!data) return `<p style="color:#666;">${t('noSurveyData')}</p>`;
+    if (!data) return `<p style="color:#666;" data-i18n="noSurveyData">${t('noSurveyData')}</p>`;
 
     const items = [];
 
-    // Helper to add item if value exists
+    // Helper to add item if value exists - stores key for data-i18n
     const addItem = (labelKey, value) => {
       if (value && value !== 'Unknown' && value !== '') {
         const displayValue = Array.isArray(value) ? value.join(', ') : value;
-        items.push({ label: t(labelKey), value: displayValue });
+        items.push({ labelKey, label: t(labelKey), value: displayValue });
       }
     };
 
@@ -1782,14 +1791,14 @@ export class TrailGuideGeneratorV2 {
     addItem('surveyAdditionalNotes', data.additionalNotes);
 
     if (items.length === 0) {
-      return `<p style="color:#666;">${t('noSurveyData')}</p>`;
+      return `<p style="color:#666;" data-i18n="noSurveyData">${t('noSurveyData')}</p>`;
     }
 
     return `
       <div class="tg-survey-grid">
         ${items.map(item => `
           <div class="tg-survey-item">
-            <div class="tg-survey-label">${item.label}</div>
+            <div class="tg-survey-label" data-i18n="${item.labelKey}">${item.label}</div>
             <div class="tg-survey-value">${item.value}</div>
           </div>
         `).join('')}
