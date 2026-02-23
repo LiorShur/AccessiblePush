@@ -2374,11 +2374,155 @@ async viewTrailGuide(guideId) {
   }
 }
 
+// Patch old trail guide HTML to fix PDF export (images showing as placeholders)
+patchOldTrailGuideHTML(htmlContent) {
+  // Only patch if it has the old downloadPDF pattern (no waitForImages)
+  if (!htmlContent || htmlContent.includes('waitForImages')) {
+    return htmlContent; // Already has the fix or empty
+  }
+
+  let patched = htmlContent;
+
+  // 1. Move PDF overlay outside trailGuideContent div
+  // Old: overlay is inside <div class="tg-container" id="trailGuideContent">...</div>
+  // New: overlay should be after the closing </div> of trailGuideContent
+  const overlayRegex = /(<div id="pdfLoadingOverlay"[\s\S]*?<\/div>\s*<\/div>)\s*(<\/div>\s*(?:<!--\s*(?:Map Script|PDF)|\s*<script))/;
+  const overlayMatch = patched.match(overlayRegex);
+  if (overlayMatch) {
+    // Check if overlay is inside tg-container by looking for the pattern
+    // The overlay HTML block
+    const overlayBlock = overlayMatch[1];
+    const afterOverlay = overlayMatch[2];
+
+    // Remove overlay from its current position and place it after the container closing div
+    patched = patched.replace(overlayBlock, '');
+    // Find the closing </div> of tg-container and insert overlay after it
+    patched = patched.replace(
+      /(<\/div>\s*)(<!--\s*(?:Map Script|PDF)|<script\b)/,
+      `$1\n    <!-- PDF Loading Overlay (moved outside trailGuideContent for PDF export) -->\n    ${overlayBlock}\n\n    $2`
+    );
+  }
+
+  // 2. Add waitForImages function and replace old downloadPDF with async version
+  // Match old non-async downloadPDF up through the .save().then(...) and any .catch(...) block ending with }
+  const oldDownloadPDFRegex = /function downloadPDF\(\)\s*\{[\s\S]*?\.save\(\)\.then\([\s\S]*?\}\)(?:\.catch\([\s\S]*?\}\))?[\s\S]*?\n\s*\}/;
+  if (oldDownloadPDFRegex.test(patched)) {
+    const waitForImagesFunc = `// Wait for all images to load before PDF generation
+        function waitForImages(element) {
+            const images = element.querySelectorAll('img');
+            const promises = Array.from(images).map(img => {
+                if (img.complete && img.naturalWidth > 0) {
+                    return Promise.resolve();
+                }
+                return new Promise((resolve) => {
+                    img.onload = resolve;
+                    img.onerror = () => {
+                        console.warn('Image failed to load:', img.src?.substring(0, 100));
+                        resolve();
+                    };
+                    setTimeout(resolve, 5000);
+                });
+            });
+            return Promise.all(promises);
+        }
+
+        `;
+
+    // Build new async downloadPDF
+    // Extract the filename from the old function
+    const filenameMatch = patched.match(/filename:\s*['"]([^'"]*)['"]/);
+    const filename = filenameMatch ? filenameMatch[1] : 'trail_guide.pdf';
+
+    const newDownloadPDF = `async function downloadPDF() {
+            const overlay = document.getElementById('pdfLoadingOverlay');
+            const btn = document.getElementById('pdfBtn');
+
+            if (overlay) overlay.style.display = 'flex';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Generating...';
+            }
+
+            // Close any open dropdowns
+            if (typeof closeNavDropdown === 'function') closeNavDropdown();
+
+            const actionBar = document.getElementById('actionBar');
+            const surveyPanel = document.getElementById('surveyDetails');
+            if (actionBar) actionBar.style.display = 'none';
+            if (surveyPanel) surveyPanel.classList.add('show');
+
+            const element = document.getElementById('trailGuideContent');
+            const filename = '${filename}';
+            const isRTL = document.documentElement.dir === 'rtl';
+
+            try {
+                // Wait for all images to load before generating PDF
+                await waitForImages(element);
+
+                const opt = {
+                    margin: [10, 10, 10, 10],
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.95 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        letterRendering: !isRTL,
+                        scrollY: 0,
+                        logging: false,
+                        foreignObjectRendering: false
+                    },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+
+                await html2pdf().set(opt).from(element).save();
+
+                if (actionBar) actionBar.style.display = 'flex';
+                if (surveyPanel) surveyPanel.classList.remove('show');
+                if (overlay) overlay.style.display = 'none';
+                if (btn) {
+                    btn.innerHTML = '📥 Download PDF';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error('PDF generation failed:', err);
+                if (actionBar) actionBar.style.display = 'flex';
+                if (surveyPanel) surveyPanel.classList.remove('show');
+                if (overlay) overlay.style.display = 'none';
+                if (btn) {
+                    btn.innerHTML = '📥 Download PDF';
+                    btn.disabled = false;
+                }
+                alert('PDF generation failed. Please try again or use Print to PDF.');
+            }
+        }`;
+
+    // Insert waitForImages before the old downloadPDF and replace it
+    patched = patched.replace(oldDownloadPDFRegex, waitForImagesFunc + newDownloadPDF);
+  }
+
+  // 3. If the old html2canvas options don't have allowTaint, add it
+  // (handled by the full downloadPDF replacement above, but catch any other patterns)
+  if (!patched.includes('allowTaint')) {
+    patched = patched.replace(
+      /useCORS:\s*true,\s*\n(\s*)letterRendering/g,
+      'useCORS: true,\n$1allowTaint: true,\n$1letterRendering'
+    );
+  }
+
+  console.log('🔧 Patched old trail guide HTML for PDF export');
+  return patched;
+}
+
 // NEW: Display trail guide HTML
 async displayTrailGuideHTML(htmlContent, routeName) {
   try {
+    // Patch old trail guide HTML if needed
+    const patchedContent = this.patchOldTrailGuideHTML(htmlContent);
+
     // Create blob and open in new tab
-    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const blob = new Blob([patchedContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     
     // Open in new window/tab
@@ -2388,7 +2532,7 @@ async displayTrailGuideHTML(htmlContent, routeName) {
       // Popup blocked, offer download instead
       const downloadConfirm = await modal.confirm('Popup blocked! Would you like to download the trail guide instead?', '📥 Download Guide');
       if (downloadConfirm) {
-        this.downloadTrailGuide(htmlContent, routeName);
+        this.downloadTrailGuide(patchedContent, routeName);
       }
     } else {
       // Set window title
@@ -2407,7 +2551,9 @@ async displayTrailGuideHTML(htmlContent, routeName) {
 // NEW: Download trail guide as HTML file
 downloadTrailGuide(htmlContent, routeName) {
   try {
-    const blob = new Blob([htmlContent], { type: 'text/html' });
+    // Patch old trail guide HTML if needed
+    const patchedContent = this.patchOldTrailGuideHTML(htmlContent);
+    const blob = new Blob([patchedContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     
     const a = document.createElement('a');
