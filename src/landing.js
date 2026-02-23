@@ -2269,7 +2269,12 @@ Happy trail mapping! 🥾`);
       
       // Use the pre-generated htmlContent if available
       let guideHTML = guideData.htmlContent;
-      
+
+      // Patch old trail guides for PDF export fixes
+      if (guideHTML) {
+        guideHTML = this.patchOldTrailGuideHTML(guideHTML);
+      }
+
       if (!guideHTML) {
         console.log('📚 No htmlContent found, using fallback');
         // Fallback to simple display
@@ -2406,6 +2411,130 @@ Happy trail mapping! 🥾`);
       console.error('Failed to display trail guide:', error);
       toast.errorKey('displayGuideFailed');
     }
+  }
+
+  /**
+   * Patch old trail guide HTML to fix PDF export (images showing as placeholders)
+   */
+  patchOldTrailGuideHTML(htmlContent) {
+    if (!htmlContent || htmlContent.includes('waitForImages')) {
+      return htmlContent;
+    }
+
+    let patched = htmlContent;
+
+    // 1. Move PDF overlay outside trailGuideContent div
+    const overlayRegex = /(<div id="pdfLoadingOverlay"[\s\S]*?<\/div>\s*<\/div>)\s*(<\/div>\s*(?:<!--\s*(?:Map Script|PDF)|\s*<script))/;
+    const overlayMatch = patched.match(overlayRegex);
+    if (overlayMatch) {
+      const overlayBlock = overlayMatch[1];
+      patched = patched.replace(overlayBlock, '');
+      patched = patched.replace(
+        /(<\/div>\s*)(<!--\s*(?:Map Script|PDF)|<script\b)/,
+        `$1\n    <!-- PDF Loading Overlay (moved outside trailGuideContent for PDF export) -->\n    ${overlayBlock}\n\n    $2`
+      );
+    }
+
+    // 2. Replace old downloadPDF with async version that waits for images
+    const oldDownloadPDFRegex = /function downloadPDF\(\)\s*\{[\s\S]*?\.save\(\)\.then\([\s\S]*?\}\)(?:\.catch\([\s\S]*?\}\))?[\s\S]*?\n\s*\}/;
+    if (oldDownloadPDFRegex.test(patched)) {
+      const filenameMatch = patched.match(/filename:\s*['"]([^'"]*)['"]/);
+      const filename = filenameMatch ? filenameMatch[1] : 'trail_guide.pdf';
+
+      const replacement = `// Wait for all images to load before PDF generation
+        function waitForImages(element) {
+            const images = element.querySelectorAll('img');
+            const promises = Array.from(images).map(img => {
+                if (img.complete && img.naturalWidth > 0) {
+                    return Promise.resolve();
+                }
+                return new Promise((resolve) => {
+                    img.onload = resolve;
+                    img.onerror = () => {
+                        console.warn('Image failed to load:', img.src?.substring(0, 100));
+                        resolve();
+                    };
+                    setTimeout(resolve, 5000);
+                });
+            });
+            return Promise.all(promises);
+        }
+
+        async function downloadPDF() {
+            const overlay = document.getElementById('pdfLoadingOverlay');
+            const btn = document.getElementById('pdfBtn');
+
+            if (overlay) overlay.style.display = 'flex';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Generating...';
+            }
+
+            if (typeof closeNavDropdown === 'function') closeNavDropdown();
+
+            const actionBar = document.getElementById('actionBar');
+            const surveyPanel = document.getElementById('surveyDetails');
+            if (actionBar) actionBar.style.display = 'none';
+            if (surveyPanel) surveyPanel.classList.add('show');
+
+            const element = document.getElementById('trailGuideContent');
+            const filename = '${filename}';
+            const isRTL = document.documentElement.dir === 'rtl';
+
+            try {
+                await waitForImages(element);
+
+                const opt = {
+                    margin: [10, 10, 10, 10],
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.95 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        letterRendering: !isRTL,
+                        scrollY: 0,
+                        logging: false,
+                        foreignObjectRendering: false
+                    },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+
+                await html2pdf().set(opt).from(element).save();
+
+                if (actionBar) actionBar.style.display = 'flex';
+                if (surveyPanel) surveyPanel.classList.remove('show');
+                if (overlay) overlay.style.display = 'none';
+                if (btn) {
+                    btn.innerHTML = '📥 Download PDF';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error('PDF generation failed:', err);
+                if (actionBar) actionBar.style.display = 'flex';
+                if (surveyPanel) surveyPanel.classList.remove('show');
+                if (overlay) overlay.style.display = 'none';
+                if (btn) {
+                    btn.innerHTML = '📥 Download PDF';
+                    btn.disabled = false;
+                }
+                alert('PDF generation failed. Please try again or use Print to PDF.');
+            }
+        }`;
+
+      patched = patched.replace(oldDownloadPDFRegex, replacement);
+    }
+
+    if (!patched.includes('allowTaint')) {
+      patched = patched.replace(
+        /useCORS:\s*true,\s*\n(\s*)letterRendering/g,
+        'useCORS: true,\n$1allowTaint: true,\n$1letterRendering'
+      );
+    }
+
+    console.log('🔧 Patched old trail guide HTML for PDF export');
+    return patched;
   }
 
   /**
