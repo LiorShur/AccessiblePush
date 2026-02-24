@@ -362,7 +362,128 @@
     .action-btn.view { background: #dbeafe; color: #1e40af; }
     .action-btn.edit { background: #fef3c7; color: #92400e; }
     .action-btn.delete { background: #fee2e2; color: #991b1b; }
-    
+    .action-btn.generate { background: #d1fae5; color: #065f46; }
+
+    /* Bulk Selection */
+    .bulk-action-bar {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border: 1px solid #93c5fd;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      animation: slideDown 0.2s ease;
+    }
+    .bulk-action-bar.visible { display: flex; flex-wrap: wrap; }
+    .bulk-action-bar .bulk-count {
+      font-weight: 600;
+      color: #1e40af;
+      font-size: 0.9em;
+      white-space: nowrap;
+    }
+    .bulk-action-bar .bulk-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .bulk-action-bar button {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid;
+      cursor: pointer;
+      font-size: 0.85em;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .bulk-btn-generate { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+    .bulk-btn-generate:hover { background: #a7f3d0; }
+    .bulk-btn-clear { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
+    .bulk-btn-clear:hover { background: #e5e7eb; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .row-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: #2c5530;
+      cursor: pointer;
+    }
+    .select-all-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: #1e40af;
+      cursor: pointer;
+    }
+    tr.selected-row { background: #eff6ff !important; }
+
+    /* Progress Modal */
+    .progress-modal-body {
+      padding: 24px;
+    }
+    .progress-bar-container {
+      width: 100%;
+      height: 24px;
+      background: #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2c5530, #4a7c59);
+      border-radius: 12px;
+      transition: width 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.75em;
+      font-weight: 600;
+      min-width: 40px;
+    }
+    .progress-log {
+      max-height: 200px;
+      overflow-y: auto;
+      background: #1f2937;
+      color: #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      font-size: 0.8em;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+    .progress-log .log-success { color: #86efac; }
+    .progress-log .log-error { color: #fca5a5; }
+    .progress-log .log-info { color: #93c5fd; }
+    .progress-log .log-warn { color: #fcd34d; }
+    .progress-status {
+      font-size: 0.95em;
+      color: #374151;
+      font-weight: 500;
+    }
+    .has-guide-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.7em;
+      font-weight: 600;
+      background: #d1fae5;
+      color: #065f46;
+      margin-left: 4px;
+    }
+    .no-guide-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.7em;
+      font-weight: 600;
+      background: #fee2e2;
+      color: #991b1b;
+      margin-left: 4px;
+    }
+
     /* Owner Cell */
     .owner-cell { display: flex; flex-direction: column; gap: 2px; }
     .owner-name { font-weight: 600; color: #1f2937; }
@@ -1200,6 +1321,14 @@
               <button class="btn btn-primary btn-sm" onclick="refreshSection('routes')">🔄 Refresh</button>
             </div>
           </div>
+          <!-- Bulk Action Bar -->
+          <div class="bulk-action-bar" id="bulkActionBar">
+            <span class="bulk-count" id="bulkSelectionCount">0 selected</span>
+            <div class="bulk-actions">
+              <button class="bulk-btn-generate" onclick="bulkGenerateGuides()">📚 Generate Trail Guides</button>
+              <button class="bulk-btn-clear" onclick="clearSelection()">✕ Clear Selection</button>
+            </div>
+          </div>
           <div class="table-container" id="routesTableContainer">
             <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
           </div>
@@ -1455,6 +1584,27 @@
     </div>
   </div>
 
+  <!-- Bulk Action Progress Modal -->
+  <div class="modal-overlay" id="progressModal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 id="progressModalTitle">📚 Generating Trail Guides</h3>
+        <button class="modal-close" id="progressModalClose" onclick="closeProgressModal()">&times;</button>
+      </div>
+      <div class="progress-modal-body">
+        <p class="progress-status" id="progressStatus">Preparing...</p>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progressBarFill" style="width: 0%">0%</div>
+        </div>
+        <div class="progress-log" id="progressLog"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="progressDoneBtn" onclick="closeProgressModal()" style="display:none;">Done</button>
+        <button class="btn btn-danger" id="progressCancelBtn" onclick="cancelBulkOperation()" style="display:none;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Hidden file input for photo upload -->
   <input type="file" id="photoUploadInput" accept="image/*" multiple style="display: none;">
 
@@ -1463,8 +1613,9 @@
   <script type="module">
     import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js';
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js';
-    import { getFirestore, collection, doc, getDoc, getDocs, getDocsFromServer, updateDoc, deleteDoc, Timestamp, enableIndexedDbPersistence, waitForPendingWrites, query, where } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js';
+    import { getFirestore, collection, doc, getDoc, getDocs, getDocsFromServer, updateDoc, deleteDoc, addDoc, Timestamp, enableIndexedDbPersistence, waitForPendingWrites, query, where } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js';
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js';
+    import { trailGuideGeneratorV2 as trailGuideGenerator } from './src/features/trailGuideGeneratorV2.js';
 
     // Firebase config
     const firebaseConfig = {
@@ -1511,6 +1662,7 @@
     let currentSection = 'routes';
     let editingItem = null;
     let editingCollection = null;
+    let selectedRoutes = new Set(); // Track selected route IDs for bulk actions
 
     // Data cache
     const cache = { routes: [], guides: [], conditions: [], reports: [] };
@@ -2183,7 +2335,7 @@
 
     function getTableHeaders() {
       switch (currentSection) {
-        case 'routes': return '<th>Name</th><th>Distance</th><th>Photos</th><th>Created By</th><th>Date</th><th>Actions</th>';
+        case 'routes': return '<th><input type="checkbox" class="select-all-checkbox" onchange="toggleSelectAll(this)"></th><th>Name</th><th>Distance</th><th>Photos</th><th>Guide</th><th>Created By</th><th>Date</th><th>Actions</th>';
         case 'guides': return '<th>Title</th><th>Trail</th><th>Public</th><th>Created By</th><th>Date</th><th>Actions</th>';
         case 'conditions': return '<th>Location</th><th>Conditions</th><th>Reported By</th><th>Date</th><th>Actions</th>';
         case 'reports': return '<th>Location</th><th>Type</th><th>Rating</th><th>Created By</th><th>Date</th><th>Actions</th>';
@@ -2203,13 +2355,20 @@
       switch (currentSection) {
         case 'routes':
           const photos = item.routeData?.filter(p => p.type === 'photo').length || item.stats?.photos || 0;
-          return `<tr>
+          const hasGuide = cache.guides.some(g => g.routeId === id);
+          const isSelected = selectedRoutes.has(id);
+          return `<tr class="${isSelected ? 'selected-row' : ''}">
+            <td><input type="checkbox" class="row-checkbox" data-route-id="${id}" ${isSelected ? 'checked' : ''} onchange="toggleRouteSelection('${id}', this)"></td>
             <td class="truncate">${esc(item.routeName || item.name || 'Untitled')}</td>
             <td>${(item.totalDistance || 0).toFixed(2)} km</td>
             <td>📷 ${photos}</td>
+            <td>${hasGuide ? '<span class="has-guide-badge">📚 Yes</span>' : '<span class="no-guide-badge">No</span>'}</td>
             <td>${owner}</td>
             <td>${date}</td>
-            <td>${actions}</td>
+            <td>
+              <button class="action-btn generate" onclick="generateSingleGuide('${id}')" title="Generate Trail Guide">📚</button>
+              ${actions}
+            </td>
           </tr>`;
         case 'guides':
           return `<tr>
@@ -2218,7 +2377,12 @@
             <td><span class="tag ${item.isPublic ? 'tag-public' : 'tag-private'}">${item.isPublic ? 'Public' : 'Private'}</span></td>
             <td>${owner}</td>
             <td>${date}</td>
-            <td>${actions}</td>
+            <td>
+              <button class="action-btn view" onclick="viewGuideHTML('${id}')" title="View Guide">👁️</button>
+              <button class="action-btn generate" onclick="regenerateGuide('${id}')" title="Regenerate Guide">🔄</button>
+              <button class="action-btn edit" onclick="openEditModal('guides', '${id}')">✏️</button>
+              <button class="action-btn delete" onclick="promptDelete('guides', '${id}')">🗑️</button>
+            </td>
           </tr>`;
         case 'conditions':
           const conds = Array.isArray(item.conditions) ? item.conditions.map(c => c.label || c.emoji || c).join(', ') : '-';
@@ -3315,6 +3479,325 @@
       } catch (error) {
         showToast('Failed to delete: ' + error.message, 'error');
       }
+    };
+
+    // ==================== ROUTE SELECTION & BULK ACTIONS ====================
+
+    let bulkCancelled = false;
+
+    window.toggleRouteSelection = (routeId, checkbox) => {
+      if (checkbox.checked) {
+        selectedRoutes.add(routeId);
+        checkbox.closest('tr').classList.add('selected-row');
+      } else {
+        selectedRoutes.delete(routeId);
+        checkbox.closest('tr').classList.remove('selected-row');
+      }
+      updateBulkActionBar();
+    };
+
+    window.toggleSelectAll = (checkbox) => {
+      const data = getFilteredData('routes');
+      if (checkbox.checked) {
+        data.forEach(item => selectedRoutes.add(item.id));
+      } else {
+        selectedRoutes.clear();
+      }
+      // Re-render to update checkbox states
+      renderCurrentSection();
+      updateBulkActionBar();
+    };
+
+    window.clearSelection = () => {
+      selectedRoutes.clear();
+      renderCurrentSection();
+      updateBulkActionBar();
+    };
+
+    function updateBulkActionBar() {
+      const bar = document.getElementById('bulkActionBar');
+      const count = document.getElementById('bulkSelectionCount');
+      if (selectedRoutes.size > 0) {
+        bar.classList.add('visible');
+        count.textContent = `${selectedRoutes.size} route${selectedRoutes.size > 1 ? 's' : ''} selected`;
+      } else {
+        bar.classList.remove('visible');
+      }
+    }
+
+    // ==================== TRAIL GUIDE GENERATION ====================
+
+    function buildRouteInfo(routeItem) {
+      return {
+        name: routeItem.routeName || routeItem.name || 'Untitled Route',
+        totalDistance: routeItem.totalDistance || 0,
+        elapsedTime: routeItem.elapsedTime || 0,
+        date: routeItem.createdAt || routeItem.uploadedAt || new Date().toISOString()
+      };
+    }
+
+    async function generateGuideForRoute(routeItem) {
+      const routeData = routeItem.routeData || [];
+      const routeInfo = buildRouteInfo(routeItem);
+      const accessibilityData = routeItem.accessibilityData || {};
+
+      // Generate HTML
+      const htmlContent = trailGuideGenerator.generateHTML(routeData, routeInfo, accessibilityData);
+
+      // Check if a guide already exists for this route
+      const existingGuide = cache.guides.find(g => g.routeId === routeItem.id);
+
+      if (existingGuide) {
+        // Update existing guide
+        await updateDoc(doc(db, 'trail_guides', existingGuide.id), {
+          htmlContent: htmlContent,
+          generatedAt: new Date().toISOString(),
+          routeName: routeInfo.name,
+          metadata: {
+            totalDistance: routeInfo.totalDistance || 0,
+            elapsedTime: routeInfo.elapsedTime || 0,
+            originalDate: routeInfo.date,
+            locationCount: routeData.filter(p => p.type === 'location').length,
+            photoCount: routeData.filter(p => p.type === 'photo').length,
+            noteCount: routeData.filter(p => p.type === 'text').length
+          },
+          accessibility: {
+            wheelchairAccess: accessibilityData.wheelchairAccess || 'Unknown',
+            trailSurface: accessibilityData.trailSurface || 'Unknown',
+            difficulty: accessibilityData.difficulty || 'Unknown',
+            facilities: accessibilityData.facilities || [],
+            location: accessibilityData.location || 'Unknown'
+          },
+          stats: {
+            fileSize: new Blob([htmlContent]).size,
+            version: '2.0',
+            generatedBy: 'Admin Dashboard'
+          }
+        });
+
+        // Update cache
+        Object.assign(existingGuide, {
+          htmlContent, generatedAt: new Date().toISOString(), routeName: routeInfo.name
+        });
+        return { action: 'updated', guideId: existingGuide.id };
+      } else {
+        // Create new guide
+        const trailGuideDoc = {
+          routeId: routeItem.id,
+          routeName: routeInfo.name,
+          userId: routeItem.userId || '',
+          userEmail: routeItem.userEmail || '',
+          htmlContent: htmlContent,
+          generatedAt: new Date().toISOString(),
+          isPublic: true,
+          metadata: {
+            totalDistance: routeInfo.totalDistance || 0,
+            elapsedTime: routeInfo.elapsedTime || 0,
+            originalDate: routeInfo.date,
+            locationCount: routeData.filter(p => p.type === 'location').length,
+            photoCount: routeData.filter(p => p.type === 'photo').length,
+            noteCount: routeData.filter(p => p.type === 'text').length
+          },
+          accessibility: {
+            wheelchairAccess: accessibilityData.wheelchairAccess || 'Unknown',
+            trailSurface: accessibilityData.trailSurface || 'Unknown',
+            difficulty: accessibilityData.difficulty || 'Unknown',
+            facilities: accessibilityData.facilities || [],
+            location: accessibilityData.location || 'Unknown'
+          },
+          stats: {
+            fileSize: new Blob([htmlContent]).size,
+            version: '2.0',
+            generatedBy: 'Admin Dashboard'
+          },
+          community: { views: 0, downloads: 0, ratings: [], averageRating: 0, reviews: [] }
+        };
+
+        const guideRef = await addDoc(collection(db, 'trail_guides'), trailGuideDoc);
+
+        // Add to cache
+        cache.guides.push({ id: guideRef.id, ...trailGuideDoc });
+        return { action: 'created', guideId: guideRef.id };
+      }
+    }
+
+    // Single route guide generation
+    window.generateSingleGuide = async (routeId) => {
+      const routeItem = cache.routes.find(r => r.id === routeId);
+      if (!routeItem) { showToast('Route not found', 'error'); return; }
+
+      const name = esc(routeItem.routeName || routeItem.name || 'Untitled');
+      const hasExisting = cache.guides.some(g => g.routeId === routeId);
+      const confirmMsg = hasExisting
+        ? `Regenerate trail guide for "${name}"? This will replace the existing guide.`
+        : `Generate a new trail guide for "${name}"?`;
+
+      if (!confirm(confirmMsg)) return;
+
+      showToast('Generating trail guide...', 'info');
+      try {
+        const result = await generateGuideForRoute(routeItem);
+        updateAllCounts();
+        renderCurrentSection();
+        showToast(`Trail guide ${result.action} for "${name}"`, 'success');
+      } catch (error) {
+        console.error('Failed to generate guide:', error);
+        showToast('Failed to generate guide: ' + error.message, 'error');
+      }
+    };
+
+    // View guide HTML in new window
+    window.viewGuideHTML = (guideId) => {
+      const guide = cache.guides.find(g => g.id === guideId);
+      if (!guide || !guide.htmlContent) {
+        showToast('Guide content not available', 'error');
+        return;
+      }
+      const blob = new Blob([guide.htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    };
+
+    // Regenerate an existing guide
+    window.regenerateGuide = async (guideId) => {
+      const guide = cache.guides.find(g => g.id === guideId);
+      if (!guide) { showToast('Guide not found', 'error'); return; }
+
+      if (!guide.routeId) {
+        showToast('No linked route found for this guide', 'error');
+        return;
+      }
+
+      // Find the route in cache or fetch it
+      let routeItem = cache.routes.find(r => r.id === guide.routeId);
+      if (!routeItem) {
+        showToast('Loading route data...', 'info');
+        try {
+          const routeDoc = await getDoc(doc(db, 'routes', guide.routeId));
+          if (!routeDoc.exists()) {
+            showToast('Linked route no longer exists', 'error');
+            return;
+          }
+          routeItem = { id: routeDoc.id, ...routeDoc.data() };
+        } catch (error) {
+          showToast('Failed to load route: ' + error.message, 'error');
+          return;
+        }
+      }
+
+      if (!confirm(`Regenerate trail guide for "${esc(guide.routeName || 'Untitled')}"?`)) return;
+
+      showToast('Regenerating trail guide...', 'info');
+      try {
+        const result = await generateGuideForRoute(routeItem);
+        updateAllCounts();
+        renderCurrentSection();
+        showToast(`Trail guide regenerated for "${esc(guide.routeName || 'Untitled')}"`, 'success');
+      } catch (error) {
+        console.error('Failed to regenerate guide:', error);
+        showToast('Failed to regenerate guide: ' + error.message, 'error');
+      }
+    };
+
+    // ==================== BULK TRAIL GUIDE GENERATION ====================
+
+    function progressLog(message, type = 'info') {
+      const log = document.getElementById('progressLog');
+      const line = document.createElement('div');
+      line.className = `log-${type}`;
+      const time = new Date().toLocaleTimeString();
+      line.textContent = `[${time}] ${message}`;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function updateProgress(current, total) {
+      const pct = Math.round((current / total) * 100);
+      const fill = document.getElementById('progressBarFill');
+      fill.style.width = `${pct}%`;
+      fill.textContent = `${pct}%`;
+      document.getElementById('progressStatus').textContent = `Processing ${current} of ${total}...`;
+    }
+
+    window.closeProgressModal = () => {
+      document.getElementById('progressModal').classList.remove('active');
+    };
+
+    window.cancelBulkOperation = () => {
+      bulkCancelled = true;
+      document.getElementById('progressCancelBtn').style.display = 'none';
+      progressLog('Cancellation requested... finishing current item.', 'warn');
+    };
+
+    window.bulkGenerateGuides = async () => {
+      if (selectedRoutes.size === 0) {
+        showToast('No routes selected', 'info');
+        return;
+      }
+
+      const count = selectedRoutes.size;
+      if (!confirm(`Generate trail guides for ${count} selected route${count > 1 ? 's' : ''}?\n\nExisting guides will be updated with the latest version.`)) return;
+
+      // Show progress modal
+      bulkCancelled = false;
+      document.getElementById('progressModal').classList.add('active');
+      document.getElementById('progressModalTitle').textContent = `📚 Generating ${count} Trail Guide${count > 1 ? 's' : ''}`;
+      document.getElementById('progressLog').innerHTML = '';
+      document.getElementById('progressBarFill').style.width = '0%';
+      document.getElementById('progressBarFill').textContent = '0%';
+      document.getElementById('progressDoneBtn').style.display = 'none';
+      document.getElementById('progressCancelBtn').style.display = 'inline-block';
+      document.getElementById('progressModalClose').style.display = 'none';
+
+      progressLog(`Starting bulk generation for ${count} routes...`, 'info');
+
+      let success = 0;
+      let failed = 0;
+      let skipped = 0;
+      let idx = 0;
+
+      for (const routeId of selectedRoutes) {
+        if (bulkCancelled) {
+          progressLog(`Cancelled. ${success} generated, ${failed} failed, ${count - idx} remaining.`, 'warn');
+          break;
+        }
+
+        idx++;
+        const routeItem = cache.routes.find(r => r.id === routeId);
+        if (!routeItem) {
+          progressLog(`[${idx}/${count}] Route ${routeId} not found in cache, skipping.`, 'warn');
+          skipped++;
+          updateProgress(idx, count);
+          continue;
+        }
+
+        const name = routeItem.routeName || routeItem.name || 'Untitled';
+        try {
+          progressLog(`[${idx}/${count}] Generating guide for "${name}"...`, 'info');
+          const result = await generateGuideForRoute(routeItem);
+          progressLog(`[${idx}/${count}] ${result.action === 'updated' ? 'Updated' : 'Created'} guide for "${name}"`, 'success');
+          success++;
+        } catch (error) {
+          progressLog(`[${idx}/${count}] Failed: "${name}" - ${error.message}`, 'error');
+          failed++;
+        }
+        updateProgress(idx, count);
+      }
+
+      // Done
+      const summary = `Completed: ${success} generated, ${failed} failed${skipped > 0 ? `, ${skipped} skipped` : ''}`;
+      progressLog(summary, success > 0 ? 'success' : 'error');
+      document.getElementById('progressStatus').textContent = summary;
+      document.getElementById('progressDoneBtn').style.display = 'inline-block';
+      document.getElementById('progressCancelBtn').style.display = 'none';
+      document.getElementById('progressModalClose').style.display = 'block';
+
+      // Refresh display
+      updateAllCounts();
+      renderCurrentSection();
+      selectedRoutes.clear();
+      updateBulkActionBar();
     };
 
     // ==================== EXPORT ====================
