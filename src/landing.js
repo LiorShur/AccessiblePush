@@ -2417,7 +2417,7 @@ Happy trail mapping! 🥾`);
    * Patch old trail guide HTML to fix PDF export (images showing as placeholders)
    */
   patchOldTrailGuideHTML(htmlContent) {
-    if (!htmlContent || htmlContent.includes('waitForImages')) {
+    if (!htmlContent || htmlContent.includes('prepareImagesForPDF')) {
       return htmlContent;
     }
 
@@ -2435,29 +2435,59 @@ Happy trail mapping! 🥾`);
       );
     }
 
-    // 2. Replace old downloadPDF with async version that waits for images
+    // 2. Replace old downloadPDF with async version that converts images to data URLs
     const oldDownloadPDFRegex = /function downloadPDF\(\)\s*\{[\s\S]*?\.save\(\)\.then\([\s\S]*?\}\)(?:\.catch\([\s\S]*?\}\))?[\s\S]*?\n\s*\}/;
     if (oldDownloadPDFRegex.test(patched)) {
       const filenameMatch = patched.match(/filename:\s*['"]([^'"]*)['"]/);
       const filename = filenameMatch ? filenameMatch[1] : 'trail_guide.pdf';
 
-      const replacement = `// Wait for all images to load before PDF generation
-        function waitForImages(element) {
-            const images = element.querySelectorAll('img');
-            const promises = Array.from(images).map(img => {
-                if (img.complete && img.naturalWidth > 0) {
-                    return Promise.resolve();
-                }
-                return new Promise((resolve) => {
-                    img.onload = resolve;
-                    img.onerror = () => {
-                        console.warn('Image failed to load:', img.src?.substring(0, 100));
-                        resolve();
-                    };
-                    setTimeout(resolve, 5000);
+      const replacement = `// Convert image to data URL to bypass CORS issues in PDF generation
+        async function imageToDataURL(img) {
+            if (img.src.startsWith('data:') || img.src.startsWith('blob:')) {
+                return img.src;
+            }
+            try {
+                const response = await fetch(img.src, { mode: 'cors' });
+                if (!response.ok) throw new Error('Fetch failed');
+                const blob = await response.blob();
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
                 });
+            } catch (error) {
+                console.warn('Could not convert image:', img.src?.substring(0, 60));
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || img.width || 300;
+                    canvas.height = img.naturalHeight || img.height || 200;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    return canvas.toDataURL('image/jpeg', 0.9);
+                } catch (e) { return null; }
+            }
+        }
+
+        async function prepareImagesForPDF(element) {
+            const images = element.querySelectorAll('img');
+            console.log('📷 Preparing', images.length, 'images for PDF...');
+            const promises = Array.from(images).map(async (img, idx) => {
+                if (!img.complete) {
+                    await new Promise((resolve) => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                        setTimeout(resolve, 5000);
+                    });
+                }
+                if (!img.naturalWidth) return;
+                const dataURL = await imageToDataURL(img);
+                if (dataURL && dataURL !== img.src) {
+                    img.src = dataURL;
+                }
             });
-            return Promise.all(promises);
+            await Promise.all(promises);
+            console.log('📷 Image preparation complete');
         }
 
         async function downloadPDF() {
@@ -2482,7 +2512,8 @@ Happy trail mapping! 🥾`);
             const isRTL = document.documentElement.dir === 'rtl';
 
             try {
-                await waitForImages(element);
+                // Convert images to data URLs to bypass CORS
+                await prepareImagesForPDF(element);
 
                 const opt = {
                     margin: [10, 10, 10, 10],

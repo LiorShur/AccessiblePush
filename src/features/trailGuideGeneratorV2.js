@@ -646,24 +646,80 @@ export class TrailGuideGeneratorV2 {
             }
         });
         
-        // Wait for all images to load before PDF generation
-        function waitForImages(element) {
-            const images = element.querySelectorAll('img');
-            const promises = Array.from(images).map(img => {
-                if (img.complete && img.naturalWidth > 0) {
-                    return Promise.resolve();
-                }
-                return new Promise((resolve) => {
-                    img.onload = resolve;
-                    img.onerror = () => {
-                        console.warn('Image failed to load:', img.src?.substring(0, 100));
-                        resolve(); // Continue even if image fails
-                    };
-                    // Timeout after 5 seconds
-                    setTimeout(resolve, 5000);
+        // Convert image to data URL to bypass CORS issues in PDF generation
+        async function imageToDataURL(img) {
+            // Skip if already a data URL or blob URL
+            if (img.src.startsWith('data:') || img.src.startsWith('blob:')) {
+                return img.src;
+            }
+
+            try {
+                // Fetch the image as blob
+                const response = await fetch(img.src, { mode: 'cors' });
+                if (!response.ok) throw new Error('Fetch failed');
+
+                const blob = await response.blob();
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
                 });
+            } catch (error) {
+                console.warn('Could not convert image to data URL:', img.src?.substring(0, 60), error.message);
+                // Try canvas approach as fallback
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || img.width || 300;
+                    canvas.height = img.naturalHeight || img.height || 200;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    return canvas.toDataURL('image/jpeg', 0.9);
+                } catch (e) {
+                    console.warn('Canvas fallback also failed:', e.message);
+                    return null;
+                }
+            }
+        }
+
+        // Prepare images for PDF by converting to data URLs (bypasses CORS)
+        async function prepareImagesForPDF(element) {
+            const images = element.querySelectorAll('img');
+            const originalSources = new Map();
+
+            console.log('📷 Preparing', images.length, 'images for PDF...');
+
+            const promises = Array.from(images).map(async (img, idx) => {
+                // Wait for image to load first
+                if (!img.complete) {
+                    await new Promise((resolve) => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                        setTimeout(resolve, 5000);
+                    });
+                }
+
+                // Skip broken images
+                if (!img.naturalWidth || img.naturalWidth === 0) {
+                    console.warn('Image not loaded:', img.src?.substring(0, 60));
+                    return;
+                }
+
+                // Store original source
+                originalSources.set(img, img.src);
+
+                // Convert to data URL
+                const dataURL = await imageToDataURL(img);
+                if (dataURL && dataURL !== img.src) {
+                    img.src = dataURL;
+                    console.log('✅ Converted image', idx + 1);
+                }
             });
-            return Promise.all(promises);
+
+            await Promise.all(promises);
+            console.log('📷 Image preparation complete');
+
+            return originalSources; // Return so we can restore if needed
         }
 
         // PDF Download with loading overlay
@@ -694,8 +750,8 @@ export class TrailGuideGeneratorV2 {
             const isRTL = document.documentElement.dir === 'rtl';
 
             try {
-                // Wait for all images to load before generating PDF
-                await waitForImages(element);
+                // Convert images to data URLs to bypass CORS issues
+                await prepareImagesForPDF(element);
 
                 const opt = {
                     margin: [10, 10, 10, 10],
