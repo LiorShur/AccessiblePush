@@ -2403,103 +2403,110 @@ patchOldTrailGuideHTML(htmlContent) {
     );
   }
 
-  // 2. Add waitForImages function and replace old downloadPDF with async version
-  // Match old non-async downloadPDF up through the .save().then(...) and any .catch(...) block ending with }
-  const oldDownloadPDFRegex = /function downloadPDF\(\)\s*\{[\s\S]*?\.save\(\)\.then\([\s\S]*?\}\)(?:\.catch\([\s\S]*?\}\))?[\s\S]*?\n\s*\}/;
-  if (oldDownloadPDFRegex.test(patched)) {
-    const imageHelpers = `// Convert image to data URL to bypass CORS issues in PDF generation
-        async function imageToDataURL(img) {
-            if (img.src.startsWith('data:') || img.src.startsWith('blob:')) {
-                return img.src;
-            }
-            try {
-                const response = await fetch(img.src, { mode: 'cors' });
-                if (!response.ok) throw new Error('Fetch failed');
-                const blob = await response.blob();
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(blob);
-                });
-            } catch (error) {
-                console.warn('Could not convert image:', img.src?.substring(0, 60));
-                try {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.naturalWidth || img.width || 300;
-                    canvas.height = img.naturalHeight || img.height || 200;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    return canvas.toDataURL('image/jpeg', 0.9);
-                } catch (e) { return null; }
-            }
-        }
+  // 2. Replace any old downloadPDF function with the optimized version
+  // Match both old (.save().then()) and intermediate (async with await .save()) patterns
+  const oldSyncRegex = /function downloadPDF\(\)\s*\{[\s\S]*?\.save\(\)\.then\([\s\S]*?\}\)(?:\.catch\([\s\S]*?\}\))?[\s\S]*?\n\s*\}/;
+  const oldAsyncRegex = /(?:async\s+)?function downloadPDF\(\)\s*\{[\s\S]*?await\s+html2pdf\(\)[\s\S]*?\n\s{8}\}/;
+  // Also match any waitForImages or imageToDataURL that came before
+  const oldHelpersRegex = /(?:\/\/[^\n]*(?:Wait for|Convert image|Prepare images)[^\n]*\n\s*(?:async\s+)?function\s+(?:waitForImages|imageToDataURL|prepareImagesForPDF)\s*\([^)]*\)\s*\{[\s\S]*?\n\s{8}\}\s*)+/g;
 
-        async function prepareImagesForPDF(element) {
-            const images = element.querySelectorAll('img');
-            console.log('📷 Preparing', images.length, 'images for PDF...');
-            const promises = Array.from(images).map(async (img, idx) => {
-                if (!img.complete) {
-                    await new Promise((resolve) => {
-                        img.onload = resolve;
-                        img.onerror = resolve;
-                        setTimeout(resolve, 5000);
-                    });
-                }
-                if (!img.naturalWidth) return;
-                const dataURL = await imageToDataURL(img);
-                if (dataURL && dataURL !== img.src) {
-                    img.src = dataURL;
-                }
-            });
-            await Promise.all(promises);
-            console.log('📷 Image preparation complete');
-        }
+  const downloadPDFRegex = oldSyncRegex.test(patched) ? oldSyncRegex : (oldAsyncRegex.test(patched) ? oldAsyncRegex : null);
 
-        `;
+  if (downloadPDFRegex) {
+    // Remove old helper functions first
+    patched = patched.replace(oldHelpersRegex, '');
 
-    // Build new async downloadPDF
-    // Extract the filename from the old function
     const filenameMatch = patched.match(/filename:\s*['"]([^'"]*)['"]/);
     const filename = filenameMatch ? filenameMatch[1] : 'trail_guide.pdf';
 
-    const newDownloadPDF = `async function downloadPDF() {
-            const overlay = document.getElementById('pdfLoadingOverlay');
-            const btn = document.getElementById('pdfBtn');
+    const fullReplacement = `// Resize and convert image to a compact data URL for PDF
+        function resizeImageToDataURL(img, maxWidth, quality) {
+            maxWidth = maxWidth || 800;
+            quality = quality || 0.75;
+            var canvas = document.createElement('canvas');
+            var w = img.naturalWidth || img.width;
+            var h = img.naturalHeight || img.height;
+            if (w > maxWidth) { h = Math.round(h * (maxWidth / w)); w = maxWidth; }
+            canvas.width = w;
+            canvas.height = h;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            return canvas.toDataURL('image/jpeg', quality);
+        }
+
+        async function prepareImagesForPDF(element) {
+            var images = Array.from(element.querySelectorAll('img'));
+            console.log('📷 Preparing', images.length, 'images for PDF...');
+            var converted = 0, failed = 0;
+            for (var i = 0; i < images.length; i++) {
+                var img = images[i];
+                if (img.src.startsWith('data:')) { converted++; continue; }
+                if (!img.complete) {
+                    await new Promise(function(resolve) {
+                        img.onload = resolve; img.onerror = resolve; setTimeout(resolve, 8000);
+                    });
+                }
+                if (!img.naturalWidth) { failed++; continue; }
+                try {
+                    var response = await fetch(img.src, { mode: 'cors' });
+                    if (!response.ok) throw new Error('Fetch ' + response.status);
+                    var blob = await response.blob();
+                    var blobURL = URL.createObjectURL(blob);
+                    var tempImg = new Image();
+                    tempImg.crossOrigin = 'anonymous';
+                    await new Promise(function(resolve, reject) {
+                        tempImg.onload = resolve; tempImg.onerror = reject;
+                        setTimeout(reject, 8000); tempImg.src = blobURL;
+                    });
+                    img.src = resizeImageToDataURL(tempImg);
+                    URL.revokeObjectURL(blobURL);
+                    converted++;
+                    if ((i + 1) % 5 === 0 || i === images.length - 1) {
+                        console.log('📷 Progress:', i + 1, '/', images.length);
+                    }
+                } catch (error) {
+                    try { img.src = resizeImageToDataURL(img); converted++; }
+                    catch (e2) { console.warn('⚠️ Image', i + 1, 'failed'); failed++; }
+                }
+            }
+            console.log('📷 Done:', converted, 'converted,', failed, 'failed of', images.length, 'total');
+        }
+
+        async function downloadPDF() {
+            var overlay = document.getElementById('pdfLoadingOverlay');
+            var btn = document.getElementById('pdfBtn');
 
             if (overlay) overlay.style.display = 'flex';
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '⏳ Generating...';
-            }
+            if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Generating...'; }
 
             if (typeof closeNavDropdown === 'function') closeNavDropdown();
 
-            const actionBar = document.getElementById('actionBar');
-            const surveyPanel = document.getElementById('surveyDetails');
+            var actionBar = document.getElementById('actionBar');
+            var surveyPanel = document.getElementById('surveyDetails');
             if (actionBar) actionBar.style.display = 'none';
             if (surveyPanel) surveyPanel.classList.add('show');
 
-            const element = document.getElementById('trailGuideContent');
-            const filename = '${filename}';
-            const isRTL = document.documentElement.dir === 'rtl';
+            var element = document.getElementById('trailGuideContent');
+            var filename = '${filename}';
+            var isRTL = document.documentElement.dir === 'rtl';
 
             try {
-                // Convert images to data URLs to bypass CORS
                 await prepareImagesForPDF(element);
 
-                const opt = {
+                var opt = {
                     margin: [10, 10, 10, 10],
                     filename: filename,
-                    image: { type: 'jpeg', quality: 0.95 },
+                    image: { type: 'jpeg', quality: 0.8 },
                     html2canvas: {
-                        scale: 2,
+                        scale: 1.5,
                         useCORS: true,
                         allowTaint: true,
                         letterRendering: !isRTL,
                         scrollY: 0,
                         logging: false,
-                        foreignObjectRendering: false
+                        foreignObjectRendering: false,
+                        imageTimeout: 0,
+                        removeContainer: true
                     },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
@@ -2510,25 +2517,18 @@ patchOldTrailGuideHTML(htmlContent) {
                 if (actionBar) actionBar.style.display = 'flex';
                 if (surveyPanel) surveyPanel.classList.remove('show');
                 if (overlay) overlay.style.display = 'none';
-                if (btn) {
-                    btn.innerHTML = '📥 Download PDF';
-                    btn.disabled = false;
-                }
+                if (btn) { btn.innerHTML = '📥 Download PDF'; btn.disabled = false; }
             } catch (err) {
                 console.error('PDF generation failed:', err);
                 if (actionBar) actionBar.style.display = 'flex';
                 if (surveyPanel) surveyPanel.classList.remove('show');
                 if (overlay) overlay.style.display = 'none';
-                if (btn) {
-                    btn.innerHTML = '📥 Download PDF';
-                    btn.disabled = false;
-                }
+                if (btn) { btn.innerHTML = '📥 Download PDF'; btn.disabled = false; }
                 alert('PDF generation failed. Please try again or use Print to PDF.');
             }
         }`;
 
-    // Insert image helpers before the old downloadPDF and replace it
-    patched = patched.replace(oldDownloadPDFRegex, imageHelpers + newDownloadPDF);
+    patched = patched.replace(downloadPDFRegex, fullReplacement);
   }
 
   // 3. If the old html2canvas options don't have allowTaint, add it
