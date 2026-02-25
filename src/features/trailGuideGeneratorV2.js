@@ -646,24 +646,100 @@ export class TrailGuideGeneratorV2 {
             }
         });
         
-        // Wait for all images to load before PDF generation
-        function waitForImages(element) {
-            const images = element.querySelectorAll('img');
-            const promises = Array.from(images).map(img => {
-                if (img.complete && img.naturalWidth > 0) {
-                    return Promise.resolve();
+        // Resize and convert image to a compact data URL for PDF
+        // PDF at A4 doesn't need huge images - 800px wide is plenty
+        function resizeImageToDataURL(img, maxWidth = 800, quality = 0.75) {
+            const canvas = document.createElement('canvas');
+            let w = img.naturalWidth || img.width;
+            let h = img.naturalHeight || img.height;
+
+            // Scale down if wider than maxWidth
+            if (w > maxWidth) {
+                h = Math.round(h * (maxWidth / w));
+                w = maxWidth;
+            }
+
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            return canvas.toDataURL('image/jpeg', quality);
+        }
+
+        // Prepare images for PDF: fetch, resize, and convert to compact data URLs
+        async function prepareImagesForPDF(element) {
+            const images = Array.from(element.querySelectorAll('img'));
+            console.log('📷 Preparing', images.length, 'images for PDF...');
+
+            let converted = 0;
+            let failed = 0;
+
+            // Process images sequentially to avoid memory overload
+            for (let i = 0; i < images.length; i++) {
+                const img = images[i];
+
+                // Skip if already a data URL
+                if (img.src.startsWith('data:')) {
+                    converted++;
+                    continue;
                 }
-                return new Promise((resolve) => {
-                    img.onload = resolve;
-                    img.onerror = () => {
-                        console.warn('Image failed to load:', img.src?.substring(0, 100));
-                        resolve(); // Continue even if image fails
-                    };
-                    // Timeout after 5 seconds
-                    setTimeout(resolve, 5000);
-                });
-            });
-            return Promise.all(promises);
+
+                // Wait for image to load if needed
+                if (!img.complete) {
+                    await new Promise((resolve) => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                        setTimeout(resolve, 8000);
+                    });
+                }
+
+                // Skip broken images
+                if (!img.naturalWidth) {
+                    console.warn('⚠️ Image', i + 1, 'not loaded, skipping');
+                    failed++;
+                    continue;
+                }
+
+                try {
+                    // Try fetching and loading into a clean CORS-enabled image
+                    const response = await fetch(img.src, { mode: 'cors' });
+                    if (!response.ok) throw new Error('Fetch ' + response.status);
+
+                    const blob = await response.blob();
+                    const blobURL = URL.createObjectURL(blob);
+
+                    // Load into a fresh image element for clean canvas access
+                    const tempImg = new Image();
+                    tempImg.crossOrigin = 'anonymous';
+                    await new Promise((resolve, reject) => {
+                        tempImg.onload = resolve;
+                        tempImg.onerror = reject;
+                        setTimeout(reject, 8000);
+                        tempImg.src = blobURL;
+                    });
+
+                    // Resize and convert to compact data URL
+                    const dataURL = resizeImageToDataURL(tempImg);
+                    img.src = dataURL;
+                    URL.revokeObjectURL(blobURL);
+                    converted++;
+                    if ((i + 1) % 5 === 0 || i === images.length - 1) {
+                        console.log('📷 Progress:', i + 1, '/', images.length);
+                    }
+                } catch (error) {
+                    // Fallback: try direct canvas from the displayed image
+                    try {
+                        const dataURL = resizeImageToDataURL(img);
+                        img.src = dataURL;
+                        converted++;
+                    } catch (e2) {
+                        console.warn('⚠️ Image', i + 1, 'failed:', error.message);
+                        failed++;
+                    }
+                }
+            }
+
+            console.log('📷 Done:', converted, 'converted,', failed, 'failed of', images.length, 'total');
         }
 
         // PDF Download with loading overlay
@@ -694,23 +770,23 @@ export class TrailGuideGeneratorV2 {
             const isRTL = document.documentElement.dir === 'rtl';
 
             try {
-                // Wait for all images to load before generating PDF
-                await waitForImages(element);
+                // Convert images to data URLs to bypass CORS issues
+                await prepareImagesForPDF(element);
 
                 const opt = {
                     margin: [10, 10, 10, 10],
                     filename: filename,
-                    image: { type: 'jpeg', quality: 0.95 },
+                    image: { type: 'jpeg', quality: 0.8 },
                     html2canvas: {
-                        scale: 2,
+                        scale: 1.5,
                         useCORS: true,
                         allowTaint: true,
-                        // Disable letter rendering for RTL to prevent character spacing issues
                         letterRendering: !isRTL,
                         scrollY: 0,
                         logging: false,
-                        // Force proper text rendering
-                        foreignObjectRendering: false
+                        foreignObjectRendering: false,
+                        imageTimeout: 0,
+                        removeContainer: true
                     },
                     jsPDF: {
                         unit: 'mm',
