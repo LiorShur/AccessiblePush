@@ -773,6 +773,9 @@ export class TrailGuideGeneratorV2 {
                 // Convert images to data URLs to bypass CORS issues
                 await prepareImagesForPDF(element);
 
+                // Add PDF export class for print-specific CSS overrides
+                document.body.classList.add('pdf-export');
+
                 const opt = {
                     margin: [10, 10, 10, 10],
                     filename: filename,
@@ -781,10 +784,11 @@ export class TrailGuideGeneratorV2 {
                         scale: 1.5,
                         useCORS: true,
                         allowTaint: true,
-                        letterRendering: !isRTL,
+                        letterRendering: false,
                         scrollY: 0,
                         logging: false,
-                        foreignObjectRendering: false,
+                        // Use foreignObject for RTL - preserves browser's native text rendering
+                        foreignObjectRendering: isRTL,
                         imageTimeout: 0,
                         removeContainer: true
                     },
@@ -798,6 +802,9 @@ export class TrailGuideGeneratorV2 {
 
                 await html2pdf().set(opt).from(element).save();
 
+                // Remove PDF export class
+                document.body.classList.remove('pdf-export');
+
                 // Restore UI
                 if (actionBar) actionBar.style.display = 'flex';
                 if (surveyPanel) surveyPanel.classList.remove('show');
@@ -808,6 +815,7 @@ export class TrailGuideGeneratorV2 {
                 }
             } catch (err) {
                 console.error('PDF generation failed:', err);
+                document.body.classList.remove('pdf-export');
                 if (actionBar) actionBar.style.display = 'flex';
                 if (surveyPanel) surveyPanel.classList.remove('show');
                 if (overlay) overlay.style.display = 'none';
@@ -2542,19 +2550,33 @@ export class TrailGuideGeneratorV2 {
             .tg-container {
                 max-width: 100%;
             }
-            
+
             .tg-map-container {
                 height: 250px;
             }
-            
+
             .tg-action-bar {
                 display: none !important;
             }
-            
+
             .tg-survey-panel {
                 display: block !important;
                 page-break-before: always;
             }
+        }
+
+        /* PDF export mode - applied via .pdf-export class on body */
+        body.pdf-export .tg-stats-row {
+            grid-template-columns: repeat(4, 1fr) !important;
+        }
+        body.pdf-export .leaflet-marker-pane,
+        body.pdf-export .leaflet-shadow-pane,
+        body.pdf-export .leaflet-popup-pane {
+            display: none !important;
+        }
+        body.pdf-export .tg-map-hint,
+        body.pdf-export .tg-map-legend {
+            display: none !important;
         }
         
         /* Action Bar */
