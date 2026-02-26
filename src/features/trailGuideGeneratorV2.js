@@ -787,8 +787,7 @@ export class TrailGuideGeneratorV2 {
                         letterRendering: false,
                         scrollY: 0,
                         logging: false,
-                        // Use foreignObject for RTL - preserves browser's native text rendering
-                        foreignObjectRendering: isRTL,
+                        foreignObjectRendering: false,
                         imageTimeout: 0,
                         removeContainer: true
                     },

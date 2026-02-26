@@ -2557,7 +2557,7 @@ Happy trail mapping! 🥾`);
                         letterRendering: false,
                         scrollY: 0,
                         logging: false,
-                        foreignObjectRendering: isRTL,
+                        foreignObjectRendering: false,
                         imageTimeout: 0,
                         removeContainer: true
                     },
