@@ -2379,6 +2379,7 @@
             <td>${date}</td>
             <td>
               <button class="action-btn view" onclick="viewGuideHTML('${id}')" title="View Guide">👁️</button>
+              <button class="action-btn" onclick="downloadGuideHTML('${id}')" title="Download HTML">📄</button>
               <button class="action-btn generate" onclick="regenerateGuide('${id}')" title="Regenerate Guide">🔄</button>
               <button class="action-btn edit" onclick="openEditModal('guides', '${id}')">✏️</button>
               <button class="action-btn delete" onclick="promptDelete('guides', '${id}')">🗑️</button>
@@ -3657,6 +3658,30 @@
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
       setTimeout(() => URL.revokeObjectURL(url), 2000);
+    };
+
+    // Download guide as HTML file
+    window.downloadGuideHTML = (guideId) => {
+      const guide = cache.guides.find(g => g.id === guideId);
+      if (!guide || !guide.htmlContent) {
+        showToast('Guide content not available', 'error');
+        return;
+      }
+      const blob = new Blob([guide.htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      // Create filename from route name, sanitized
+      const filename = (guide.routeName || guide.title || 'trail_guide')
+        .replace(/[^a-zA-Z0-9\u0590-\u05FF\s-]/g, '')
+        .replace(/\s+/g, '_')
+        .substring(0, 50) + '.html';
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Downloaded: ' + filename, 'success');
     };
 
     // Regenerate an existing guide
