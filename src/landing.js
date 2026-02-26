@@ -2435,7 +2435,31 @@ Happy trail mapping! 🥾`);
       );
     }
 
-    // 2. Replace any old downloadPDF function with the optimized version
+    // 2. Inject PDF export CSS overrides if not present
+    if (!patched.includes('pdf-export')) {
+      const pdfExportCSS = `
+        /* PDF export mode - applied via .pdf-export class on body */
+        body.pdf-export .tg-stats-row {
+            grid-template-columns: repeat(4, 1fr) !important;
+        }
+        body.pdf-export .leaflet-marker-pane,
+        body.pdf-export .leaflet-shadow-pane,
+        body.pdf-export .leaflet-popup-pane {
+            display: none !important;
+        }
+        body.pdf-export .tg-map-hint,
+        body.pdf-export .tg-map-legend {
+            display: none !important;
+        }
+      `;
+      // Insert before the last </style> tag
+      const lastStyleClose = patched.lastIndexOf('</style>');
+      if (lastStyleClose !== -1) {
+        patched = patched.slice(0, lastStyleClose) + pdfExportCSS + patched.slice(lastStyleClose);
+      }
+    }
+
+    // 3. Replace any old downloadPDF function with the optimized version
     const oldSyncRegex = /function downloadPDF\(\)\s*\{[\s\S]*?\.save\(\)\.then\([\s\S]*?\}\)(?:\.catch\([\s\S]*?\}\))?[\s\S]*?\n\s*\}/;
     const oldAsyncRegex = /(?:async\s+)?function downloadPDF\(\)\s*\{[\s\S]*?await\s+html2pdf\(\)[\s\S]*?\n\s{8}\}/;
     const oldHelpersRegex = /(?:\/\/[^\n]*(?:Wait for|Convert image|Prepare images)[^\n]*\n\s*(?:async\s+)?function\s+(?:waitForImages|imageToDataURL|prepareImagesForPDF)\s*\([^)]*\)\s*\{[\s\S]*?\n\s{8}\}\s*)+/g;
@@ -2530,10 +2554,10 @@ Happy trail mapping! 🥾`);
                         scale: 1.5,
                         useCORS: true,
                         allowTaint: true,
-                        letterRendering: !isRTL,
+                        letterRendering: false,
                         scrollY: 0,
                         logging: false,
-                        foreignObjectRendering: false,
+                        foreignObjectRendering: isRTL,
                         imageTimeout: 0,
                         removeContainer: true
                     },
@@ -2541,7 +2565,9 @@ Happy trail mapping! 🥾`);
                     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
                 };
 
+                document.body.classList.add('pdf-export');
                 await html2pdf().set(opt).from(element).save();
+                document.body.classList.remove('pdf-export');
 
                 if (actionBar) actionBar.style.display = 'flex';
                 if (surveyPanel) surveyPanel.classList.remove('show');
@@ -2549,6 +2575,7 @@ Happy trail mapping! 🥾`);
                 if (btn) { btn.innerHTML = '📥 Download PDF'; btn.disabled = false; }
             } catch (err) {
                 console.error('PDF generation failed:', err);
+                document.body.classList.remove('pdf-export');
                 if (actionBar) actionBar.style.display = 'flex';
                 if (surveyPanel) surveyPanel.classList.remove('show');
                 if (overlay) overlay.style.display = 'none';
