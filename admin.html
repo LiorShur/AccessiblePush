@@ -2380,6 +2380,8 @@
             <td>
               <button class="action-btn view" onclick="viewGuideHTML('${id}')" title="View Guide">👁️</button>
               <button class="action-btn" onclick="downloadGuideHTML('${id}')" title="Download HTML">📄</button>
+              <button class="action-btn" onclick="downloadGuideOffline('${id}')" title="Download Offline (images embedded)">📦</button>
+              <button class="action-btn" onclick="hostGuide('${id}')" title="Host &amp; Share">🔗</button>
               <button class="action-btn generate" onclick="regenerateGuide('${id}')" title="Regenerate Guide">🔄</button>
               <button class="action-btn edit" onclick="openEditModal('guides', '${id}')">✏️</button>
               <button class="action-btn delete" onclick="promptDelete('guides', '${id}')">🗑️</button>
@@ -3682,6 +3684,158 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       showToast('Downloaded: ' + filename, 'success');
+    };
+
+    // Download guide as offline HTML with embedded images
+    window.downloadGuideOffline = async (guideId) => {
+      const guide = cache.guides.find(g => g.id === guideId);
+      if (!guide || !guide.htmlContent) {
+        showToast('Guide content not available', 'error');
+        return;
+      }
+
+      const filename = (guide.routeName || guide.title || 'trail_guide')
+        .replace(/[^a-zA-Z0-9\u0590-\u05FF\s-]/g, '')
+        .replace(/\s+/g, '_')
+        .substring(0, 50) + '_offline.html';
+
+      showToast('Preparing offline version... Embedding images', 'info');
+
+      try {
+        let html = guide.htmlContent;
+
+        // Find all image URLs in the HTML (src attributes and CSS url() references)
+        const imgSrcRegex = /(<img[^>]+src=["'])([^"']+firebasestorage\.googleapis\.com[^"']+)(["'])/g;
+        const matches = [];
+        let match;
+        while ((match = imgSrcRegex.exec(html)) !== null) {
+          matches.push({ full: match[0], prefix: match[1], url: match[2], suffix: match[3] });
+        }
+
+        // Also find background-image url() references to Firebase
+        const bgRegex = /(url\(["']?)([^"')]+firebasestorage\.googleapis\.com[^"')]+)(["']?\))/g;
+        while ((match = bgRegex.exec(html)) !== null) {
+          matches.push({ full: match[0], prefix: match[1], url: match[2], suffix: match[3] });
+        }
+
+        console.log(`📦 Found ${matches.length} Firebase images to embed`);
+        let embedded = 0;
+        let failed = 0;
+
+        for (let i = 0; i < matches.length; i++) {
+          const m = matches[i];
+          try {
+            const response = await fetch(m.url, { mode: 'cors' });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const blob = await response.blob();
+
+            // Resize via canvas for smaller file size
+            const blobURL = URL.createObjectURL(blob);
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              setTimeout(reject, 10000);
+              img.src = blobURL;
+            });
+
+            const canvas = document.createElement('canvas');
+            const maxWidth = 1200;
+            let w = img.naturalWidth;
+            let h = img.naturalHeight;
+            if (w > maxWidth) { h = Math.round(h * (maxWidth / w)); w = maxWidth; }
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+
+            URL.revokeObjectURL(blobURL);
+            html = html.split(m.url).join(dataURL);
+            embedded++;
+
+            if ((i + 1) % 5 === 0 || i === matches.length - 1) {
+              showToast(`Embedding images: ${i + 1}/${matches.length}`, 'info');
+            }
+          } catch (err) {
+            console.warn(`⚠️ Failed to embed image ${i + 1}:`, err.message);
+            failed++;
+          }
+        }
+
+        console.log(`📦 Done: ${embedded} embedded, ${failed} failed`);
+
+        // Download the modified HTML
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast(`Downloaded offline version: ${embedded} images embedded` + (failed > 0 ? `, ${failed} failed` : ''), 'success');
+      } catch (err) {
+        console.error('Offline download failed:', err);
+        showToast('Failed to create offline version: ' + err.message, 'error');
+      }
+    };
+
+    // Host guide on Firebase Storage and get shareable link
+    window.hostGuide = async (guideId) => {
+      const guide = cache.guides.find(g => g.id === guideId);
+      if (!guide || !guide.htmlContent) {
+        showToast('Guide content not available', 'error');
+        return;
+      }
+
+      // Check if already hosted
+      if (guide.hostedURL) {
+        const action = confirm(`This guide is already hosted:\n${guide.hostedURL}\n\nClick OK to re-upload, or Cancel to copy the existing link.`);
+        if (!action) {
+          navigator.clipboard.writeText(guide.hostedURL).then(() => {
+            showToast('Link copied to clipboard!', 'success');
+          }).catch(() => {
+            prompt('Copy this link:', guide.hostedURL);
+          });
+          return;
+        }
+      }
+
+      showToast('Uploading guide to Firebase Storage...', 'info');
+
+      try {
+        const storage = getStorage();
+        const storagePath = `trail_guides/${guideId}.html`;
+        const storageRef = ref(storage, storagePath);
+
+        // Set content type to text/html so browsers render it
+        const blob = new Blob([guide.htmlContent], { type: 'text/html' });
+        const metadata = { contentType: 'text/html', cacheControl: 'public, max-age=3600' };
+
+        await uploadBytes(storageRef, blob, metadata);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // Save the hosted URL back to Firestore
+        const guideRef = doc(db, 'trail_guides', guideId);
+        await updateDoc(guideRef, { hostedURL: downloadURL });
+
+        // Update local cache
+        guide.hostedURL = downloadURL;
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(downloadURL).then(() => {
+          showToast('Guide hosted! Link copied to clipboard.', 'success');
+        }).catch(() => {
+          prompt('Guide hosted! Copy this link:', downloadURL);
+        });
+
+        console.log('🔗 Guide hosted at:', downloadURL);
+      } catch (err) {
+        console.error('Failed to host guide:', err);
+        showToast('Failed to host guide: ' + err.message, 'error');
+      }
     };
 
     // Regenerate an existing guide
