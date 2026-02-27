@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAB Layout Comparison - Accessible Trail Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+  <style>
+/* ================================================
+   FAB COMPARISON PAGE STYLES
+   Interactive comparison of FAB layout options
+   ================================================ */
+
+:root {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #222;
+  --bg-elevated: #2a2a2a;
+  --text-primary: #fff;
+  --text-secondary: #aaa;
+  --text-muted: #666;
+  --accent: #4CAF50;
+  --accent-hover: #66BB6A;
+  --accent-light: rgba(76, 175, 80, 0.15);
+  --danger: #f44336;
+  --warning: #FF9800;
+  --info: #2196F3;
+  --purple: #9C27B0;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.15);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* --- PAGE HEADER --- */
+.page-header {
+  padding: 32px 24px 24px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.page-header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+.page-header p { color: var(--text-secondary); font-size: 0.95rem; max-width: 600px; margin: 0 auto; }
+
+/* --- LAYOUT SELECTOR TABS --- */
+.layout-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.layout-tabs::-webkit-scrollbar { display: none; }
+.layout-tab {
+  padding: 10px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.layout-tab:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.layout-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* --- PREVIEW CONTAINER --- */
+.preview-container {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+.phone-frame {
+  width: 375px;
+  height: 700px;
+  background: var(--bg-secondary);
+  border-radius: 32px;
+  border: 3px solid #333;
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow);
+}
+.phone-status-bar {
+  height: 44px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  position: relative;
+  z-index: 50;
+}
+.phone-status-bar::before { content: '9:41'; }
+.phone-status-bar::after {
+  content: '100%';
+  position: absolute;
+  right: 24px;
+  font-size: 11px;
+  color: #aaa;
+}
+
+/* --- MAP AREA --- */
+.map-area {
+  width: 100%;
+  height: calc(100% - 44px);
+  position: relative;
+  overflow: hidden;
+}
+.map-area #previewMap {
+  width: 100%;
+  height: 100%;
+}
+
+/* --- COMMON FAB STYLES --- */
+.fab-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  transition: all 0.2s;
+  position: relative;
+  color: white;
+  -webkit-tap-highlight-color: transparent;
+}
+.fab-btn:hover { transform: scale(1.08); }
+.fab-btn:active { transform: scale(0.95); }
+
+.fab-btn-sm { width: 40px; height: 40px; }
+.fab-btn-lg { width: 56px; height: 56px; }
+.fab-btn-xl { width: 64px; height: 64px; }
+
+.fab-dark { background: rgba(26,26,26,0.95); border: 1px solid #333; }
+.fab-green { background: var(--accent); }
+.fab-orange { background: var(--warning); }
+.fab-red { background: var(--danger); }
+.fab-blue { background: var(--info); }
+.fab-purple { background: var(--purple); }
+
+.fab-label {
+  position: absolute;
+  right: 54px;
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(8px);
+  transition: all 0.2s;
+}
+.fab-btn:hover .fab-label { opacity: 1; transform: translateX(0); }
+
+/* --- TOP CONTROL BAR --- */
+.top-control-bar {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(26,26,26,0.95);
+  padding: 6px 10px;
+  border-radius: 24px;
+  z-index: 30;
+  backdrop-filter: blur(10px);
+}
+.top-control-bar .fab-btn-sm {
+  font-size: 14px;
+}
+.stat-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 50px;
+  padding: 0 4px;
+}
+.stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.stat-label {
+  font-size: 8px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.bar-separator {
+  width: 1px;
+  height: 24px;
+  background: rgba(255,255,255,0.2);
+  margin: 0 2px;
+}
+
+/* --- SENSOR ROW --- */
+.sensor-row {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 25;
+}
+.sensor-chip {
+  background: rgba(26,26,26,0.9);
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-primary);
+}
+
+/* --- LEFT CONTROLS --- */
+.left-controls {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 20;
+}
+
+/* --- RIGHT CONTROLS --- */
+.right-controls {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 20;
+}
+
+/* --- SPEED DIAL --- */
+.speed-dial {
+  position: absolute;
+  z-index: 40;
+}
+.speed-dial-trigger {
+  z-index: 2;
+  position: relative;
+}
+.speed-dial-items {
+  position: absolute;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.speed-dial.open .speed-dial-items {
+  opacity: 1;
+  pointer-events: auto;
+}
+.speed-dial-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.speed-dial.open .speed-dial-item {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.speed-dial.open .speed-dial-item:nth-child(1) { transition-delay: 0.02s; }
+.speed-dial.open .speed-dial-item:nth-child(2) { transition-delay: 0.04s; }
+.speed-dial.open .speed-dial-item:nth-child(3) { transition-delay: 0.06s; }
+.speed-dial.open .speed-dial-item:nth-child(4) { transition-delay: 0.08s; }
+.speed-dial.open .speed-dial-item:nth-child(5) { transition-delay: 0.10s; }
+.speed-dial.open .speed-dial-item:nth-child(6) { transition-delay: 0.12s; }
+.speed-dial.open .speed-dial-item:nth-child(7) { transition-delay: 0.14s; }
+.speed-dial.open .speed-dial-item:nth-child(8) { transition-delay: 0.16s; }
+
+.speed-dial-chip {
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  order: -1;
+}
+.speed-dial-divider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.speed-dial-divider span {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+  background: rgba(0,0,0,0.7);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* --- SCRIM --- */
+.fab-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  z-index: 35;
+}
+.fab-scrim.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* --- BOTTOM BAR VARIANT --- */
+.bottom-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(26,26,26,0.95);
+  padding: 6px 10px;
+  border-radius: 28px;
+  z-index: 30;
+  backdrop-filter: blur(10px);
+}
+.bottom-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 9px;
+  transition: all 0.2s;
+}
+.bottom-bar-item:hover { background: rgba(255,255,255,0.08); color: white; }
+.bottom-bar-item.active { color: var(--accent); }
+.bottom-bar-item svg { width: 22px; height: 22px; }
+
+/* --- POI GRID (in modal) --- */
+.poi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 12px;
+}
+.poi-category-header {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  padding: 8px 4px 4px;
+  border-bottom: 1px solid var(--border);
+  margin-top: 4px;
+}
+.poi-category-header:first-child { margin-top: 0; }
+.poi-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.poi-item:hover { border-color: var(--accent); background: var(--accent-light); }
+.poi-item:active { transform: scale(0.95); }
+.poi-icon { font-size: 24px; line-height: 1; }
+.poi-name { font-size: 9px; color: var(--text-secondary); line-height: 1.2; }
+
+/* --- ELEMENT DETAIL MODAL --- */
+.element-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s;
+}
+.element-modal-overlay.active { opacity: 1; visibility: visible; }
+.element-modal {
+  background: linear-gradient(145deg, #1a1a2e 0%, #252540 100%);
+  border: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.element-modal-overlay.active .element-modal { transform: translateY(0); }
+
+.modal-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  margin: 12px auto 8px;
+}
+.modal-el-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-el-icon { font-size: 32px; }
+.modal-el-title { font-size: 18px; font-weight: 700; flex: 1; }
+.modal-el-close {
+  width: 32px; height: 32px;
+  border: none; border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  color: white; font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.modal-el-body { padding: 16px 20px; }
+
+.modal-el-section { margin-bottom: 16px; }
+.modal-el-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.photo-capture-area {
+  width: 100%;
+  height: 160px;
+  border: 2px dashed rgba(255,255,255,0.15);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255,255,255,0.03);
+  color: var(--text-secondary);
+}
+.photo-capture-area:hover { border-color: var(--accent); background: var(--accent-light); }
+.photo-capture-area svg { opacity: 0.5; }
+.photo-capture-area span { font-size: 13px; }
+
+.modal-field {
+  margin-bottom: 12px;
+}
+.modal-field label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.modal-field input,
+.modal-field select,
+.modal-field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.modal-field input:focus,
+.modal-field select:focus,
+.modal-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(76,175,80,0.2);
+}
+.modal-field textarea { resize: vertical; min-height: 60px; }
+.modal-field select option { background: #1a1a2e; }
+
+.modal-el-footer {
+  padding: 12px 20px 24px;
+  display: flex;
+  gap: 10px;
+}
+.modal-btn-save {
+  flex: 1;
+  padding: 14px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-btn-save:hover { background: var(--accent-hover); }
+.modal-btn-cancel {
+  padding: 14px 20px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* --- DESCRIPTION PANEL --- */
+.description-panel {
+  padding: 20px 24px;
+  border-top: 1px solid var(--border);
+}
+.desc-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+.desc-text { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px; }
+.desc-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.desc-feature {
+  padding: 4px 10px;
+  background: var(--accent-light);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* --- HIDDEN --- */
+.hidden { display: none !important; }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 480px) {
+  .phone-frame { width: 100%; border-radius: 0; border: none; height: 80vh; }
+  .layout-tabs { padding: 12px 16px; }
+  .page-header { padding: 20px 16px 16px; }
+  .page-header h1 { font-size: 1.4rem; }
+  .preview-container { padding: 0; }
+}
+  </style>
+</head>
+<body>
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>FAB Layout Comparison</h1>
+    <p>Interactive comparison of floating action button layouts, grouped by functional category. Tap the + button to explore the Add/POI speed dial with geolocated elements.</p>
+  </header>
+
+  <!-- Layout Selector -->
+  <div class="layout-tabs" role="tablist">
+    <button class="layout-tab active" role="tab" data-layout="A" aria-selected="true">A: Current + Speed Dial</button>
+    <button class="layout-tab" role="tab" data-layout="B" aria-selected="false">B: Bottom Bar + Dial</button>
+    <button class="layout-tab" role="tab" data-layout="C" aria-selected="false">C: Minimal Sides</button>
+  </div>
+
+  <!-- Preview -->
+  <div class="preview-container">
+    <div class="phone-frame">
+      <div class="phone-status-bar"></div>
+      <div class="map-area" id="mapArea">
+        <div id="previewMap"></div>
+
+        <!-- ============== LAYOUT A: Current Layout + Add Speed Dial ============== -->
+        <div id="layoutA" class="layout-view">
+          <!-- Top Control Bar -->
+          <div class="top-control-bar">
+            <button class="fab-btn fab-btn-sm fab-green" aria-label="Start tracking">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="fab-btn fab-btn-sm fab-orange" aria-label="Pause">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="fab-btn fab-btn-sm fab-red" aria-label="Stop">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 6h12v12H6z"/></svg>
+            </button>
+            <div class="bar-separator"></div>
+            <div class="stat-display"><span class="stat-value">12:34</span><span class="stat-label">Time</span></div>
+            <div class="bar-separator"></div>
+            <div class="stat-display"><span class="stat-value">2.4 km</span><span class="stat-label">Dist</span></div>
+          </div>
+
+          <!-- Sensor Row -->
+          <div class="sensor-row">
+            <div class="sensor-chip">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#4CAF50"><path d="M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z"/></svg>
+              142m
+            </div>
+            <div class="sensor-chip">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5"><path d="M12 3L20 17H4L12 3Z"/></svg>
+              NW 312°
+            </div>
+          </div>
+
+          <!-- Left Controls: Map -->
+          <div class="left-controls">
+            <button class="fab-btn fab-dark" aria-label="Zoom in">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            </button>
+            <button class="fab-btn fab-dark" aria-label="Zoom out">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19 13H5v-2h14v2z"/></svg>
+            </button>
+            <div style="height:6px;"></div>
+            <button class="fab-btn fab-dark" aria-label="Center on location">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+            </button>
+            <button class="fab-btn fab-dark" aria-label="Layers">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27z"/></svg>
+            </button>
+          </div>
+
+          <!-- Right Controls: Capture & Safety -->
+          <div class="right-controls">
+            <button class="fab-btn fab-dark" aria-label="Safety">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+            </button>
+            <button class="fab-btn fab-dark" aria-label="More options">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+            </button>
+          </div>
+
+          <!-- SPEED DIAL: Add/+ (Bottom Right) -->
+          <div class="fab-scrim" id="scrimA"></div>
+          <div class="speed-dial" id="dialA" style="bottom: 24px; right: 16px;">
+            <div class="speed-dial-items" id="dialItemsA"></div>
+            <button class="fab-btn fab-btn-xl fab-green speed-dial-trigger" id="dialTriggerA" aria-label="Add element" aria-haspopup="true" aria-expanded="false">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white" class="dial-icon-plus"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white" class="dial-icon-close hidden"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ============== LAYOUT B: Bottom Bar + Speed Dial ============== -->
+        <div id="layoutB" class="layout-view hidden">
+          <!-- Compact top stats only -->
+          <div class="top-control-bar" style="padding: 4px 10px; gap: 8px;">
+            <div class="stat-display"><span class="stat-value" style="color:#4CAF50;">REC</span><span class="stat-label">Active</span></div>
+            <div class="bar-separator"></div>
+            <div class="stat-display"><span class="stat-value">12:34</span><span class="stat-label">Time</span></div>
+            <div class="bar-separator"></div>
+            <div class="stat-display"><span class="stat-value">2.4 km</span><span class="stat-label">Dist</span></div>
+            <div class="bar-separator"></div>
+            <div class="stat-display"><span class="stat-value">142m</span><span class="stat-label">Elev</span></div>
+          </div>
+
+          <!-- Left Controls: Map only -->
+          <div class="left-controls">
+            <button class="fab-btn fab-dark" aria-label="Zoom in">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            </button>
+            <button class="fab-btn fab-dark" aria-label="Zoom out">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19 13H5v-2h14v2z"/></svg>
+            </button>
+            <button class="fab-btn fab-dark" aria-label="Center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+            </button>
+            <button class="fab-btn fab-dark" aria-label="Layers">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27z"/></svg>
+            </button>
+          </div>
+
+          <!-- Bottom Bar with all major controls -->
+          <div class="bottom-bar">
+            <button class="bottom-bar-item" aria-label="Pause">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              <span>Pause</span>
+            </button>
+            <button class="bottom-bar-item fab-red" style="color:#f44336;" aria-label="Stop">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>
+              <span>Stop</span>
+            </button>
+            <div class="bar-separator" style="height:32px;"></div>
+            <button class="bottom-bar-item" aria-label="Safety">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+              <span>Safety</span>
+            </button>
+            <button class="bottom-bar-item" aria-label="More">
+              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+              <span>More</span>
+            </button>
+          </div>
+
+          <!-- SPEED DIAL: Add/+ (Bottom Right, above bar) -->
+          <div class="fab-scrim" id="scrimB"></div>
+          <div class="speed-dial" id="dialB" style="bottom: 80px; right: 16px;">
+            <div class="speed-dial-items" id="dialItemsB"></div>
+            <button class="fab-btn fab-btn-xl fab-green speed-dial-trigger" id="dialTriggerB" aria-label="Add element" aria-haspopup="true" aria-expanded="false">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white" class="dial-icon-plus"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white" class="dial-icon-close hidden"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ============== LAYOUT C: Minimal Sides ============== -->
+        <div id="layoutC" class="layout-view hidden">
+          <!-- Top: minimal stats -->
+          <div class="top-control-bar" style="gap:10px; padding: 6px 14px;">
+            <div class="stat-display"><span class="stat-value">12:34</span><span class="stat-label">Time</span></div>
+            <div class="bar-separator"></div>
+            <div class="stat-display"><span class="stat-value">2.4 km</span><span class="stat-label">Dist</span></div>
+            <div class="bar-separator"></div>
+            <div class="stat-display"><span class="stat-value">142m</span><span class="stat-label">Elev</span></div>
+          </div>
+
+          <!-- Right Controls: combined Map + Recording -->
+          <div class="right-controls" style="gap: 8px;">
+            <button class="fab-btn fab-dark fab-btn-sm" aria-label="Zoom in">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            </button>
+            <button class="fab-btn fab-dark fab-btn-sm" aria-label="Zoom out">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 13H5v-2h14v2z"/></svg>
+            </button>
+            <button class="fab-btn fab-dark fab-btn-sm" aria-label="Center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+            </button>
+            <button class="fab-btn fab-dark fab-btn-sm" aria-label="Layers">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.27zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27z"/></svg>
+            </button>
+            <div style="height:4px;"></div>
+            <button class="fab-btn fab-dark fab-btn-sm" aria-label="Safety">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+            </button>
+            <button class="fab-btn fab-dark fab-btn-sm" aria-label="More">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+            </button>
+          </div>
+
+          <!-- Bottom: Large contextual record button + Add FAB -->
+          <div style="position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; align-items: center; z-index: 30;">
+            <button class="fab-btn fab-btn-xl fab-orange" aria-label="Pause recording" style="box-shadow: 0 4px 20px rgba(255,152,0,0.4);">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+          </div>
+
+          <!-- SPEED DIAL: Add/+ (Bottom Left) -->
+          <div class="fab-scrim" id="scrimC"></div>
+          <div class="speed-dial" id="dialC" style="bottom: 24px; left: 16px;">
+            <div class="speed-dial-items" id="dialItemsC"></div>
+            <button class="fab-btn fab-btn-lg fab-green speed-dial-trigger" id="dialTriggerC" aria-label="Add element" aria-haspopup="true" aria-expanded="false">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" class="dial-icon-plus"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" class="dial-icon-close hidden"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description Panel -->
+  <div class="description-panel" id="descPanel">
+    <div class="desc-title" id="descTitle">Layout A: Enhanced Current + Speed Dial</div>
+    <div class="desc-text" id="descText">
+      Keeps the existing top control bar (Record/Pause/Stop + Timer/Distance) and left map controls. Replaces the right-side Photo/Note buttons with a single expandable "+" FAB (speed dial) in the bottom-right corner. Opens a categorized menu with Capture, Infrastructure POIs, Terrain, and Safety elements.
+    </div>
+    <div class="desc-features" id="descFeatures">
+      <span class="desc-feature">Familiar layout</span>
+      <span class="desc-feature">Speed dial Add</span>
+      <span class="desc-feature">POI categories</span>
+      <span class="desc-feature">Bottom-right FAB</span>
+    </div>
+  </div>
+
+  <!-- Element Detail Modal -->
+  <div class="element-modal-overlay" id="elementModal">
+    <div class="element-modal">
+      <div class="modal-handle"></div>
+      <div class="modal-el-header">
+        <span class="modal-el-icon" id="modalIcon"></span>
+        <span class="modal-el-title" id="modalTitle"></span>
+        <button class="modal-el-close" id="modalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-el-body">
+        <!-- Photo Capture -->
+        <div class="modal-el-section">
+          <div class="modal-el-section-title">Photo</div>
+          <div class="photo-capture-area" id="photoCaptureArea">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="12" r="3.2"/>
+              <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+            </svg>
+            <span>Tap to take photo</span>
+          </div>
+        </div>
+
+        <!-- Location Info (auto-populated) -->
+        <div class="modal-el-section">
+          <div class="modal-el-section-title">Location (auto-detected)</div>
+          <div style="display: flex; gap: 8px;">
+            <div class="modal-field" style="flex:1;">
+              <label>Latitude</label>
+              <input type="text" value="32.0853" readonly style="color: var(--text-muted);">
+            </div>
+            <div class="modal-field" style="flex:1;">
+              <label>Longitude</label>
+              <input type="text" value="34.7818" readonly style="color: var(--text-muted);">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic fields (populated per element type) -->
+        <div class="modal-el-section" id="dynamicFields"></div>
+
+        <!-- Notes -->
+        <div class="modal-el-section">
+          <div class="modal-el-section-title">Notes</div>
+          <div class="modal-field">
+            <textarea placeholder="Add any additional notes about this element..." rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-el-footer">
+        <button class="modal-btn-cancel" id="modalCancelBtn">Cancel</button>
+        <button class="modal-btn-save" id="modalSaveBtn">Save & Pin to Route</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+  <script>
+// ================================================
+// POI ELEMENT DEFINITIONS
+// ================================================
+const POI_ELEMENTS = [
+  // --- CAPTURE ---
+  { id: 'photo', icon: '📷', name: 'Photo', category: 'Capture', color: '#2196F3',
+    fields: [] },
+  { id: 'note', icon: '📝', name: 'Note', category: 'Capture', color: '#FF9800',
+    fields: [{ label: 'Note text', type: 'textarea', placeholder: 'What would you like to note?' }] },
+  { id: 'voice', icon: '🎤', name: 'Voice Note', category: 'Capture', color: '#9C27B0',
+    fields: [] },
+
+  // --- REST & COMFORT ---
+  { id: 'bench', icon: '🪑', name: 'Bench', category: 'Rest & Comfort', color: '#8D6E63',
+    fields: [
+      { label: 'Condition', type: 'select', options: ['Good', 'Fair', 'Poor', 'Broken'] },
+      { label: 'Has backrest', type: 'select', options: ['Yes', 'No'] },
+      { label: 'Has armrests', type: 'select', options: ['Yes', 'No'] },
+      { label: 'Shaded', type: 'select', options: ['Yes', 'Partial', 'No'] }
+    ]},
+  { id: 'picnic', icon: '🧺', name: 'Picnic Area', category: 'Rest & Comfort', color: '#795548',
+    fields: [
+      { label: 'Has tables', type: 'select', options: ['Yes', 'No'] },
+      { label: 'Wheelchair accessible', type: 'select', options: ['Yes', 'Partial', 'No'] },
+      { label: 'Shaded', type: 'select', options: ['Yes', 'Partial', 'No'] },
+      { label: 'Waste bins', type: 'select', options: ['Yes', 'No'] }
+    ]},
+  { id: 'shelter', icon: '🛖', name: 'Shelter', category: 'Rest & Comfort', color: '#607D8B',
+    fields: [
+      { label: 'Type', type: 'select', options: ['Rain shelter', 'Gazebo', 'Shade structure', 'Bus stop style'] },
+      { label: 'Seating', type: 'select', options: ['Yes', 'No'] },
+      { label: 'Condition', type: 'select', options: ['Good', 'Fair', 'Poor'] }
+    ]},
+
+  // --- WATER & FACILITIES ---
+  { id: 'water', icon: '🚰', name: 'Water Fountain', category: 'Water & Facilities', color: '#039BE5',
+    fields: [
+      { label: 'Working', type: 'select', options: ['Yes', 'No', 'Seasonal'] },
+      { label: 'Wheelchair height', type: 'select', options: ['Yes', 'No'] },
+      { label: 'Bottle refill', type: 'select', options: ['Yes', 'No'] }
+    ]},
+  { id: 'toilet', icon: '🚻', name: 'Toilets', category: 'Water & Facilities', color: '#0288D1',
+    fields: [
+      { label: 'Wheelchair accessible', type: 'select', options: ['Yes', 'No'] },
+      { label: 'Type', type: 'select', options: ['Standard', 'Portable', 'Composting', 'Outhouse'] },
+      { label: 'Open', type: 'select', options: ['Yes', 'No', 'Seasonal'] }
+    ]},
+  { id: 'waste', icon: '🗑️', name: 'Waste Bin', category: 'Water & Facilities', color: '#546E7A',
+    fields: [
+      { label: 'Type', type: 'select', options: ['General', 'Recycling', 'Dog waste'] }
+    ]},
+
+  // --- SCENIC & NAVIGATION ---
+  { id: 'viewpoint', icon: '🔭', name: 'Viewpoint', category: 'Scenic & Navigation', color: '#7B1FA2',
+    fields: [
+      { label: 'Direction', type: 'select', options: ['North', 'East', 'South', 'West', 'Panoramic'] },
+      { label: 'Seating', type: 'select', options: ['Yes', 'No'] },
+      { label: 'Railing/barrier', type: 'select', options: ['Yes', 'No'] }
+    ]},
+  { id: 'sign', icon: '🪧', name: 'Trail Sign', category: 'Scenic & Navigation', color: '#558B2F',
+    fields: [
+      { label: 'Readable', type: 'select', options: ['Yes', 'Faded', 'No'] },
+      { label: 'Has distance info', type: 'select', options: ['Yes', 'No'] }
+    ]},
+  { id: 'junction', icon: '🔀', name: 'Trail Junction', category: 'Scenic & Navigation', color: '#F9A825',
+    fields: [
+      { label: 'Marked', type: 'select', options: ['Well marked', 'Poorly marked', 'Unmarked'] },
+      { label: 'Number of paths', type: 'select', options: ['2', '3', '4+'] }
+    ]},
+
+  // --- TERRAIN & ACCESSIBILITY ---
+  { id: 'steep_up', icon: '⬆️', name: 'Steep Ascent', category: 'Terrain & Accessibility', color: '#E65100',
+    fields: [
+      { label: 'Grade', type: 'select', options: ['Moderate (5-8%)', 'Steep (8-12%)', 'Very steep (>12%)'] },
+      { label: 'Surface', type: 'select', options: ['Paved', 'Gravel', 'Dirt', 'Rocky', 'Stairs'] },
+      { label: 'Handrail', type: 'select', options: ['Yes', 'One side', 'No'] },
+      { label: 'Approx. length', type: 'select', options: ['Short (<20m)', 'Medium (20-50m)', 'Long (>50m)'] }
+    ]},
+  { id: 'steep_down', icon: '⬇️', name: 'Steep Descent', category: 'Terrain & Accessibility', color: '#BF360C',
+    fields: [
+      { label: 'Grade', type: 'select', options: ['Moderate (5-8%)', 'Steep (8-12%)', 'Very steep (>12%)'] },
+      { label: 'Surface', type: 'select', options: ['Paved', 'Gravel', 'Dirt', 'Rocky', 'Stairs'] },
+      { label: 'Handrail', type: 'select', options: ['Yes', 'One side', 'No'] }
+    ]},
+  { id: 'stairs', icon: '🪜', name: 'Steps/Stairs', category: 'Terrain & Accessibility', color: '#D84315',
+    fields: [
+      { label: 'Approx. count', type: 'select', options: ['1-5', '6-15', '16-30', '30+'] },
+      { label: 'Handrail', type: 'select', options: ['Both sides', 'One side', 'None'] },
+      { label: 'Alt. ramp', type: 'select', options: ['Yes', 'No'] },
+      { label: 'Condition', type: 'select', options: ['Good', 'Uneven', 'Damaged'] }
+    ]},
+  { id: 'surface', icon: '🪨', name: 'Surface Change', category: 'Terrain & Accessibility', color: '#6D4C41',
+    fields: [
+      { label: 'From', type: 'select', options: ['Paved', 'Gravel', 'Dirt', 'Sand', 'Boardwalk', 'Grass'] },
+      { label: 'To', type: 'select', options: ['Paved', 'Gravel', 'Dirt', 'Sand', 'Boardwalk', 'Grass', 'Rocky', 'Roots'] }
+    ]},
+  { id: 'narrow', icon: '↔️', name: 'Narrow Passage', category: 'Terrain & Accessibility', color: '#FF6F00',
+    fields: [
+      { label: 'Approx. width', type: 'select', options: ['Very narrow (<60cm)', 'Narrow (60-90cm)', 'Tight (90-120cm)'] },
+      { label: 'Passable with wheelchair', type: 'select', options: ['Yes', 'No'] }
+    ]},
+  { id: 'barrier', icon: '🚧', name: 'Gate/Barrier', category: 'Terrain & Accessibility', color: '#E53935',
+    fields: [
+      { label: 'Type', type: 'select', options: ['Gate', 'Bollard', 'Stile', 'Cattle grid', 'Chain'] },
+      { label: 'Wheelchair passable', type: 'select', options: ['Yes', 'With difficulty', 'No'] },
+      { label: 'Locked', type: 'select', options: ['Open', 'Unlocked gate', 'Locked'] }
+    ]},
+  { id: 'bridge', icon: '🌉', name: 'Bridge', category: 'Terrain & Accessibility', color: '#455A64',
+    fields: [
+      { label: 'Width', type: 'select', options: ['Wide (>1.5m)', 'Medium (1-1.5m)', 'Narrow (<1m)'] },
+      { label: 'Railings', type: 'select', options: ['Both sides', 'One side', 'None'] },
+      { label: 'Surface', type: 'select', options: ['Wood', 'Metal', 'Concrete', 'Suspension'] },
+      { label: 'Condition', type: 'select', options: ['Good', 'Fair', 'Poor'] }
+    ]},
+  { id: 'crossing', icon: '🚶', name: 'Road Crossing', category: 'Terrain & Accessibility', color: '#F57C00',
+    fields: [
+      { label: 'Type', type: 'select', options: ['Marked crosswalk', 'Unmarked', 'Traffic light', 'Underpass'] },
+      { label: 'Traffic level', type: 'select', options: ['Low', 'Medium', 'High'] },
+      { label: 'Curb cuts', type: 'select', options: ['Yes', 'One side', 'No'] }
+    ]},
+
+  // --- SAFETY & HAZARDS ---
+  { id: 'hazard', icon: '⚠️', name: 'Hazard', category: 'Safety & Hazards', color: '#F44336',
+    fields: [
+      { label: 'Type', type: 'select', options: ['Fallen tree', 'Flooding', 'Erosion', 'Loose rocks', 'Ice/slippery', 'Wildlife', 'Other'] },
+      { label: 'Severity', type: 'select', options: ['Minor', 'Moderate', 'Major - path blocked'] }
+    ]},
+  { id: 'parking', icon: '🅿️', name: 'Parking', category: 'Safety & Hazards', color: '#1565C0',
+    fields: [
+      { label: 'Accessible spaces', type: 'select', options: ['Yes', 'No'] },
+      { label: 'Free', type: 'select', options: ['Yes', 'Paid', 'Time-limited'] }
+    ]},
+];
+
+// ================================================
+// SPEED DIAL BUILDER
+// ================================================
+function buildSpeedDialItems(containerId) {
+  const container = document.getElementById(containerId);
+  let html = '';
+  let lastCategory = '';
+
+  POI_ELEMENTS.forEach((el, i) => {
+    if (el.category !== lastCategory) {
+      if (lastCategory) {
+        html += `<div class="speed-dial-divider"><span>${el.category}</span></div>`;
+      } else {
+        html += `<div class="speed-dial-divider"><span>${el.category}</span></div>`;
+      }
+      lastCategory = el.category;
+    }
+    html += `
+      <div class="speed-dial-item" style="transition-delay: ${i * 0.02}s;">
+        <span class="speed-dial-chip">${el.name}</span>
+        <button class="fab-btn fab-btn-sm" style="background: ${el.color};"
+                onclick="openElementModal('${el.id}')" aria-label="Add ${el.name}">
+          <span style="font-size: 18px;">${el.icon}</span>
+        </button>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// Build all three speed dials
+document.addEventListener('DOMContentLoaded', () => {
+  buildSpeedDialItems('dialItemsA');
+  buildSpeedDialItems('dialItemsB');
+  buildSpeedDialItems('dialItemsC');
+});
+
+// ================================================
+// SPEED DIAL TOGGLE
+// ================================================
+function setupDial(dialId, scrimId, triggerId) {
+  const dial = document.getElementById(dialId);
+  const scrim = document.getElementById(scrimId);
+  const trigger = document.getElementById(triggerId);
+
+  function toggle() {
+    const isOpen = dial.classList.toggle('open');
+    scrim.classList.toggle('active', isOpen);
+    trigger.setAttribute('aria-expanded', isOpen);
+    trigger.querySelector('.dial-icon-plus').classList.toggle('hidden', isOpen);
+    trigger.querySelector('.dial-icon-close').classList.toggle('hidden', !isOpen);
+  }
+
+  trigger.addEventListener('click', toggle);
+  scrim.addEventListener('click', () => {
+    dial.classList.remove('open');
+    scrim.classList.remove('active');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.querySelector('.dial-icon-plus').classList.remove('hidden');
+    trigger.querySelector('.dial-icon-close').classList.add('hidden');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupDial('dialA', 'scrimA', 'dialTriggerA');
+  setupDial('dialB', 'scrimB', 'dialTriggerB');
+  setupDial('dialC', 'scrimC', 'dialTriggerC');
+});
+
+// ================================================
+// ELEMENT DETAIL MODAL
+// ================================================
+function openElementModal(elementId) {
+  const el = POI_ELEMENTS.find(e => e.id === elementId);
+  if (!el) return;
+
+  // Close any open speed dials
+  document.querySelectorAll('.speed-dial.open').forEach(d => {
+    d.classList.remove('open');
+  });
+  document.querySelectorAll('.fab-scrim.active').forEach(s => {
+    s.classList.remove('active');
+  });
+  document.querySelectorAll('.speed-dial-trigger').forEach(t => {
+    t.setAttribute('aria-expanded', 'false');
+    t.querySelector('.dial-icon-plus')?.classList.remove('hidden');
+    t.querySelector('.dial-icon-close')?.classList.add('hidden');
+  });
+
+  document.getElementById('modalIcon').textContent = el.icon;
+  document.getElementById('modalTitle').textContent = `Add ${el.name}`;
+
+  // Build dynamic fields
+  const fieldsContainer = document.getElementById('dynamicFields');
+  if (el.fields.length > 0) {
+    let fieldsHtml = `<div class="modal-el-section-title">${el.name} Details</div>`;
+    el.fields.forEach(f => {
+      if (f.type === 'select') {
+        fieldsHtml += `
+          <div class="modal-field">
+            <label>${f.label}</label>
+            <select>
+              <option value="">-- Select --</option>
+              ${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}
+            </select>
+          </div>`;
+      } else if (f.type === 'textarea') {
+        fieldsHtml += `
+          <div class="modal-field">
+            <label>${f.label}</label>
+            <textarea placeholder="${f.placeholder || ''}" rows="3"></textarea>
+          </div>`;
+      } else {
+        fieldsHtml += `
+          <div class="modal-field">
+            <label>${f.label}</label>
+            <input type="${f.type || 'text'}" placeholder="${f.placeholder || ''}">
+          </div>`;
+      }
+    });
+    fieldsContainer.innerHTML = fieldsHtml;
+  } else {
+    fieldsContainer.innerHTML = '';
+  }
+
+  // Show modal
+  document.getElementById('elementModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeElementModal() {
+  document.getElementById('elementModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('modalClose').addEventListener('click', closeElementModal);
+  document.getElementById('modalCancelBtn').addEventListener('click', closeElementModal);
+  document.getElementById('modalSaveBtn').addEventListener('click', () => {
+    closeElementModal();
+    // In production this would save to AppState
+    showToast('Element saved & pinned to route!');
+  });
+  document.getElementById('elementModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('elementModal')) closeElementModal();
+  });
+});
+
+// ================================================
+// LAYOUT SWITCHING
+// ================================================
+const layoutDescriptions = {
+  A: {
+    title: 'Layout A: Enhanced Current + Speed Dial',
+    text: 'Keeps the existing top control bar (Record/Pause/Stop + Timer/Distance) and left map controls. Replaces the right-side Photo/Note buttons with a single expandable "+" FAB (speed dial) in the bottom-right corner. Familiar layout for current users, with a much more powerful capture system.',
+    features: ['Familiar layout', 'Speed dial (bottom-right)', 'POI categories', 'Right-side safety/more']
+  },
+  B: {
+    title: 'Layout B: Bottom Bar + Speed Dial',
+    text: 'Moves Recording controls and Safety/More into a bottom navigation bar (thumb-friendly zone). Top bar becomes stats-only. The "+" speed dial floats above the bottom bar on the right. Maximizes map visibility while keeping all controls within easy thumb reach.',
+    features: ['Bottom bar controls', 'Max map space', 'Thumb-friendly', 'Stats-only top bar']
+  },
+  C: {
+    title: 'Layout C: Minimal Sides',
+    text: 'Most minimal layout. Large contextual Pause/Record button centered at the bottom. All map and utility controls stacked on the right side. "+" speed dial on the bottom-left. Stats only at top. Reduces visual clutter to the absolute minimum for focused outdoor use.',
+    features: ['Minimal clutter', 'Large center action', 'Left-side FAB', 'One-hand friendly']
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.layout-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const layout = tab.dataset.layout;
+
+      // Update tabs
+      document.querySelectorAll('.layout-tab').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+
+      // Show layout
+      document.querySelectorAll('.layout-view').forEach(v => v.classList.add('hidden'));
+      document.getElementById('layout' + layout).classList.remove('hidden');
+
+      // Close any open speed dials
+      document.querySelectorAll('.speed-dial.open').forEach(d => d.classList.remove('open'));
+      document.querySelectorAll('.fab-scrim.active').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.speed-dial-trigger').forEach(t => {
+        t.setAttribute('aria-expanded', 'false');
+        t.querySelector('.dial-icon-plus')?.classList.remove('hidden');
+        t.querySelector('.dial-icon-close')?.classList.add('hidden');
+      });
+
+      // Update description
+      const desc = layoutDescriptions[layout];
+      document.getElementById('descTitle').textContent = desc.title;
+      document.getElementById('descText').textContent = desc.text;
+      document.getElementById('descFeatures').innerHTML = desc.features.map(f =>
+        `<span class="desc-feature">${f}</span>`
+      ).join('');
+    });
+  });
+});
+
+// ================================================
+// TOAST
+// ================================================
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.textContent = msg;
+  toast.style.cssText = `
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: #4CAF50; color: white; padding: 12px 24px; border-radius: 24px;
+    font-size: 14px; font-weight: 600; z-index: 100001;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: toastIn 0.3s ease forwards;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 2000);
+  setTimeout(() => toast.remove(), 2500);
+}
+
+// ================================================
+// MAP INITIALIZATION
+// ================================================
+document.addEventListener('DOMContentLoaded', () => {
+  const map = L.map('previewMap', {
+    center: [32.0853, 34.7818],
+    zoom: 15,
+    zoomControl: false,
+    attributionControl: false
+  });
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map);
+
+  // Simulated route line
+  const routePoints = [
+    [32.0870, 34.7790],
+    [32.0865, 34.7800],
+    [32.0858, 34.7810],
+    [32.0853, 34.7818],
+    [32.0848, 34.7825],
+    [32.0842, 34.7835],
+    [32.0838, 34.7845]
+  ];
+  L.polyline(routePoints, { color: '#4CAF50', weight: 4, opacity: 0.9 }).addTo(map);
+
+  // User position marker
+  L.circleMarker([32.0838, 34.7845], {
+    radius: 8, fillColor: '#4CAF50', fillOpacity: 1,
+    color: '#fff', weight: 3
+  }).addTo(map);
+
+  // Start marker
+  L.circleMarker([32.0870, 34.7790], {
+    radius: 6, fillColor: '#2196F3', fillOpacity: 1,
+    color: '#fff', weight: 2
+  }).addTo(map);
+});
+  </script>
+</body>
+</html>
