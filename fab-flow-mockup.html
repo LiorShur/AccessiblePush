@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>FAB Flow Mockup - AccessiblePush</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+:root {
+  --bg-dark: #121212;
+  --surface: #1a1a1a;
+  --surface-elevated: #242424;
+  --accent: #4CAF50;
+  --text-primary: #ffffff;
+  --text-secondary: #aaaaaa;
+  --danger: #f44336;
+  --warning: #ff9800;
+  --info: #2196F3;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* --- MAIN LAYOUT --- */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.map-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+/* --- GLOBAL BOTTOM NAV --- */
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: var(--surface);
+  padding: 8px 0 12px;
+  border-top: 1px solid #333;
+  position: relative;
+  z-index: 1000;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 12px;
+  transition: color 0.2s;
+}
+
+.nav-item.active { color: var(--accent); }
+.nav-item:hover { color: var(--text-primary); }
+
+.nav-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* --- CENTERED FAB (above bottom nav) --- */
+.main-fab {
+  position: absolute;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.5);
+  z-index: 1100;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-fab:hover {
+  transform: translateX(-50%) scale(1.08);
+  box-shadow: 0 6px 28px rgba(76, 175, 80, 0.6);
+}
+
+.main-fab:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.main-fab svg {
+  width: 32px;
+  height: 32px;
+  fill: white;
+  transition: transform 0.3s;
+}
+
+.main-fab.open svg {
+  transform: rotate(45deg);
+}
+
+/* --- ELEMENT PICKER OVERLAY --- */
+.element-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.element-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #333;
+}
+
+.overlay-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.overlay-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+}
+
+.element-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-content: start;
+}
+
+.element-btn {
+  aspect-ratio: 1;
+  background: var(--surface-elevated);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 8px;
+  transition: all 0.2s;
+}
+
+.element-btn:hover {
+  background: #2a2a2a;
+  border-color: var(--accent);
+  transform: scale(1.02);
+}
+
+.element-btn:active {
+  transform: scale(0.96);
+}
+
+.element-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.element-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Color coding for element types */
+.element-btn[data-type="photo"] { border-color: #9c27b0; }
+.element-btn[data-type="hazard"] { border-color: var(--danger); }
+.element-btn[data-type="accessibility"] { border-color: var(--info); }
+
+/* --- BOTTOM SHEET MODAL --- */
+.bottom-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 3000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.bottom-sheet-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  z-index: 3001;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottom-sheet.visible {
+  transform: translateY(0);
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: #666;
+  border-radius: 2px;
+  margin: 12px auto;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 16px;
+  border-bottom: 1px solid #333;
+}
+
+.sheet-icon {
+  font-size: 28px;
+}
+
+.sheet-title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.sheet-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 20px;
+}
+
+.sheet-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* --- FORM ELEMENTS --- */
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Photo capture */
+.photo-capture {
+  display: flex;
+  gap: 12px;
+}
+
+.photo-btn {
+  flex: 1;
+  height: 80px;
+  border-radius: 12px;
+  background: var(--surface-elevated);
+  border: 2px dashed #444;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.photo-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.photo-btn-icon {
+  font-size: 24px;
+}
+
+.photo-btn-text {
+  font-size: 12px;
+}
+
+/* GPS display */
+.gps-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-elevated);
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.gps-icon {
+  font-size: 20px;
+  color: var(--accent);
+}
+
+.gps-coords {
+  flex: 1;
+}
+
+.gps-lat, .gps-lng {
+  font-size: 13px;
+  font-family: monospace;
+}
+
+.gps-accuracy {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Element-specific fields */
+.field-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.field-group {
+  flex: 1;
+}
+
+.field-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface-elevated);
+  border: 1px solid #333;
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.field-select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface-elevated);
+  border: 1px solid #333;
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Toggle chips */
+.toggle-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.toggle-chip {
+  padding: 8px 16px;
+  background: var(--surface-elevated);
+  border: 1px solid #444;
+  border-radius: 20px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-chip:hover {
+  border-color: var(--accent);
+}
+
+.toggle-chip.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* Notes textarea */
+.notes-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px 16px;
+  background: var(--surface-elevated);
+  border: 1px solid #333;
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.notes-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Submit button */
+.sheet-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #333;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.submit-btn:hover {
+  background: #43a047;
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+/* --- MAP CONTROLS --- */
+.map-controls {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1050;
+}
+
+.map-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  backdrop-filter: blur(10px);
+}
+
+/* --- RECORDING INDICATOR --- */
+.recording-indicator {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(244, 67, 54, 0.9);
+  padding: 8px 20px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1050;
+}
+
+.rec-dot {
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.rec-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rec-time {
+  font-family: monospace;
+}
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Map Area -->
+    <div class="map-area">
+      <div id="map"></div>
+
+      <!-- Recording indicator -->
+      <div class="recording-indicator">
+        <div class="rec-dot"></div>
+        <span class="rec-text">Recording</span>
+        <span class="rec-time">12:34</span>
+      </div>
+
+      <!-- Map controls -->
+      <div class="map-controls">
+        <button class="map-btn">📍</button>
+        <button class="map-btn">🧭</button>
+        <button class="map-btn">📏</button>
+      </div>
+
+      <!-- Main FAB -->
+      <button class="main-fab" id="mainFab" aria-label="Add element">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      </button>
+    </div>
+
+    <!-- Global Bottom Nav -->
+    <nav class="bottom-nav">
+      <button class="nav-item active">
+        <span class="nav-icon">🗺️</span>
+        <span>Map</span>
+      </button>
+      <button class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span>Stats</span>
+      </button>
+      <button class="nav-item">
+        <span class="nav-icon">📋</span>
+        <span>Elements</span>
+      </button>
+      <button class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Element Picker Overlay -->
+  <div class="element-overlay" id="elementOverlay">
+    <div class="overlay-header">
+      <span class="overlay-title">Add Element</span>
+      <button class="overlay-close" id="overlayClose">&times;</button>
+    </div>
+    <div class="element-grid">
+      <button class="element-btn" data-type="photo" data-element="photo">
+        <span class="element-icon">📷</span>
+        <span class="element-label">Photo</span>
+      </button>
+      <button class="element-btn" data-element="note">
+        <span class="element-icon">📝</span>
+        <span class="element-label">Note</span>
+      </button>
+      <button class="element-btn" data-element="voice">
+        <span class="element-icon">🎤</span>
+        <span class="element-label">Voice Note</span>
+      </button>
+      <button class="element-btn" data-element="bench">
+        <span class="element-icon">🪑</span>
+        <span class="element-label">Rest Bench</span>
+      </button>
+      <button class="element-btn" data-element="water">
+        <span class="element-icon">🚰</span>
+        <span class="element-label">Water Fountain</span>
+      </button>
+      <button class="element-btn" data-element="restroom">
+        <span class="element-icon">🚻</span>
+        <span class="element-label">Restroom</span>
+      </button>
+      <button class="element-btn" data-element="viewpoint">
+        <span class="element-icon">🏔️</span>
+        <span class="element-label">Viewpoint</span>
+      </button>
+      <button class="element-btn" data-element="picnic">
+        <span class="element-icon">🧺</span>
+        <span class="element-label">Picnic Area</span>
+      </button>
+      <button class="element-btn" data-element="steep">
+        <span class="element-icon">⛰️</span>
+        <span class="element-label">Steep Section</span>
+      </button>
+      <button class="element-btn" data-type="accessibility" data-element="accessibility">
+        <span class="element-icon">♿</span>
+        <span class="element-label">Accessibility</span>
+      </button>
+      <button class="element-btn" data-type="hazard" data-element="hazard">
+        <span class="element-icon">⚠️</span>
+        <span class="element-label">Hazard</span>
+      </button>
+      <button class="element-btn" data-element="info">
+        <span class="element-icon">ℹ️</span>
+        <span class="element-label">Information</span>
+      </button>
+      <button class="element-btn" data-element="shade">
+        <span class="element-icon">🌳</span>
+        <span class="element-label">Shade</span>
+      </button>
+      <button class="element-btn" data-element="parking">
+        <span class="element-icon">🅿️</span>
+        <span class="element-label">Parking</span>
+      </button>
+      <button class="element-btn" data-element="junction">
+        <span class="element-icon">🚧</span>
+        <span class="element-label">Trail Junction</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom Sheet Backdrop -->
+  <div class="bottom-sheet-backdrop" id="sheetBackdrop"></div>
+
+  <!-- Bottom Sheet Modal -->
+  <div class="bottom-sheet" id="bottomSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-icon" id="sheetIcon">🪑</span>
+      <span class="sheet-title" id="sheetTitle">Rest Bench</span>
+      <button class="sheet-close" id="sheetClose">&times;</button>
+    </div>
+    <div class="sheet-content" id="sheetContent">
+      <!-- Dynamic content based on element type -->
+    </div>
+    <div class="sheet-footer">
+      <button class="submit-btn">
+        <span>Save Element</span>
+        <span>✓</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+// Initialize map
+const map = L.map('map', {
+  zoomControl: false,
+  attributionControl: false
+}).setView([32.0853, 34.7818], 15);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+// Element definitions with their form fields
+const elementForms = {
+  photo: {
+    icon: '📷',
+    title: 'Photo',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Capture Photo</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+          <button class="photo-btn">
+            <span class="photo-btn-icon">🖼️</span>
+            <span class="photo-btn-text">Gallery</span>
+          </button>
+        </div>
+      </div>
+    `
+  },
+  note: {
+    icon: '📝',
+    title: 'Note',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Note Type</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Observation</button>
+          <button class="toggle-chip">Warning</button>
+          <button class="toggle-chip">Tip</button>
+        </div>
+      </div>
+    `
+  },
+  voice: {
+    icon: '🎤',
+    title: 'Voice Note',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Recording</label>
+        <button class="photo-btn" style="height: 60px; border-style: solid; border-color: var(--danger);">
+          <span class="photo-btn-icon">🎙️</span>
+          <span class="photo-btn-text">Tap to Record</span>
+        </button>
+      </div>
+    `
+  },
+  bench: {
+    icon: '🪑',
+    title: 'Rest Bench',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Optional)</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Seating Capacity</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">1-2</button>
+          <button class="toggle-chip">3-4</button>
+          <button class="toggle-chip">5+</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Features</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">Backrest</button>
+          <button class="toggle-chip">Armrests</button>
+          <button class="toggle-chip">Shaded</button>
+          <button class="toggle-chip">Wheelchair Space</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Condition</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Good</button>
+          <button class="toggle-chip">Fair</button>
+          <button class="toggle-chip">Poor</button>
+        </div>
+      </div>
+    `
+  },
+  water: {
+    icon: '🚰',
+    title: 'Water Fountain',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Optional)</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Water Status</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Working</button>
+          <button class="toggle-chip">Not Working</button>
+          <button class="toggle-chip">Seasonal</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Accessibility</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">Wheelchair Height</button>
+          <button class="toggle-chip">Dog Bowl</button>
+          <button class="toggle-chip">Bottle Fill</button>
+        </div>
+      </div>
+    `
+  },
+  restroom: {
+    icon: '🚻',
+    title: 'Restroom',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Optional)</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Type</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Permanent</button>
+          <button class="toggle-chip">Portable</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Accessibility</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Accessible</button>
+          <button class="toggle-chip">Not Accessible</button>
+          <button class="toggle-chip">Unknown</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Facilities</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">Grab Bars</button>
+          <button class="toggle-chip">Changing Table</button>
+          <button class="toggle-chip">Sink</button>
+        </div>
+      </div>
+    `
+  },
+  viewpoint: {
+    icon: '🏔️',
+    title: 'Viewpoint',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Capture View</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+          <button class="photo-btn">
+            <span class="photo-btn-icon">🎥</span>
+            <span class="photo-btn-text">Panorama</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">View Direction</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">North</button>
+          <button class="toggle-chip">East</button>
+          <button class="toggle-chip">South</button>
+          <button class="toggle-chip">West</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Features Visible</label>
+        <input type="text" class="field-input" placeholder="e.g., Mountain peaks, valley, lake...">
+      </div>
+    `
+  },
+  picnic: {
+    icon: '🧺',
+    title: 'Picnic Area',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Optional)</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Tables</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">1-2</button>
+          <button class="toggle-chip">3-5</button>
+          <button class="toggle-chip">6+</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Amenities</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">Shade</button>
+          <button class="toggle-chip">BBQ/Grill</button>
+          <button class="toggle-chip">Trash Bins</button>
+          <button class="toggle-chip">Wheelchair Access</button>
+        </div>
+      </div>
+    `
+  },
+  steep: {
+    icon: '⛰️',
+    title: 'Steep Section',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Optional)</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Direction</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Uphill</button>
+          <button class="toggle-chip">Downhill</button>
+          <button class="toggle-chip">Both</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Difficulty</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">Moderate</button>
+          <button class="toggle-chip selected">Steep</button>
+          <button class="toggle-chip">Very Steep</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Estimated Length</label>
+        <div class="field-row">
+          <input type="number" class="field-input" placeholder="Distance" style="flex:2">
+          <select class="field-select" style="flex:1">
+            <option>m</option>
+            <option>ft</option>
+          </select>
+        </div>
+      </div>
+    `
+  },
+  accessibility: {
+    icon: '♿',
+    title: 'Accessibility Note',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Optional)</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Issue Type</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Surface</button>
+          <button class="toggle-chip">Obstacle</button>
+          <button class="toggle-chip">Width</button>
+          <button class="toggle-chip">Slope</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Surface Type</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">Paved</button>
+          <button class="toggle-chip selected">Gravel</button>
+          <button class="toggle-chip">Dirt</button>
+          <button class="toggle-chip">Uneven</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Path Width</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">Wide (2m+)</button>
+          <button class="toggle-chip selected">Standard (1-2m)</button>
+          <button class="toggle-chip">Narrow (&lt;1m)</button>
+        </div>
+      </div>
+    `
+  },
+  hazard: {
+    icon: '⚠️',
+    title: 'Hazard',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Recommended)</label>
+        <div class="photo-capture">
+          <button class="photo-btn" style="border-color: var(--danger);">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Hazard Type</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Fallen Tree</button>
+          <button class="toggle-chip">Erosion</button>
+          <button class="toggle-chip">Flooding</button>
+          <button class="toggle-chip">Wildlife</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Severity</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">Low</button>
+          <button class="toggle-chip selected">Medium</button>
+          <button class="toggle-chip">High</button>
+          <button class="toggle-chip">Trail Closed</button>
+        </div>
+      </div>
+    `
+  },
+  info: {
+    icon: 'ℹ️',
+    title: 'Information',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Optional)</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Type</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Trail Sign</button>
+          <button class="toggle-chip">Info Board</button>
+          <button class="toggle-chip">Mile Marker</button>
+          <button class="toggle-chip">Other</button>
+        </div>
+      </div>
+    `
+  },
+  shade: {
+    icon: '🌳',
+    title: 'Shaded Area',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Optional)</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Shade Coverage</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">Partial</button>
+          <button class="toggle-chip selected">Full</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Seating Available</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Yes</button>
+          <button class="toggle-chip">No</button>
+        </div>
+      </div>
+    `
+  },
+  parking: {
+    icon: '🅿️',
+    title: 'Parking',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Optional)</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Parking Type</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Lot</button>
+          <button class="toggle-chip">Street</button>
+          <button class="toggle-chip">Trailhead</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Accessibility</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Accessible Spots</button>
+          <button class="toggle-chip">Paved Surface</button>
+          <button class="toggle-chip">Drop-off Zone</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Fee</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Free</button>
+          <button class="toggle-chip">Paid</button>
+          <button class="toggle-chip">Permit Required</button>
+        </div>
+      </div>
+    `
+  },
+  junction: {
+    icon: '🚧',
+    title: 'Trail Junction',
+    fields: `
+      <div class="form-section">
+        <label class="form-label">Photo (Optional)</label>
+        <div class="photo-capture">
+          <button class="photo-btn">
+            <span class="photo-btn-icon">📸</span>
+            <span class="photo-btn-text">Take Photo</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Number of Paths</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip">2-way</button>
+          <button class="toggle-chip selected">3-way</button>
+          <button class="toggle-chip">4+ way</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Signage</label>
+        <div class="toggle-chips">
+          <button class="toggle-chip selected">Clear Signs</button>
+          <button class="toggle-chip">Partial Signs</button>
+          <button class="toggle-chip">No Signs</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Trail Names</label>
+        <input type="text" class="field-input" placeholder="e.g., Main Trail, Loop Trail">
+      </div>
+    `
+  }
+};
+
+// Common fields (GPS + Notes) added to all
+const commonFieldsTop = `
+  <div class="form-section">
+    <label class="form-label">Location</label>
+    <div class="gps-display">
+      <span class="gps-icon">📍</span>
+      <div class="gps-coords">
+        <div class="gps-lat">32.085312° N</div>
+        <div class="gps-lng">34.781823° E</div>
+      </div>
+      <span class="gps-accuracy">±3m</span>
+    </div>
+  </div>
+`;
+
+const commonFieldsBottom = `
+  <div class="form-section">
+    <label class="form-label">Notes (Optional)</label>
+    <textarea class="notes-textarea" placeholder="Add any additional details..."></textarea>
+  </div>
+`;
+
+// DOM elements
+const mainFab = document.getElementById('mainFab');
+const elementOverlay = document.getElementById('elementOverlay');
+const overlayClose = document.getElementById('overlayClose');
+const sheetBackdrop = document.getElementById('sheetBackdrop');
+const bottomSheet = document.getElementById('bottomSheet');
+const sheetClose = document.getElementById('sheetClose');
+const sheetIcon = document.getElementById('sheetIcon');
+const sheetTitle = document.getElementById('sheetTitle');
+const sheetContent = document.getElementById('sheetContent');
+
+// Open element picker
+mainFab.addEventListener('click', () => {
+  mainFab.classList.add('open');
+  elementOverlay.classList.add('visible');
+});
+
+// Close element picker
+function closeOverlay() {
+  mainFab.classList.remove('open');
+  elementOverlay.classList.remove('visible');
+}
+
+overlayClose.addEventListener('click', closeOverlay);
+
+// Open bottom sheet for element
+document.querySelectorAll('.element-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const elementType = btn.dataset.element;
+    const form = elementForms[elementType];
+
+    if (form) {
+      sheetIcon.textContent = form.icon;
+      sheetTitle.textContent = form.title;
+      sheetContent.innerHTML = commonFieldsTop + form.fields + commonFieldsBottom;
+
+      // Add chip toggle behavior
+      sheetContent.querySelectorAll('.toggle-chips').forEach(group => {
+        group.querySelectorAll('.toggle-chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            // For single-select groups (most cases)
+            if (!group.classList.contains('multi')) {
+              group.querySelectorAll('.toggle-chip').forEach(c => c.classList.remove('selected'));
+            }
+            chip.classList.toggle('selected');
+          });
+        });
+      });
+    }
+
+    closeOverlay();
+    sheetBackdrop.classList.add('visible');
+    bottomSheet.classList.add('visible');
+  });
+});
+
+// Close bottom sheet
+function closeSheet() {
+  sheetBackdrop.classList.remove('visible');
+  bottomSheet.classList.remove('visible');
+}
+
+sheetClose.addEventListener('click', closeSheet);
+sheetBackdrop.addEventListener('click', closeSheet);
+  </script>
+</body>
+</html>
