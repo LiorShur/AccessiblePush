@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -26,6 +26,61 @@ body {
   color: var(--text-primary);
   height: 100vh;
   overflow: hidden;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+}
+
+[dir="rtl"] .overlay-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .sheet-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .gps-display {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .field-row {
+  flex-direction: row-reverse;
+}
+
+/* --- LANGUAGE TOGGLE --- */
+.lang-toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1060;
+  display: flex;
+  background: var(--surface);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #333;
+}
+
+[dir="rtl"] .lang-toggle {
+  right: auto;
+  left: 12px;
+}
+
+.lang-btn {
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lang-btn.active {
+  background: var(--accent);
+  color: white;
 }
 
 /* --- MAIN LAYOUT --- */
@@ -75,9 +130,10 @@ body {
 .nav-item.active { color: var(--accent); }
 .nav-item:hover { color: var(--text-primary); }
 
-.nav-icon {
-  font-size: 20px;
-  line-height: 1;
+.nav-item svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
 }
 
 /* --- CENTERED FAB (above bottom nav) --- */
@@ -124,7 +180,7 @@ body {
 .element-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(0, 0, 0, 0.97);
   z-index: 2000;
   display: flex;
   flex-direction: column;
@@ -147,8 +203,8 @@ body {
 }
 
 .overlay-title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
 }
 
 .overlay-close {
@@ -162,23 +218,28 @@ body {
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 24px;
+}
+
+.overlay-close svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
 }
 
 .element-grid {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 16px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px;
   align-content: start;
 }
 
 .element-btn {
   aspect-ratio: 1;
   background: var(--surface-elevated);
-  border: 2px solid transparent;
+  border: 2px solid #333;
   border-radius: 16px;
   cursor: pointer;
   display: flex;
@@ -186,7 +247,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 8px;
+  padding: 10px 6px;
   transition: all 0.2s;
 }
 
@@ -200,22 +261,29 @@ body {
   transform: scale(0.96);
 }
 
-.element-icon {
-  font-size: 32px;
-  line-height: 1;
+.element-btn svg {
+  width: 36px;
+  height: 36px;
+  fill: white;
 }
 
 .element-label {
-  font-size: 11px;
-  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
   text-align: center;
   line-height: 1.2;
 }
 
 /* Color coding for element types */
-.element-btn[data-type="photo"] { border-color: #9c27b0; }
+.element-btn[data-type="capture"] { border-color: #9c27b0; }
+.element-btn[data-type="capture"] svg { fill: #ce93d8; }
 .element-btn[data-type="hazard"] { border-color: var(--danger); }
+.element-btn[data-type="hazard"] svg { fill: #ef9a9a; }
 .element-btn[data-type="accessibility"] { border-color: var(--info); }
+.element-btn[data-type="accessibility"] svg { fill: #90caf9; }
+.element-btn[data-type="terrain"] { border-color: var(--warning); }
+.element-btn[data-type="terrain"] svg { fill: #ffcc80; }
 
 /* --- BOTTOM SHEET MODAL --- */
 .bottom-sheet-backdrop {
@@ -269,13 +337,20 @@ body {
 }
 
 .sheet-icon {
-  font-size: 28px;
+  width: 32px;
+  height: 32px;
+}
+
+.sheet-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: white;
 }
 
 .sheet-title {
   flex: 1;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
 }
 
 .sheet-close {
@@ -286,7 +361,15 @@ body {
   border: none;
   cursor: pointer;
   color: white;
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sheet-close svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
 }
 
 .sheet-content {
@@ -303,6 +386,7 @@ body {
 .form-label {
   display: block;
   font-size: 12px;
+  font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 8px;
   text-transform: uppercase;
@@ -336,12 +420,15 @@ body {
   color: var(--accent);
 }
 
-.photo-btn-icon {
-  font-size: 24px;
+.photo-btn svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
 }
 
 .photo-btn-text {
   font-size: 12px;
+  font-weight: 600;
 }
 
 /* GPS display */
@@ -355,8 +442,14 @@ body {
 }
 
 .gps-icon {
-  font-size: 20px;
-  color: var(--accent);
+  width: 24px;
+  height: 24px;
+}
+
+.gps-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: var(--accent);
 }
 
 .gps-coords {
@@ -418,12 +511,13 @@ body {
 }
 
 .toggle-chip {
-  padding: 8px 16px;
+  padding: 10px 16px;
   background: var(--surface-elevated);
   border: 1px solid #444;
   border-radius: 20px;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -471,7 +565,7 @@ body {
   border-radius: 12px;
   color: white;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -488,6 +582,12 @@ body {
   transform: scale(0.98);
 }
 
+.submit-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
 /* --- MAP CONTROLS --- */
 .map-controls {
   position: absolute;
@@ -498,6 +598,11 @@ body {
   flex-direction: column;
   gap: 8px;
   z-index: 1050;
+}
+
+[dir="rtl"] .map-controls {
+  right: auto;
+  left: 12px;
 }
 
 .map-btn {
@@ -511,8 +616,13 @@ body {
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 18px;
   backdrop-filter: blur(10px);
+}
+
+.map-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
 }
 
 /* --- RECORDING INDICATOR --- */
@@ -559,18 +669,30 @@ body {
     <div class="map-area">
       <div id="map"></div>
 
+      <!-- Language Toggle -->
+      <div class="lang-toggle">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="he">עב</button>
+      </div>
+
       <!-- Recording indicator -->
       <div class="recording-indicator">
         <div class="rec-dot"></div>
-        <span class="rec-text">Recording</span>
+        <span class="rec-text" data-i18n="recording">Recording</span>
         <span class="rec-time">12:34</span>
       </div>
 
       <!-- Map controls -->
       <div class="map-controls">
-        <button class="map-btn">📍</button>
-        <button class="map-btn">🧭</button>
-        <button class="map-btn">📏</button>
+        <button class="map-btn">
+          <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        </button>
+        <button class="map-btn">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+        </button>
+        <button class="map-btn">
+          <svg viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H3V8h2v4h2V8h2v4h2V8h2v4h2V8h2v4h2V8h2v8z"/></svg>
+        </button>
       </div>
 
       <!-- Main FAB -->
@@ -582,20 +704,20 @@ body {
     <!-- Global Bottom Nav -->
     <nav class="bottom-nav">
       <button class="nav-item active">
-        <span class="nav-icon">🗺️</span>
-        <span>Map</span>
+        <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+        <span data-i18n="nav_map">Map</span>
       </button>
       <button class="nav-item">
-        <span class="nav-icon">📊</span>
-        <span>Stats</span>
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        <span data-i18n="nav_stats">Stats</span>
       </button>
       <button class="nav-item">
-        <span class="nav-icon">📋</span>
-        <span>Elements</span>
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm3-4H6v-2h9v2zm3-4H6V7h12v2z"/></svg>
+        <span data-i18n="nav_elements">Elements</span>
       </button>
       <button class="nav-item">
-        <span class="nav-icon">⚙️</span>
-        <span>Settings</span>
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        <span data-i18n="nav_settings">Settings</span>
       </button>
     </nav>
   </div>
@@ -603,70 +725,13 @@ body {
   <!-- Element Picker Overlay -->
   <div class="element-overlay" id="elementOverlay">
     <div class="overlay-header">
-      <span class="overlay-title">Add Element</span>
-      <button class="overlay-close" id="overlayClose">&times;</button>
+      <span class="overlay-title" data-i18n="add_element">Add Element</span>
+      <button class="overlay-close" id="overlayClose">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
     </div>
-    <div class="element-grid">
-      <button class="element-btn" data-type="photo" data-element="photo">
-        <span class="element-icon">📷</span>
-        <span class="element-label">Photo</span>
-      </button>
-      <button class="element-btn" data-element="note">
-        <span class="element-icon">📝</span>
-        <span class="element-label">Note</span>
-      </button>
-      <button class="element-btn" data-element="voice">
-        <span class="element-icon">🎤</span>
-        <span class="element-label">Voice Note</span>
-      </button>
-      <button class="element-btn" data-element="bench">
-        <span class="element-icon">🪑</span>
-        <span class="element-label">Rest Bench</span>
-      </button>
-      <button class="element-btn" data-element="water">
-        <span class="element-icon">🚰</span>
-        <span class="element-label">Water Fountain</span>
-      </button>
-      <button class="element-btn" data-element="restroom">
-        <span class="element-icon">🚻</span>
-        <span class="element-label">Restroom</span>
-      </button>
-      <button class="element-btn" data-element="viewpoint">
-        <span class="element-icon">🏔️</span>
-        <span class="element-label">Viewpoint</span>
-      </button>
-      <button class="element-btn" data-element="picnic">
-        <span class="element-icon">🧺</span>
-        <span class="element-label">Picnic Area</span>
-      </button>
-      <button class="element-btn" data-element="steep">
-        <span class="element-icon">⛰️</span>
-        <span class="element-label">Steep Section</span>
-      </button>
-      <button class="element-btn" data-type="accessibility" data-element="accessibility">
-        <span class="element-icon">♿</span>
-        <span class="element-label">Accessibility</span>
-      </button>
-      <button class="element-btn" data-type="hazard" data-element="hazard">
-        <span class="element-icon">⚠️</span>
-        <span class="element-label">Hazard</span>
-      </button>
-      <button class="element-btn" data-element="info">
-        <span class="element-icon">ℹ️</span>
-        <span class="element-label">Information</span>
-      </button>
-      <button class="element-btn" data-element="shade">
-        <span class="element-icon">🌳</span>
-        <span class="element-label">Shade</span>
-      </button>
-      <button class="element-btn" data-element="parking">
-        <span class="element-icon">🅿️</span>
-        <span class="element-label">Parking</span>
-      </button>
-      <button class="element-btn" data-element="junction">
-        <span class="element-icon">🚧</span>
-        <span class="element-label">Trail Junction</span>
-      </button>
+    <div class="element-grid" id="elementGrid">
+      <!-- Elements will be populated by JavaScript -->
     </div>
   </div>
 
@@ -677,24 +742,744 @@ body {
   <div class="bottom-sheet" id="bottomSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <span class="sheet-icon" id="sheetIcon">🪑</span>
-      <span class="sheet-title" id="sheetTitle">Rest Bench</span>
-      <button class="sheet-close" id="sheetClose">&times;</button>
+      <span class="sheet-icon" id="sheetIcon"></span>
+      <span class="sheet-title" id="sheetTitle">Element</span>
+      <button class="sheet-close" id="sheetClose">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
     </div>
     <div class="sheet-content" id="sheetContent">
       <!-- Dynamic content based on element type -->
     </div>
     <div class="sheet-footer">
-      <button class="submit-btn">
-        <span>Save Element</span>
-        <span>✓</span>
+      <button class="submit-btn" id="submitBtn">
+        <span data-i18n="save_element">Save Element</span>
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
       </button>
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-// Initialize map
+// ============================================
+// SVG ICONS (white on black style)
+// ============================================
+const icons = {
+  photo: '<svg viewBox="0 0 24 24"><path d="M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0a3.2 3.2 0 1 0 -6.4 0"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>',
+  note: '<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2z"/></svg>',
+  voice: '<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>',
+  bench: '<svg viewBox="0 0 24 24"><path d="M4 18v3h3v-3h10v3h3v-3h1v-2H3v2h1zm15-8h-2V8c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v2H5c-1.1 0-2 .9-2 2v3h18v-3c0-1.1-.9-2-2-2z"/></svg>',
+  water: '<svg viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8zm0 18c-3.35 0-6-2.57-6-6.2 0-2.34 1.95-5.44 6-9.14 4.05 3.7 6 6.79 6 9.14 0 3.63-2.65 6.2-6 6.2z"/><path d="M12 18c1.93 0 3.5-1.57 3.5-3.5 0-.87-.7-2.32-2.07-4.06L12 8.66l-1.43 1.78C9.2 12.18 8.5 13.63 8.5 14.5c0 1.93 1.57 3.5 3.5 3.5z"/></svg>',
+  restroom: '<svg viewBox="0 0 24 24"><path d="M5.5 22v-7.5H4V9c0-1.1.9-2 2-2h3c1.1 0 2 .9 2 2v5.5H9.5V22h-4zM18 22v-6h3l-2.54-7.63C18.18 7.55 17.42 7 16.56 7h-.12c-.86 0-1.63.55-1.9 1.37L12 16h3v6h3zM7.5 6c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm9 0c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2z"/></svg>',
+  viewpoint: '<svg viewBox="0 0 24 24"><path d="M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z"/></svg>',
+  picnic: '<svg viewBox="0 0 24 24"><path d="M2.53 19.65l1.34.56v-9.03l-2.43 5.86c-.41 1.02.08 2.19 1.09 2.61zm19.5-3.7L17.07 3.98c-.31-.75-1.04-1.21-1.81-1.23-.26 0-.53.04-.79.15L7.1 5.95c-.75.31-1.21 1.03-1.23 1.8-.01.27.04.54.15.8l4.96 11.97c.31.76 1.05 1.22 1.83 1.23.26 0 .52-.05.77-.15l7.36-3.05c1.02-.42 1.51-1.59 1.09-2.6zM7.88 8.75c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-2 11v-4.5H4v4.5c0 .83.67 1.5 1.5 1.5S7 20.33 7 19.5v-4.5H5.12v4.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5z"/></svg>',
+  steep: '<svg viewBox="0 0 24 24"><path d="M14 6l-4.22 5.63 1.25 1.67L14 9.33 19 16h-8.46l-4.01-5.37L1 18h22L14 6zM5 16l1.52-2.03L8.04 16H5z"/></svg>',
+  accessibility: '<svg viewBox="0 0 24 24"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/></svg>',
+  hazard: '<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+  info: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+  shade: '<svg viewBox="0 0 24 24"><path d="M22 9.74l-2 1V3H4v8.26l-2-1v1.98l2 1.02v.74l-2 1v1.98l2 1.02V21h16v-4.02l2-1v-1.98l-2-1v-.74l2-1V9.74zM6 19V5h4v14H6zm10 0h-4V5h4v14z"/></svg>',
+  parking: '<svg viewBox="0 0 24 24"><path d="M13 3H6v18h4v-6h3c3.31 0 6-2.69 6-6s-2.69-6-6-6zm.2 8H10V7h3.2c1.1 0 2 .9 2 2s-.9 2-2 2z"/></svg>',
+  junction: '<svg viewBox="0 0 24 24"><path d="M14 7l5 5-5 5V7zm-4 0v10l-5-5 5-5z"/></svg>',
+  steps: '<svg viewBox="0 0 24 24"><path d="M21 5H3v14h18V5zM5 7h4v2H5V7zm0 4h4v2H5v-2zm0 4h4v2H5v-2zm14 2h-4v-2h4v2zm0-4h-4v-2h4v2zm0-4h-4V7h4v2z"/></svg>',
+  gate: '<svg viewBox="0 0 24 24"><path d="M21 10H3V8h18v2zm0 4H3v-2h18v2zM5 22H3V2h2v20zm16 0h-2V2h2v20z"/></svg>',
+  bridge: '<svg viewBox="0 0 24 24"><path d="M7 21H3v-8c0-2.21 1.79-4 4-4h3v-3l4 4-4 4v-3H7c-1.1 0-2 .9-2 2v6h2v2zm10 0h4v-8c0-2.21-1.79-4-4-4h-3v-3l-4 4 4 4v-3h3c1.1 0 2 .9 2 2v6h-2v2z"/></svg>',
+  crossing: '<svg viewBox="0 0 24 24"><path d="M6 6h12v2H6V6zm0 4h12v2H6v-2zm0 4h12v2H6v-2zm0 4h12v2H6v-2z"/><path d="M4 4v16h2V4H4zm14 0v16h2V4h-2z"/></svg>',
+  camera: '<svg viewBox="0 0 24 24"><path d="M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0a3.2 3.2 0 1 0 -6.4 0"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z"/></svg>',
+  gallery: '<svg viewBox="0 0 24 24"><path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"/></svg>',
+  mic: '<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>',
+  location: '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>',
+  check: '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
+};
+
+// ============================================
+// TRANSLATIONS
+// ============================================
+const translations = {
+  en: {
+    // Navigation
+    nav_map: 'Map',
+    nav_stats: 'Stats',
+    nav_elements: 'Elements',
+    nav_settings: 'Settings',
+    recording: 'Recording',
+    add_element: 'Add Element',
+    save_element: 'Save Element',
+
+    // Form labels
+    location: 'Location',
+    notes_optional: 'Notes (Optional)',
+    notes_placeholder: 'Add any additional details...',
+    photo_optional: 'Photo (Optional)',
+    photo_recommended: 'Photo (Recommended)',
+    capture_photo: 'Capture Photo',
+    take_photo: 'Take Photo',
+    gallery: 'Gallery',
+    panorama: 'Panorama',
+    tap_record: 'Tap to Record',
+
+    // Elements
+    el_photo: 'Photo',
+    el_note: 'Note',
+    el_voice: 'Voice Note',
+    el_bench: 'Rest Bench',
+    el_water: 'Water',
+    el_restroom: 'Restroom',
+    el_viewpoint: 'Viewpoint',
+    el_picnic: 'Picnic Area',
+    el_steep: 'Steep Section',
+    el_accessibility: 'Accessibility',
+    el_hazard: 'Hazard',
+    el_info: 'Information',
+    el_shade: 'Shade',
+    el_parking: 'Parking',
+    el_junction: 'Junction',
+    el_steps: 'Steps/Stairs',
+    el_gate: 'Gate/Barrier',
+    el_bridge: 'Bridge',
+    el_crossing: 'Road Crossing',
+
+    // Form fields - Note
+    note_type: 'Note Type',
+    observation: 'Observation',
+    warning: 'Warning',
+    tip: 'Tip',
+
+    // Form fields - Voice
+    recording_label: 'Recording',
+
+    // Form fields - Bench
+    seating_capacity: 'Seating Capacity',
+    features: 'Features',
+    backrest: 'Backrest',
+    armrests: 'Armrests',
+    shaded: 'Shaded',
+    wheelchair_space: 'Wheelchair Space',
+    condition: 'Condition',
+    good: 'Good',
+    fair: 'Fair',
+    poor: 'Poor',
+
+    // Form fields - Water
+    water_status: 'Water Status',
+    working: 'Working',
+    not_working: 'Not Working',
+    seasonal: 'Seasonal',
+    wheelchair_height: 'Wheelchair Height',
+    dog_bowl: 'Dog Bowl',
+    bottle_fill: 'Bottle Fill',
+
+    // Form fields - Restroom
+    type: 'Type',
+    permanent: 'Permanent',
+    portable: 'Portable',
+    accessible: 'Accessible',
+    not_accessible: 'Not Accessible',
+    unknown: 'Unknown',
+    facilities: 'Facilities',
+    grab_bars: 'Grab Bars',
+    changing_table: 'Changing Table',
+    sink: 'Sink',
+
+    // Form fields - Viewpoint
+    capture_view: 'Capture View',
+    view_direction: 'View Direction',
+    north: 'North',
+    east: 'East',
+    south: 'South',
+    west: 'West',
+    features_visible: 'Features Visible',
+    features_placeholder: 'e.g., Mountain peaks, valley, lake...',
+
+    // Form fields - Picnic
+    tables: 'Tables',
+    amenities: 'Amenities',
+    bbq_grill: 'BBQ/Grill',
+    trash_bins: 'Trash Bins',
+    wheelchair_access: 'Wheelchair Access',
+
+    // Form fields - Steep
+    direction: 'Direction',
+    uphill: 'Uphill',
+    downhill: 'Downhill',
+    both: 'Both',
+    difficulty: 'Difficulty',
+    moderate: 'Moderate',
+    steep: 'Steep',
+    very_steep: 'Very Steep',
+    estimated_length: 'Estimated Length',
+
+    // Form fields - Accessibility
+    issue_type: 'Issue Type',
+    surface: 'Surface',
+    obstacle: 'Obstacle',
+    width: 'Width',
+    slope: 'Slope',
+    surface_type: 'Surface Type',
+    paved: 'Paved',
+    gravel: 'Gravel',
+    dirt: 'Dirt',
+    uneven: 'Uneven',
+    path_width: 'Path Width',
+    wide: 'Wide (2m+)',
+    standard: 'Standard (1-2m)',
+    narrow: 'Narrow (<1m)',
+
+    // Form fields - Hazard
+    hazard_type: 'Hazard Type',
+    fallen_tree: 'Fallen Tree',
+    erosion: 'Erosion',
+    flooding: 'Flooding',
+    wildlife: 'Wildlife',
+    severity: 'Severity',
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    trail_closed: 'Trail Closed',
+
+    // Form fields - Info
+    trail_sign: 'Trail Sign',
+    info_board: 'Info Board',
+    mile_marker: 'Mile Marker',
+    other: 'Other',
+
+    // Form fields - Shade
+    shade_coverage: 'Shade Coverage',
+    partial: 'Partial',
+    full: 'Full',
+    seating_available: 'Seating Available',
+    yes: 'Yes',
+    no: 'No',
+
+    // Form fields - Parking
+    parking_type: 'Parking Type',
+    lot: 'Lot',
+    street: 'Street',
+    trailhead: 'Trailhead',
+    accessible_spots: 'Accessible Spots',
+    paved_surface: 'Paved Surface',
+    dropoff_zone: 'Drop-off Zone',
+    fee: 'Fee',
+    free: 'Free',
+    paid: 'Paid',
+    permit_required: 'Permit Required',
+
+    // Form fields - Junction
+    num_paths: 'Number of Paths',
+    way_2: '2-way',
+    way_3: '3-way',
+    way_4plus: '4+ way',
+    signage: 'Signage',
+    clear_signs: 'Clear Signs',
+    partial_signs: 'Partial Signs',
+    no_signs: 'No Signs',
+    trail_names: 'Trail Names',
+    trail_names_placeholder: 'e.g., Main Trail, Loop Trail',
+
+    // Form fields - Steps
+    step_count: 'Step Count',
+    count_placeholder: 'Number of steps',
+    handrail: 'Handrail',
+    handrail_both: 'Both Sides',
+    handrail_one: 'One Side',
+    handrail_none: 'None',
+    alt_ramp: 'Alternative Ramp',
+    available: 'Available',
+    not_available: 'Not Available',
+
+    // Form fields - Gate
+    gate_type: 'Gate Type',
+    gate: 'Gate',
+    barrier: 'Barrier',
+    bollards: 'Bollards',
+    turnstile: 'Turnstile',
+    wheelchair_passable: 'Wheelchair Passable',
+    locked: 'Locked Status',
+    unlocked: 'Unlocked',
+    locked_status: 'Locked',
+    varies: 'Varies',
+
+    // Form fields - Bridge
+    bridge_width: 'Bridge Width',
+    wide_bridge: 'Wide (2m+)',
+    standard_bridge: 'Standard (1-2m)',
+    narrow_bridge: 'Narrow (<1m)',
+    railings: 'Railings',
+    railings_both: 'Both Sides',
+    railings_one: 'One Side',
+    railings_none: 'None',
+    bridge_surface: 'Surface',
+    wood: 'Wood',
+    metal: 'Metal',
+    concrete: 'Concrete',
+
+    // Form fields - Crossing
+    crossing_type: 'Crossing Type',
+    crosswalk: 'Crosswalk',
+    signal: 'Traffic Signal',
+    unmarked: 'Unmarked',
+    underpass: 'Underpass',
+    traffic_level: 'Traffic Level',
+    light: 'Light',
+    heavy: 'Heavy',
+    curb_cuts: 'Curb Cuts',
+    curb_both: 'Both Sides',
+    curb_one: 'One Side',
+    curb_none: 'None'
+  },
+  he: {
+    // Navigation
+    nav_map: 'מפה',
+    nav_stats: 'נתונים',
+    nav_elements: 'אלמנטים',
+    nav_settings: 'הגדרות',
+    recording: 'מקליט',
+    add_element: 'הוסף אלמנט',
+    save_element: 'שמור אלמנט',
+
+    // Form labels
+    location: 'מיקום',
+    notes_optional: 'הערות (אופציונלי)',
+    notes_placeholder: 'הוסף פרטים נוספים...',
+    photo_optional: 'תמונה (אופציונלי)',
+    photo_recommended: 'תמונה (מומלץ)',
+    capture_photo: 'צלם תמונה',
+    take_photo: 'צלם',
+    gallery: 'גלריה',
+    panorama: 'פנורמה',
+    tap_record: 'לחץ להקלטה',
+
+    // Elements
+    el_photo: 'תמונה',
+    el_note: 'הערה',
+    el_voice: 'הערה קולית',
+    el_bench: 'ספסל מנוחה',
+    el_water: 'מים',
+    el_restroom: 'שירותים',
+    el_viewpoint: 'תצפית',
+    el_picnic: 'אזור פיקניק',
+    el_steep: 'מקטע תלול',
+    el_accessibility: 'נגישות',
+    el_hazard: 'סכנה',
+    el_info: 'מידע',
+    el_shade: 'צל',
+    el_parking: 'חניה',
+    el_junction: 'צומת שבילים',
+    el_steps: 'מדרגות',
+    el_gate: 'שער/מחסום',
+    el_bridge: 'גשר',
+    el_crossing: 'מעבר כביש',
+
+    // Form fields - Note
+    note_type: 'סוג הערה',
+    observation: 'תצפית',
+    warning: 'אזהרה',
+    tip: 'טיפ',
+
+    // Form fields - Voice
+    recording_label: 'הקלטה',
+
+    // Form fields - Bench
+    seating_capacity: 'מספר מקומות',
+    features: 'תכונות',
+    backrest: 'משענת גב',
+    armrests: 'משענות יד',
+    shaded: 'מוצל',
+    wheelchair_space: 'מקום לכיסא גלגלים',
+    condition: 'מצב',
+    good: 'טוב',
+    fair: 'סביר',
+    poor: 'גרוע',
+
+    // Form fields - Water
+    water_status: 'מצב מים',
+    working: 'פעיל',
+    not_working: 'לא פעיל',
+    seasonal: 'עונתי',
+    wheelchair_height: 'גובה כיסא גלגלים',
+    dog_bowl: 'קערת כלבים',
+    bottle_fill: 'מילוי בקבוק',
+
+    // Form fields - Restroom
+    type: 'סוג',
+    permanent: 'קבוע',
+    portable: 'נייד',
+    accessible: 'נגיש',
+    not_accessible: 'לא נגיש',
+    unknown: 'לא ידוע',
+    facilities: 'מתקנים',
+    grab_bars: 'מוטות אחיזה',
+    changing_table: 'שולחן החתלה',
+    sink: 'כיור',
+
+    // Form fields - Viewpoint
+    capture_view: 'צלם נוף',
+    view_direction: 'כיוון מבט',
+    north: 'צפון',
+    east: 'מזרח',
+    south: 'דרום',
+    west: 'מערב',
+    features_visible: 'אובייקטים נראים',
+    features_placeholder: 'לדוגמה: פסגות הרים, עמק, אגם...',
+
+    // Form fields - Picnic
+    tables: 'שולחנות',
+    amenities: 'מתקנים',
+    bbq_grill: 'גריל/מנגל',
+    trash_bins: 'פחי אשפה',
+    wheelchair_access: 'גישה לכיסא גלגלים',
+
+    // Form fields - Steep
+    direction: 'כיוון',
+    uphill: 'עלייה',
+    downhill: 'ירידה',
+    both: 'שניהם',
+    difficulty: 'רמת קושי',
+    moderate: 'בינוני',
+    steep: 'תלול',
+    very_steep: 'תלול מאוד',
+    estimated_length: 'אורך משוער',
+
+    // Form fields - Accessibility
+    issue_type: 'סוג בעיה',
+    surface: 'משטח',
+    obstacle: 'מכשול',
+    width: 'רוחב',
+    slope: 'שיפוע',
+    surface_type: 'סוג משטח',
+    paved: 'סלול',
+    gravel: 'חצץ',
+    dirt: 'עפר',
+    uneven: 'לא ישר',
+    path_width: 'רוחב שביל',
+    wide: 'רחב (2מ+)',
+    standard: 'סטנדרטי (1-2מ)',
+    narrow: 'צר (<1מ)',
+
+    // Form fields - Hazard
+    hazard_type: 'סוג סכנה',
+    fallen_tree: 'עץ קרוס',
+    erosion: 'סחף',
+    flooding: 'הצפה',
+    wildlife: 'חיות בר',
+    severity: 'חומרה',
+    low: 'נמוך',
+    medium: 'בינוני',
+    high: 'גבוה',
+    trail_closed: 'שביל סגור',
+
+    // Form fields - Info
+    trail_sign: 'שלט שביל',
+    info_board: 'לוח מידע',
+    mile_marker: 'סימון מרחק',
+    other: 'אחר',
+
+    // Form fields - Shade
+    shade_coverage: 'כיסוי צל',
+    partial: 'חלקי',
+    full: 'מלא',
+    seating_available: 'ישיבה זמינה',
+    yes: 'כן',
+    no: 'לא',
+
+    // Form fields - Parking
+    parking_type: 'סוג חניה',
+    lot: 'מגרש',
+    street: 'רחוב',
+    trailhead: 'תחילת שביל',
+    accessible_spots: 'מקומות נגישים',
+    paved_surface: 'משטח סלול',
+    dropoff_zone: 'אזור הורדה',
+    fee: 'תשלום',
+    free: 'חינם',
+    paid: 'בתשלום',
+    permit_required: 'נדרש היתר',
+
+    // Form fields - Junction
+    num_paths: 'מספר שבילים',
+    way_2: '2 כיוונים',
+    way_3: '3 כיוונים',
+    way_4plus: '4+ כיוונים',
+    signage: 'שילוט',
+    clear_signs: 'שילוט ברור',
+    partial_signs: 'שילוט חלקי',
+    no_signs: 'ללא שילוט',
+    trail_names: 'שמות שבילים',
+    trail_names_placeholder: 'לדוגמה: שביל ראשי, מסלול טבעת',
+
+    // Form fields - Steps
+    step_count: 'מספר מדרגות',
+    count_placeholder: 'מספר מדרגות',
+    handrail: 'מעקה',
+    handrail_both: 'משני הצדדים',
+    handrail_one: 'צד אחד',
+    handrail_none: 'ללא',
+    alt_ramp: 'רמפה חלופית',
+    available: 'זמין',
+    not_available: 'לא זמין',
+
+    // Form fields - Gate
+    gate_type: 'סוג שער',
+    gate: 'שער',
+    barrier: 'מחסום',
+    bollards: 'עמודונים',
+    turnstile: 'קרוסלה',
+    wheelchair_passable: 'מעבר לכיסא גלגלים',
+    locked: 'מצב נעילה',
+    unlocked: 'פתוח',
+    locked_status: 'נעול',
+    varies: 'משתנה',
+
+    // Form fields - Bridge
+    bridge_width: 'רוחב גשר',
+    wide_bridge: 'רחב (2מ+)',
+    standard_bridge: 'סטנדרטי (1-2מ)',
+    narrow_bridge: 'צר (<1מ)',
+    railings: 'מעקות',
+    railings_both: 'משני הצדדים',
+    railings_one: 'צד אחד',
+    railings_none: 'ללא',
+    bridge_surface: 'משטח',
+    wood: 'עץ',
+    metal: 'מתכת',
+    concrete: 'בטון',
+
+    // Form fields - Crossing
+    crossing_type: 'סוג מעבר',
+    crosswalk: 'מעבר חציה',
+    signal: 'רמזור',
+    unmarked: 'לא מסומן',
+    underpass: 'מעבר תחתון',
+    traffic_level: 'עומס תנועה',
+    light: 'קל',
+    heavy: 'כבד',
+    curb_cuts: 'הורדות מדרכה',
+    curb_both: 'משני הצדדים',
+    curb_one: 'צד אחד',
+    curb_none: 'ללא'
+  }
+};
+
+// ============================================
+// ELEMENT DEFINITIONS (19 total)
+// ============================================
+const elements = [
+  // Capture (3)
+  { id: 'photo', icon: 'photo', type: 'capture', labelKey: 'el_photo' },
+  { id: 'note', icon: 'note', type: 'capture', labelKey: 'el_note' },
+  { id: 'voice', icon: 'voice', type: 'capture', labelKey: 'el_voice' },
+  // Rest & Comfort (4)
+  { id: 'bench', icon: 'bench', labelKey: 'el_bench' },
+  { id: 'picnic', icon: 'picnic', labelKey: 'el_picnic' },
+  { id: 'shade', icon: 'shade', labelKey: 'el_shade' },
+  { id: 'viewpoint', icon: 'viewpoint', labelKey: 'el_viewpoint' },
+  // Water & Facilities (3)
+  { id: 'water', icon: 'water', labelKey: 'el_water' },
+  { id: 'restroom', icon: 'restroom', labelKey: 'el_restroom' },
+  { id: 'parking', icon: 'parking', labelKey: 'el_parking' },
+  // Terrain & Accessibility (6)
+  { id: 'steep', icon: 'steep', type: 'terrain', labelKey: 'el_steep' },
+  { id: 'steps', icon: 'steps', type: 'terrain', labelKey: 'el_steps' },
+  { id: 'gate', icon: 'gate', type: 'terrain', labelKey: 'el_gate' },
+  { id: 'bridge', icon: 'bridge', type: 'terrain', labelKey: 'el_bridge' },
+  { id: 'crossing', icon: 'crossing', type: 'terrain', labelKey: 'el_crossing' },
+  { id: 'accessibility', icon: 'accessibility', type: 'accessibility', labelKey: 'el_accessibility' },
+  // Safety (3)
+  { id: 'hazard', icon: 'hazard', type: 'hazard', labelKey: 'el_hazard' },
+  { id: 'info', icon: 'info', labelKey: 'el_info' },
+  { id: 'junction', icon: 'junction', labelKey: 'el_junction' }
+];
+
+// Current language
+let currentLang = 'en';
+
+// Get translation
+function t(key) {
+  return translations[currentLang][key] || key;
+}
+
+// ============================================
+// FORM BUILDERS
+// ============================================
+function buildPhotoSection(isRecommended = false) {
+  return `
+    <div class="form-section">
+      <label class="form-label" data-i18n="${isRecommended ? 'photo_recommended' : 'photo_optional'}">${t(isRecommended ? 'photo_recommended' : 'photo_optional')}</label>
+      <div class="photo-capture">
+        <button class="photo-btn"${isRecommended ? ' style="border-color: var(--danger);"' : ''}>
+          ${icons.camera}
+          <span class="photo-btn-text" data-i18n="take_photo">${t('take_photo')}</span>
+        </button>
+        <button class="photo-btn">
+          ${icons.gallery}
+          <span class="photo-btn-text" data-i18n="gallery">${t('gallery')}</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function buildGpsSection() {
+  return `
+    <div class="form-section">
+      <label class="form-label" data-i18n="location">${t('location')}</label>
+      <div class="gps-display">
+        <span class="gps-icon">${icons.location}</span>
+        <div class="gps-coords">
+          <div class="gps-lat">32.085312° N</div>
+          <div class="gps-lng">34.781823° E</div>
+        </div>
+        <span class="gps-accuracy">±3m</span>
+      </div>
+    </div>
+  `;
+}
+
+function buildNotesSection() {
+  return `
+    <div class="form-section">
+      <label class="form-label" data-i18n="notes_optional">${t('notes_optional')}</label>
+      <textarea class="notes-textarea" placeholder="${t('notes_placeholder')}" data-i18n-placeholder="notes_placeholder"></textarea>
+    </div>
+  `;
+}
+
+function buildChips(labelKey, options, multi = false) {
+  const chips = options.map((opt, i) =>
+    `<button class="toggle-chip${i === 0 ? ' selected' : ''}" data-i18n="${opt.key}">${t(opt.key)}</button>`
+  ).join('');
+  return `
+    <div class="form-section">
+      <label class="form-label" data-i18n="${labelKey}">${t(labelKey)}</label>
+      <div class="toggle-chips${multi ? ' multi' : ''}">${chips}</div>
+    </div>
+  `;
+}
+
+// ============================================
+// ELEMENT FORMS
+// ============================================
+const elementForms = {
+  photo: () => `
+    <div class="form-section">
+      <label class="form-label" data-i18n="capture_photo">${t('capture_photo')}</label>
+      <div class="photo-capture">
+        <button class="photo-btn">${icons.camera}<span class="photo-btn-text" data-i18n="take_photo">${t('take_photo')}</span></button>
+        <button class="photo-btn">${icons.gallery}<span class="photo-btn-text" data-i18n="gallery">${t('gallery')}</span></button>
+      </div>
+    </div>
+  `,
+  note: () => buildChips('note_type', [{key:'observation'},{key:'warning'},{key:'tip'}]),
+  voice: () => `
+    <div class="form-section">
+      <label class="form-label" data-i18n="recording_label">${t('recording_label')}</label>
+      <button class="photo-btn" style="height: 60px; border-style: solid; border-color: var(--danger);">
+        ${icons.mic}
+        <span class="photo-btn-text" data-i18n="tap_record">${t('tap_record')}</span>
+      </button>
+    </div>
+  `,
+  bench: () =>
+    buildPhotoSection() +
+    buildChips('seating_capacity', [{key:'1-2'},{key:'3-4'},{key:'5+'}].map(x=>({key:x.key,label:x.key}))) +
+    buildChips('features', [{key:'backrest'},{key:'armrests'},{key:'shaded'},{key:'wheelchair_space'}], true) +
+    buildChips('condition', [{key:'good'},{key:'fair'},{key:'poor'}]),
+  water: () =>
+    buildPhotoSection() +
+    buildChips('water_status', [{key:'working'},{key:'not_working'},{key:'seasonal'}]) +
+    buildChips('accessibility', [{key:'wheelchair_height'},{key:'dog_bowl'},{key:'bottle_fill'}], true),
+  restroom: () =>
+    buildPhotoSection() +
+    buildChips('type', [{key:'permanent'},{key:'portable'}]) +
+    buildChips('accessibility', [{key:'accessible'},{key:'not_accessible'},{key:'unknown'}]) +
+    buildChips('facilities', [{key:'grab_bars'},{key:'changing_table'},{key:'sink'}], true),
+  viewpoint: () => `
+    <div class="form-section">
+      <label class="form-label" data-i18n="capture_view">${t('capture_view')}</label>
+      <div class="photo-capture">
+        <button class="photo-btn">${icons.camera}<span class="photo-btn-text" data-i18n="take_photo">${t('take_photo')}</span></button>
+        <button class="photo-btn">${icons.viewpoint}<span class="photo-btn-text" data-i18n="panorama">${t('panorama')}</span></button>
+      </div>
+    </div>
+    ${buildChips('view_direction', [{key:'north'},{key:'east'},{key:'south'},{key:'west'}], true)}
+    <div class="form-section">
+      <label class="form-label" data-i18n="features_visible">${t('features_visible')}</label>
+      <input type="text" class="field-input" placeholder="${t('features_placeholder')}" data-i18n-placeholder="features_placeholder">
+    </div>
+  `,
+  picnic: () =>
+    buildPhotoSection() +
+    buildChips('tables', [{key:'1-2'},{key:'3-5'},{key:'6+'}].map(x=>({key:x.key}))) +
+    buildChips('amenities', [{key:'shaded'},{key:'bbq_grill'},{key:'trash_bins'},{key:'wheelchair_access'}], true),
+  steep: () =>
+    buildPhotoSection() +
+    buildChips('direction', [{key:'uphill'},{key:'downhill'},{key:'both'}]) +
+    buildChips('difficulty', [{key:'moderate'},{key:'steep'},{key:'very_steep'}]) +
+    `<div class="form-section">
+      <label class="form-label" data-i18n="estimated_length">${t('estimated_length')}</label>
+      <div class="field-row">
+        <input type="number" class="field-input" placeholder="Distance" style="flex:2">
+        <select class="field-select" style="flex:1"><option>m</option><option>ft</option></select>
+      </div>
+    </div>`,
+  accessibility: () =>
+    buildPhotoSection() +
+    buildChips('issue_type', [{key:'surface'},{key:'obstacle'},{key:'width'},{key:'slope'}], true) +
+    buildChips('surface_type', [{key:'paved'},{key:'gravel'},{key:'dirt'},{key:'uneven'}]) +
+    buildChips('path_width', [{key:'wide'},{key:'standard'},{key:'narrow'}]),
+  hazard: () =>
+    buildPhotoSection(true) +
+    buildChips('hazard_type', [{key:'fallen_tree'},{key:'erosion'},{key:'flooding'},{key:'wildlife'}]) +
+    buildChips('severity', [{key:'low'},{key:'medium'},{key:'high'},{key:'trail_closed'}]),
+  info: () =>
+    buildPhotoSection() +
+    buildChips('type', [{key:'trail_sign'},{key:'info_board'},{key:'mile_marker'},{key:'other'}]),
+  shade: () =>
+    buildPhotoSection() +
+    buildChips('shade_coverage', [{key:'partial'},{key:'full'}]) +
+    buildChips('seating_available', [{key:'yes'},{key:'no'}]),
+  parking: () =>
+    buildPhotoSection() +
+    buildChips('parking_type', [{key:'lot'},{key:'street'},{key:'trailhead'}]) +
+    buildChips('accessibility', [{key:'accessible_spots'},{key:'paved_surface'},{key:'dropoff_zone'}], true) +
+    buildChips('fee', [{key:'free'},{key:'paid'},{key:'permit_required'}]),
+  junction: () =>
+    buildPhotoSection() +
+    buildChips('num_paths', [{key:'way_2'},{key:'way_3'},{key:'way_4plus'}]) +
+    buildChips('signage', [{key:'clear_signs'},{key:'partial_signs'},{key:'no_signs'}]) +
+    `<div class="form-section">
+      <label class="form-label" data-i18n="trail_names">${t('trail_names')}</label>
+      <input type="text" class="field-input" placeholder="${t('trail_names_placeholder')}" data-i18n-placeholder="trail_names_placeholder">
+    </div>`,
+  steps: () =>
+    buildPhotoSection() +
+    `<div class="form-section">
+      <label class="form-label" data-i18n="step_count">${t('step_count')}</label>
+      <input type="number" class="field-input" placeholder="${t('count_placeholder')}" data-i18n-placeholder="count_placeholder">
+    </div>` +
+    buildChips('handrail', [{key:'handrail_both'},{key:'handrail_one'},{key:'handrail_none'}]) +
+    buildChips('alt_ramp', [{key:'available'},{key:'not_available'}]) +
+    buildChips('condition', [{key:'good'},{key:'fair'},{key:'poor'}]),
+  gate: () =>
+    buildPhotoSection() +
+    buildChips('gate_type', [{key:'gate'},{key:'barrier'},{key:'bollards'},{key:'turnstile'}]) +
+    buildChips('wheelchair_passable', [{key:'yes'},{key:'no'},{key:'unknown'}]) +
+    buildChips('locked', [{key:'unlocked'},{key:'locked_status'},{key:'varies'}]),
+  bridge: () =>
+    buildPhotoSection() +
+    buildChips('bridge_width', [{key:'wide_bridge'},{key:'standard_bridge'},{key:'narrow_bridge'}]) +
+    buildChips('railings', [{key:'railings_both'},{key:'railings_one'},{key:'railings_none'}]) +
+    buildChips('bridge_surface', [{key:'wood'},{key:'metal'},{key:'concrete'},{key:'other'}]) +
+    buildChips('condition', [{key:'good'},{key:'fair'},{key:'poor'}]),
+  crossing: () =>
+    buildPhotoSection() +
+    buildChips('crossing_type', [{key:'crosswalk'},{key:'signal'},{key:'unmarked'},{key:'underpass'}]) +
+    buildChips('traffic_level', [{key:'light'},{key:'medium'},{key:'heavy'}]) +
+    buildChips('curb_cuts', [{key:'curb_both'},{key:'curb_one'},{key:'curb_none'}])
+};
+
+// ============================================
+// INITIALIZE MAP
+// ============================================
 const map = L.map('map', {
   zoomControl: false,
   attributionControl: false
@@ -702,494 +1487,27 @@ const map = L.map('map', {
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-// Element definitions with their form fields
-const elementForms = {
-  photo: {
-    icon: '📷',
-    title: 'Photo',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Capture Photo</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-          <button class="photo-btn">
-            <span class="photo-btn-icon">🖼️</span>
-            <span class="photo-btn-text">Gallery</span>
-          </button>
-        </div>
-      </div>
-    `
-  },
-  note: {
-    icon: '📝',
-    title: 'Note',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Note Type</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Observation</button>
-          <button class="toggle-chip">Warning</button>
-          <button class="toggle-chip">Tip</button>
-        </div>
-      </div>
-    `
-  },
-  voice: {
-    icon: '🎤',
-    title: 'Voice Note',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Recording</label>
-        <button class="photo-btn" style="height: 60px; border-style: solid; border-color: var(--danger);">
-          <span class="photo-btn-icon">🎙️</span>
-          <span class="photo-btn-text">Tap to Record</span>
-        </button>
-      </div>
-    `
-  },
-  bench: {
-    icon: '🪑',
-    title: 'Rest Bench',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Optional)</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Seating Capacity</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">1-2</button>
-          <button class="toggle-chip">3-4</button>
-          <button class="toggle-chip">5+</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Features</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">Backrest</button>
-          <button class="toggle-chip">Armrests</button>
-          <button class="toggle-chip">Shaded</button>
-          <button class="toggle-chip">Wheelchair Space</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Condition</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Good</button>
-          <button class="toggle-chip">Fair</button>
-          <button class="toggle-chip">Poor</button>
-        </div>
-      </div>
-    `
-  },
-  water: {
-    icon: '🚰',
-    title: 'Water Fountain',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Optional)</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Water Status</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Working</button>
-          <button class="toggle-chip">Not Working</button>
-          <button class="toggle-chip">Seasonal</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Accessibility</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">Wheelchair Height</button>
-          <button class="toggle-chip">Dog Bowl</button>
-          <button class="toggle-chip">Bottle Fill</button>
-        </div>
-      </div>
-    `
-  },
-  restroom: {
-    icon: '🚻',
-    title: 'Restroom',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Optional)</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Type</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Permanent</button>
-          <button class="toggle-chip">Portable</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Accessibility</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Accessible</button>
-          <button class="toggle-chip">Not Accessible</button>
-          <button class="toggle-chip">Unknown</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Facilities</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">Grab Bars</button>
-          <button class="toggle-chip">Changing Table</button>
-          <button class="toggle-chip">Sink</button>
-        </div>
-      </div>
-    `
-  },
-  viewpoint: {
-    icon: '🏔️',
-    title: 'Viewpoint',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Capture View</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-          <button class="photo-btn">
-            <span class="photo-btn-icon">🎥</span>
-            <span class="photo-btn-text">Panorama</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">View Direction</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">North</button>
-          <button class="toggle-chip">East</button>
-          <button class="toggle-chip">South</button>
-          <button class="toggle-chip">West</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Features Visible</label>
-        <input type="text" class="field-input" placeholder="e.g., Mountain peaks, valley, lake...">
-      </div>
-    `
-  },
-  picnic: {
-    icon: '🧺',
-    title: 'Picnic Area',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Optional)</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Tables</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">1-2</button>
-          <button class="toggle-chip">3-5</button>
-          <button class="toggle-chip">6+</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Amenities</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">Shade</button>
-          <button class="toggle-chip">BBQ/Grill</button>
-          <button class="toggle-chip">Trash Bins</button>
-          <button class="toggle-chip">Wheelchair Access</button>
-        </div>
-      </div>
-    `
-  },
-  steep: {
-    icon: '⛰️',
-    title: 'Steep Section',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Optional)</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Direction</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Uphill</button>
-          <button class="toggle-chip">Downhill</button>
-          <button class="toggle-chip">Both</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Difficulty</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">Moderate</button>
-          <button class="toggle-chip selected">Steep</button>
-          <button class="toggle-chip">Very Steep</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Estimated Length</label>
-        <div class="field-row">
-          <input type="number" class="field-input" placeholder="Distance" style="flex:2">
-          <select class="field-select" style="flex:1">
-            <option>m</option>
-            <option>ft</option>
-          </select>
-        </div>
-      </div>
-    `
-  },
-  accessibility: {
-    icon: '♿',
-    title: 'Accessibility Note',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Optional)</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Issue Type</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Surface</button>
-          <button class="toggle-chip">Obstacle</button>
-          <button class="toggle-chip">Width</button>
-          <button class="toggle-chip">Slope</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Surface Type</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">Paved</button>
-          <button class="toggle-chip selected">Gravel</button>
-          <button class="toggle-chip">Dirt</button>
-          <button class="toggle-chip">Uneven</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Path Width</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">Wide (2m+)</button>
-          <button class="toggle-chip selected">Standard (1-2m)</button>
-          <button class="toggle-chip">Narrow (&lt;1m)</button>
-        </div>
-      </div>
-    `
-  },
-  hazard: {
-    icon: '⚠️',
-    title: 'Hazard',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Recommended)</label>
-        <div class="photo-capture">
-          <button class="photo-btn" style="border-color: var(--danger);">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Hazard Type</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Fallen Tree</button>
-          <button class="toggle-chip">Erosion</button>
-          <button class="toggle-chip">Flooding</button>
-          <button class="toggle-chip">Wildlife</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Severity</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">Low</button>
-          <button class="toggle-chip selected">Medium</button>
-          <button class="toggle-chip">High</button>
-          <button class="toggle-chip">Trail Closed</button>
-        </div>
-      </div>
-    `
-  },
-  info: {
-    icon: 'ℹ️',
-    title: 'Information',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Optional)</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Type</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Trail Sign</button>
-          <button class="toggle-chip">Info Board</button>
-          <button class="toggle-chip">Mile Marker</button>
-          <button class="toggle-chip">Other</button>
-        </div>
-      </div>
-    `
-  },
-  shade: {
-    icon: '🌳',
-    title: 'Shaded Area',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Optional)</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Shade Coverage</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">Partial</button>
-          <button class="toggle-chip selected">Full</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Seating Available</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Yes</button>
-          <button class="toggle-chip">No</button>
-        </div>
-      </div>
-    `
-  },
-  parking: {
-    icon: '🅿️',
-    title: 'Parking',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Optional)</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Parking Type</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Lot</button>
-          <button class="toggle-chip">Street</button>
-          <button class="toggle-chip">Trailhead</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Accessibility</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Accessible Spots</button>
-          <button class="toggle-chip">Paved Surface</button>
-          <button class="toggle-chip">Drop-off Zone</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Fee</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Free</button>
-          <button class="toggle-chip">Paid</button>
-          <button class="toggle-chip">Permit Required</button>
-        </div>
-      </div>
-    `
-  },
-  junction: {
-    icon: '🚧',
-    title: 'Trail Junction',
-    fields: `
-      <div class="form-section">
-        <label class="form-label">Photo (Optional)</label>
-        <div class="photo-capture">
-          <button class="photo-btn">
-            <span class="photo-btn-icon">📸</span>
-            <span class="photo-btn-text">Take Photo</span>
-          </button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Number of Paths</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip">2-way</button>
-          <button class="toggle-chip selected">3-way</button>
-          <button class="toggle-chip">4+ way</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Signage</label>
-        <div class="toggle-chips">
-          <button class="toggle-chip selected">Clear Signs</button>
-          <button class="toggle-chip">Partial Signs</button>
-          <button class="toggle-chip">No Signs</button>
-        </div>
-      </div>
-      <div class="form-section">
-        <label class="form-label">Trail Names</label>
-        <input type="text" class="field-input" placeholder="e.g., Main Trail, Loop Trail">
-      </div>
-    `
-  }
-};
+// ============================================
+// BUILD ELEMENT GRID
+// ============================================
+function buildElementGrid() {
+  const grid = document.getElementById('elementGrid');
+  grid.innerHTML = elements.map(el => `
+    <button class="element-btn" data-element="${el.id}"${el.type ? ` data-type="${el.type}"` : ''}>
+      ${icons[el.icon]}
+      <span class="element-label" data-i18n="${el.labelKey}">${t(el.labelKey)}</span>
+    </button>
+  `).join('');
 
-// Common fields (GPS + Notes) added to all
-const commonFieldsTop = `
-  <div class="form-section">
-    <label class="form-label">Location</label>
-    <div class="gps-display">
-      <span class="gps-icon">📍</span>
-      <div class="gps-coords">
-        <div class="gps-lat">32.085312° N</div>
-        <div class="gps-lng">34.781823° E</div>
-      </div>
-      <span class="gps-accuracy">±3m</span>
-    </div>
-  </div>
-`;
+  // Add click handlers
+  grid.querySelectorAll('.element-btn').forEach(btn => {
+    btn.addEventListener('click', () => openBottomSheet(btn.dataset.element));
+  });
+}
 
-const commonFieldsBottom = `
-  <div class="form-section">
-    <label class="form-label">Notes (Optional)</label>
-    <textarea class="notes-textarea" placeholder="Add any additional details..."></textarea>
-  </div>
-`;
-
-// DOM elements
+// ============================================
+// DOM ELEMENTS
+// ============================================
 const mainFab = document.getElementById('mainFab');
 const elementOverlay = document.getElementById('elementOverlay');
 const overlayClose = document.getElementById('overlayClose');
@@ -1200,13 +1518,14 @@ const sheetIcon = document.getElementById('sheetIcon');
 const sheetTitle = document.getElementById('sheetTitle');
 const sheetContent = document.getElementById('sheetContent');
 
-// Open element picker
+// ============================================
+// OPEN/CLOSE HANDLERS
+// ============================================
 mainFab.addEventListener('click', () => {
   mainFab.classList.add('open');
   elementOverlay.classList.add('visible');
 });
 
-// Close element picker
 function closeOverlay() {
   mainFab.classList.remove('open');
   elementOverlay.classList.remove('visible');
@@ -1214,38 +1533,35 @@ function closeOverlay() {
 
 overlayClose.addEventListener('click', closeOverlay);
 
-// Open bottom sheet for element
-document.querySelectorAll('.element-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const elementType = btn.dataset.element;
-    const form = elementForms[elementType];
+function openBottomSheet(elementId) {
+  const el = elements.find(e => e.id === elementId);
+  if (!el || !elementForms[elementId]) return;
 
-    if (form) {
-      sheetIcon.textContent = form.icon;
-      sheetTitle.textContent = form.title;
-      sheetContent.innerHTML = commonFieldsTop + form.fields + commonFieldsBottom;
+  sheetIcon.innerHTML = icons[el.icon];
+  sheetTitle.textContent = t(el.labelKey);
+  sheetTitle.setAttribute('data-i18n', el.labelKey);
 
-      // Add chip toggle behavior
-      sheetContent.querySelectorAll('.toggle-chips').forEach(group => {
-        group.querySelectorAll('.toggle-chip').forEach(chip => {
-          chip.addEventListener('click', () => {
-            // For single-select groups (most cases)
-            if (!group.classList.contains('multi')) {
-              group.querySelectorAll('.toggle-chip').forEach(c => c.classList.remove('selected'));
-            }
-            chip.classList.toggle('selected');
-          });
-        });
+  const formBuilder = elementForms[elementId];
+  sheetContent.innerHTML = buildGpsSection() + formBuilder() + buildNotesSection();
+
+  // Add chip toggle behavior
+  sheetContent.querySelectorAll('.toggle-chips').forEach(group => {
+    const isMulti = group.classList.contains('multi');
+    group.querySelectorAll('.toggle-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (!isMulti) {
+          group.querySelectorAll('.toggle-chip').forEach(c => c.classList.remove('selected'));
+        }
+        chip.classList.toggle('selected');
       });
-    }
-
-    closeOverlay();
-    sheetBackdrop.classList.add('visible');
-    bottomSheet.classList.add('visible');
+    });
   });
-});
 
-// Close bottom sheet
+  closeOverlay();
+  sheetBackdrop.classList.add('visible');
+  bottomSheet.classList.add('visible');
+}
+
 function closeSheet() {
   sheetBackdrop.classList.remove('visible');
   bottomSheet.classList.remove('visible');
@@ -1253,6 +1569,40 @@ function closeSheet() {
 
 sheetClose.addEventListener('click', closeSheet);
 sheetBackdrop.addEventListener('click', closeSheet);
+
+// ============================================
+// LANGUAGE SWITCHING
+// ============================================
+function updateAllTranslations() {
+  // Update direction
+  document.documentElement.dir = currentLang === 'he' ? 'rtl' : 'ltr';
+  document.documentElement.lang = currentLang;
+
+  // Update all elements with data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+
+  // Update placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+
+  // Rebuild element grid with new translations
+  buildElementGrid();
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentLang = btn.dataset.lang;
+    updateAllTranslations();
+  });
+});
+
+// Initialize
+buildElementGrid();
   </script>
 </body>
 </html>
