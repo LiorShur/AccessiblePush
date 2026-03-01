@@ -1,0 +1,693 @@
+/**
+ * POI Elements Styles
+ * FAB, Element Picker, Bottom Sheet, Map Markers
+ *
+ * @file src/css/poi-elements.css
+ * @version 1.0
+ */
+
+/* ============================================
+   CSS VARIABLES
+   ============================================ */
+:root {
+  --poi-bg-dark: #121212;
+  --poi-surface: #1a1a1a;
+  --poi-surface-elevated: #242424;
+  --poi-accent: #4CAF50;
+  --poi-text-primary: #ffffff;
+  --poi-text-secondary: #aaaaaa;
+  --poi-danger: #f44336;
+  --poi-warning: #ff9800;
+  --poi-info: #2196F3;
+  --poi-capture: #9c27b0;
+}
+
+/* ============================================
+   MAIN FAB BUTTON
+   ============================================ */
+.poi-fab {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--poi-accent);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.5);
+  z-index: 2000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.poi-fab:hover {
+  transform: translateX(-50%) scale(1.08);
+  box-shadow: 0 6px 28px rgba(76, 175, 80, 0.6);
+}
+
+.poi-fab:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.poi-fab svg {
+  width: 32px;
+  height: 32px;
+  fill: white;
+  transition: transform 0.3s;
+}
+
+.poi-fab.open svg {
+  transform: rotate(45deg);
+}
+
+.poi-fab.hidden {
+  display: none;
+}
+
+/* Adjust FAB position when bottom nav is visible */
+body.has-bottom-nav .poi-fab {
+  bottom: 80px;
+}
+
+/* RTL support */
+[dir="rtl"] .poi-fab {
+  left: 50%;
+  right: auto;
+}
+
+/* ============================================
+   ELEMENT PICKER OVERLAY
+   ============================================ */
+.poi-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.97);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.poi-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.poi-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #333;
+}
+
+[dir="rtl"] .poi-overlay-header {
+  flex-direction: row-reverse;
+}
+
+.poi-overlay-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--poi-text-primary);
+}
+
+.poi-overlay-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--poi-surface-elevated);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.poi-overlay-close svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+/* ============================================
+   ELEMENT GRID
+   ============================================ */
+.poi-element-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  align-content: start;
+}
+
+.poi-element-btn {
+  aspect-ratio: 1;
+  background: var(--poi-surface-elevated);
+  border: 2px solid #333;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 6px;
+  transition: all 0.2s;
+}
+
+.poi-element-btn:hover {
+  background: #2a2a2a;
+  border-color: var(--poi-accent);
+  transform: scale(1.02);
+}
+
+.poi-element-btn:active {
+  transform: scale(0.96);
+}
+
+.poi-element-btn svg {
+  width: 36px;
+  height: 36px;
+  fill: white;
+}
+
+.poi-element-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Color coding for element types */
+.poi-element-btn[data-type="capture"] {
+  border-color: var(--poi-capture);
+}
+.poi-element-btn[data-type="capture"] svg {
+  fill: #ce93d8;
+}
+
+.poi-element-btn[data-type="hazard"] {
+  border-color: var(--poi-danger);
+}
+.poi-element-btn[data-type="hazard"] svg {
+  fill: #ef9a9a;
+}
+
+.poi-element-btn[data-type="accessibility"] {
+  border-color: var(--poi-info);
+}
+.poi-element-btn[data-type="accessibility"] svg {
+  fill: #90caf9;
+}
+
+.poi-element-btn[data-type="terrain"] {
+  border-color: var(--poi-warning);
+}
+.poi-element-btn[data-type="terrain"] svg {
+  fill: #ffcc80;
+}
+
+/* ============================================
+   BOTTOM SHEET MODAL
+   ============================================ */
+.poi-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 3500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.poi-sheet-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.poi-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--poi-surface);
+  border-radius: 20px 20px 0 0;
+  z-index: 3501;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.poi-bottom-sheet.visible {
+  transform: translateY(0);
+}
+
+.poi-sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: #666;
+  border-radius: 2px;
+  margin: 12px auto;
+}
+
+.poi-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 16px;
+  border-bottom: 1px solid #333;
+}
+
+[dir="rtl"] .poi-sheet-header {
+  flex-direction: row-reverse;
+}
+
+.poi-sheet-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.poi-sheet-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: white;
+}
+
+.poi-sheet-title {
+  flex: 1;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--poi-text-primary);
+}
+
+.poi-sheet-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--poi-surface-elevated);
+  border: none;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.poi-sheet-close svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.poi-sheet-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.poi-sheet-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #333;
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.poi-form-section {
+  margin-bottom: 20px;
+}
+
+.poi-form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--poi-text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Photo capture */
+.poi-photo-capture {
+  display: flex;
+  gap: 12px;
+}
+
+.poi-photo-btn {
+  flex: 1;
+  height: 80px;
+  border-radius: 12px;
+  background: var(--poi-surface-elevated);
+  border: 2px dashed #444;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--poi-text-secondary);
+  transition: all 0.2s;
+}
+
+.poi-photo-btn:hover {
+  border-color: var(--poi-accent);
+  color: var(--poi-accent);
+}
+
+.poi-photo-btn svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
+}
+
+.poi-photo-btn-text {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* GPS display */
+.poi-gps-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--poi-surface-elevated);
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+[dir="rtl"] .poi-gps-display {
+  flex-direction: row-reverse;
+}
+
+.poi-gps-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.poi-gps-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: var(--poi-accent);
+}
+
+.poi-gps-coords {
+  flex: 1;
+}
+
+.poi-gps-lat,
+.poi-gps-lng {
+  font-size: 13px;
+  font-family: monospace;
+  color: var(--poi-text-primary);
+}
+
+.poi-gps-accuracy {
+  font-size: 11px;
+  color: var(--poi-text-secondary);
+}
+
+/* Toggle chips */
+.poi-toggle-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.poi-toggle-chip {
+  padding: 10px 16px;
+  background: var(--poi-surface-elevated);
+  border: 1px solid #444;
+  border-radius: 20px;
+  color: var(--poi-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.poi-toggle-chip:hover {
+  border-color: var(--poi-accent);
+}
+
+.poi-toggle-chip.selected {
+  background: var(--poi-accent);
+  border-color: var(--poi-accent);
+  color: white;
+}
+
+/* Notes textarea */
+.poi-notes-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px 16px;
+  background: var(--poi-surface-elevated);
+  border: 1px solid #333;
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.poi-notes-textarea:focus {
+  outline: none;
+  border-color: var(--poi-accent);
+}
+
+/* Submit button */
+.poi-submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--poi-accent);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.poi-submit-btn:hover {
+  background: #43a047;
+}
+
+.poi-submit-btn:active {
+  transform: scale(0.98);
+}
+
+.poi-submit-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* ============================================
+   MAP MARKERS
+   ============================================ */
+.poi-marker-container {
+  background: transparent !important;
+  border: none !important;
+}
+
+.poi-marker {
+  width: 36px;
+  height: 36px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.poi-marker svg {
+  width: 20px;
+  height: 20px;
+  fill: white;
+  transform: rotate(45deg);
+}
+
+/* ============================================
+   MAP POPUP
+   ============================================ */
+.poi-popup .leaflet-popup-content-wrapper {
+  background: var(--poi-surface);
+  color: var(--poi-text-primary);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.poi-popup .leaflet-popup-tip {
+  background: var(--poi-surface);
+}
+
+.poi-popup .leaflet-popup-close-button {
+  color: var(--poi-text-secondary);
+}
+
+.poi-popup-content {
+  padding: 4px;
+  min-width: 200px;
+}
+
+.poi-popup-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.poi-popup-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.poi-popup-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: var(--poi-accent);
+}
+
+.poi-popup-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--poi-text-primary);
+}
+
+.poi-popup-time {
+  font-size: 11px;
+  color: var(--poi-text-secondary);
+  margin-bottom: 8px;
+}
+
+.poi-popup-field {
+  font-size: 13px;
+  color: var(--poi-text-primary);
+  margin-bottom: 4px;
+}
+
+.poi-popup-field strong {
+  color: var(--poi-text-secondary);
+}
+
+.poi-popup-notes {
+  font-size: 13px;
+  color: var(--poi-text-secondary);
+  font-style: italic;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #333;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 380px) {
+  .poi-element-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .poi-element-btn svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .poi-element-label {
+    font-size: 11px;
+  }
+}
+
+@media (min-width: 768px) {
+  .poi-element-grid {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .poi-bottom-sheet {
+    max-width: 500px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+  }
+
+  .poi-bottom-sheet.visible {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   ============================================ */
+html.high-contrast .poi-fab {
+  background: white;
+  border: 3px solid black;
+}
+
+html.high-contrast .poi-fab svg {
+  fill: black;
+}
+
+html.high-contrast .poi-overlay {
+  background: black;
+}
+
+html.high-contrast .poi-element-btn {
+  background: white;
+  border: 2px solid black;
+}
+
+html.high-contrast .poi-element-btn svg {
+  fill: black;
+}
+
+html.high-contrast .poi-element-label {
+  color: black;
+}
+
+html.high-contrast .poi-bottom-sheet {
+  background: white;
+  border: 2px solid black;
+}
+
+html.high-contrast .poi-sheet-title,
+html.high-contrast .poi-form-label,
+html.high-contrast .poi-toggle-chip,
+html.high-contrast .poi-notes-textarea {
+  color: black;
+}
+
+html.high-contrast .poi-toggle-chip {
+  background: white;
+  border: 2px solid black;
+}
+
+html.high-contrast .poi-toggle-chip.selected {
+  background: black;
+  color: white;
+}
+
+/* ============================================
+   FULLSCREEN MODE - HIDE FAB
+   ============================================ */
+body.fullscreen-mode .poi-fab {
+  display: none;
+}
