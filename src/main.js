@@ -24,6 +24,7 @@ import { modal } from './utils/modal.js';
 import { showError, getErrorMessage } from './utils/errorMessages.js';
 import { betaFeedback } from './utils/betaFeedback.js';
 import { t } from './i18n/i18n.js';
+import { poiElements } from './features/poiElements.js';
 
 class AccessNatureApp {
   constructor() {
@@ -525,6 +526,18 @@ showError(message) {
     });
 
     await Promise.all(initPromises);
+
+    // Initialize POI elements after map is ready
+    if (this.controllers.map?.map) {
+      try {
+        poiElements.init(this.controllers.map.map);
+        // Store reference for route attachment
+        this.controllers.poiElements = poiElements;
+        console.log('✅ POI elements initialized');
+      } catch (error) {
+        console.error('❌ Failed to initialize POI elements:', error);
+      }
+    }
   }
 
   setupErrorHandling() {
