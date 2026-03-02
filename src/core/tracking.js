@@ -914,7 +914,14 @@ async saveRoute(skipSurveyPrompt = false) {
     
     // Clear route data after saving
     this.appState.clearRouteData();
-    
+
+    // Clear POI elements from map
+    const poiElements = window.AccessNatureApp?.controllers?.poiElements;
+    if (poiElements) {
+      poiElements.clearElements();
+      console.log('✅ POI elements cleared after save');
+    }
+
     // Reset timer controller and display
     const timerController = window.AccessNatureApp?.controllers?.timer;
     if (timerController) {
@@ -960,9 +967,13 @@ async askCloudSaveOptions(routeName) {
 async generateTrailGuide(routeId, routeData, routeInfo, accessibilityData, authController) {
   try {
     console.log('🌐 Generating trail guide HTML...');
-    
-    // Use the new trail guide generator V2
-    const htmlContent = trailGuideGeneratorV2.generateHTML(routeData, routeInfo, accessibilityData);
+
+    // Get POI elements before clearing
+    const poiElements = window.AccessNatureApp?.controllers?.poiElements?.getElements?.() || [];
+    console.log(`📍 Including ${poiElements.length} POI elements in trail guide`);
+
+    // Use the new trail guide generator V2 with POI elements
+    const htmlContent = trailGuideGeneratorV2.generateHTML(routeData, routeInfo, accessibilityData, null, poiElements);
     const user = authController.getCurrentUser();
     
     console.log('🔍 Saving trail guide for userId:', user?.uid);
@@ -1209,7 +1220,14 @@ async saveRouteToCloud(routeData, routeInfo, accessibilityData, authController) 
 
   discardRoute() {
     this.appState.clearRouteData();
-    
+
+    // Clear POI elements from map
+    const poiElements = window.AccessNatureApp?.controllers?.poiElements;
+    if (poiElements) {
+      poiElements.clearElements();
+      console.log('✅ POI elements cleared on discard');
+    }
+
     // Reset timer controller and display
     const timerController = window.AccessNatureApp?.controllers?.timer;
     if (timerController) {
