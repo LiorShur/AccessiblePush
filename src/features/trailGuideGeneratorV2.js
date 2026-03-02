@@ -376,17 +376,23 @@ export class TrailGuideGeneratorV2 {
    * @param {string} lang - Language code ('en' or 'he')
    * @returns {string} Complete HTML document
    */
-  generateHTML(routeData, routeInfo, accessibilityData, lang = null) {
+  generateHTML(routeData, routeInfo, accessibilityData, lang = null, poiElements = null) {
     // Get language from localStorage if not provided
     const currentLang = lang || localStorage.getItem('accessNature_language') || 'en';
     const isRTL = currentLang === 'he';
     const t = (key) => this.t(key, currentLang);
-    
+
+    // Try to get POI elements from window if not passed
+    if (!poiElements && typeof window !== 'undefined') {
+      poiElements = window.AccessNatureApp?.controllers?.poiElements?.getElements?.() || [];
+    }
+
     // Debug logging
     console.log('🗺️ TrailGuideV2 - Generating HTML with:');
     console.log('  - routeData points:', routeData?.length || 0);
     console.log('  - photos:', routeData?.filter(p => p.type === 'photo').length || 0);
     console.log('  - notes:', routeData?.filter(p => p.type === 'text').length || 0);
+    console.log('  - POI elements:', poiElements?.length || 0);
     console.log('  - accessibilityData:', accessibilityData);
     console.log('  - language:', currentLang);
     
@@ -572,7 +578,7 @@ export class TrailGuideGeneratorV2 {
     </div>
 
     <!-- Map Script -->
-    ${locationPoints.length > 0 ? this.getMapScript(locationPoints, bounds, photos, notes) : ''}
+    ${locationPoints.length > 0 ? this.getMapScript(locationPoints, bounds, photos, notes, poiElements) : ''}
     
     <!-- PDF Download Script -->
     <script>
@@ -1889,14 +1895,37 @@ export class TrailGuideGeneratorV2 {
     `;
   }
 
-  getMapScript(locationPoints, bounds, photos, notes) {
+  getMapScript(locationPoints, bounds, photos, notes, poiElements = []) {
     const pathCoords = locationPoints.map(p => `[${p.coords.lat}, ${p.coords.lng}]`).join(',');
     const startCoord = locationPoints[0]?.coords;
     const endCoord = locationPoints[locationPoints.length - 1]?.coords;
-    
+
     // Filter photos and notes that have coordinates
     const geoPhotos = photos.filter(p => p.coords);
     const geoNotes = notes.filter(n => n.coords);
+
+    // POI element icons and colors
+    const poiConfig = {
+      photo: { icon: '📷', color: '#9c27b0', label: 'Photo' },
+      note: { icon: '📝', color: '#9c27b0', label: 'Note' },
+      voice: { icon: '🎤', color: '#9c27b0', label: 'Voice Note' },
+      bench: { icon: '🪑', color: '#4CAF50', label: 'Rest Bench' },
+      water: { icon: '🚰', color: '#2196F3', label: 'Water' },
+      restroom: { icon: '🚻', color: '#2196F3', label: 'Restroom' },
+      viewpoint: { icon: '🏔️', color: '#4CAF50', label: 'Viewpoint' },
+      picnic: { icon: '🧺', color: '#4CAF50', label: 'Picnic Area' },
+      steep: { icon: '⛰️', color: '#ff9800', label: 'Steep Section' },
+      accessibility: { icon: '♿', color: '#2196F3', label: 'Accessibility' },
+      hazard: { icon: '⚠️', color: '#f44336', label: 'Hazard' },
+      info: { icon: 'ℹ️', color: '#2196F3', label: 'Information' },
+      shade: { icon: '🌳', color: '#4CAF50', label: 'Shade' },
+      parking: { icon: '🅿️', color: '#2196F3', label: 'Parking' },
+      junction: { icon: '🚧', color: '#ff9800', label: 'Junction' },
+      steps: { icon: '🪜', color: '#ff9800', label: 'Steps' },
+      gate: { icon: '🚪', color: '#ff9800', label: 'Gate' },
+      bridge: { icon: '🌉', color: '#ff9800', label: 'Bridge' },
+      crossing: { icon: '🚗', color: '#ff9800', label: 'Crossing' }
+    };
     
     return `
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
@@ -1961,6 +1990,26 @@ export class TrailGuideGeneratorV2 {
                 })
             }).addTo(map).bindPopup('<div style="max-width:200px;"><strong style="color:#92400e;">📝 Note</strong><p style="margin:8px 0 0;font-size:13px;color:#333;">${(note.text || note.content || note.data || '').replace(/'/g, "\\'")}</p></div>');
             `).join('')}
+
+            // POI Element markers
+            ${(poiElements || []).filter(p => p.location).map(poi => {
+              const config = poiConfig[poi.type] || { icon: '📍', color: '#666', label: poi.type };
+              const fieldsHtml = poi.fields ? Object.entries(poi.fields)
+                .filter(([k, v]) => v && (Array.isArray(v) ? v.length > 0 : true))
+                .map(([k, v]) => `<div style="font-size:11px;color:#666;">${k}: ${Array.isArray(v) ? v.join(', ') : v}</div>`)
+                .join('') : '';
+              const notesHtml = poi.notes ? `<p style="margin-top:6px;font-size:12px;font-style:italic;color:#888;">${poi.notes.replace(/'/g, "\\'")}</p>` : '';
+              return `
+            L.marker([${poi.location.lat}, ${poi.location.lng}], {
+                icon: L.divIcon({
+                    className: 'poi-marker',
+                    html: '<div style="background:${config.color};width:28px;height:28px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">${config.icon}</div>',
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                })
+            }).addTo(map).bindPopup('<div style="max-width:220px;"><strong style="color:${config.color};">${config.icon} ${config.label}</strong>${fieldsHtml}${notesHtml}</div>');
+            `;
+            }).join('')}
         }
     </script>`;
   }
