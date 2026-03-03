@@ -85,10 +85,11 @@ body.has-bottom-nav .poi-fab {
 .poi-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.97);
   z-index: 3000;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s;
@@ -99,12 +100,37 @@ body.has-bottom-nav .poi-fab {
   pointer-events: auto;
 }
 
+/* Backdrop - clickable to close */
+.poi-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  cursor: pointer;
+}
+
+/* Content container */
+.poi-overlay-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  margin: 16px;
+  background: var(--poi-surface);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
 .poi-overlay-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
   border-bottom: 1px solid #333;
+  background: var(--poi-surface);
 }
 
 [dir="rtl"] .poi-overlay-header {
@@ -118,22 +144,60 @@ body.has-bottom-nav .poi-fab {
 }
 
 .poi-overlay-close {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
   border-radius: 50%;
   background: var(--poi-surface-elevated);
-  border: none;
+  border: 2px solid #444;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  transition: all 0.2s;
+}
+
+.poi-overlay-close:hover {
+  background: #333;
+  border-color: #666;
+}
+
+.poi-overlay-close:active {
+  transform: scale(0.95);
 }
 
 .poi-overlay-close svg {
   width: 24px;
   height: 24px;
-  fill: currentColor;
+}
+
+/* Footer with cancel button */
+.poi-overlay-footer {
+  padding: 12px 16px 16px;
+  border-top: 1px solid #333;
+  background: var(--poi-surface);
+}
+
+.poi-cancel-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 2px solid #555;
+  border-radius: 12px;
+  color: var(--poi-text-secondary);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.poi-cancel-btn:hover {
+  border-color: #888;
+  color: var(--poi-text-primary);
+}
+
+.poi-cancel-btn:active {
+  transform: scale(0.98);
 }
 
 /* ============================================
@@ -142,10 +206,10 @@ body.has-bottom-nav .poi-fab {
 .poi-element-grid {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 12px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
   align-content: start;
 }
 
@@ -153,15 +217,16 @@ body.has-bottom-nav .poi-fab {
   aspect-ratio: 1;
   background: var(--poi-surface-elevated);
   border: 2px solid #333;
-  border-radius: 16px;
+  border-radius: 12px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 6px;
+  gap: 4px;
+  padding: 8px 4px;
   transition: all 0.2s;
+  min-width: 0;
 }
 
 .poi-element-btn:hover {
@@ -175,17 +240,22 @@ body.has-bottom-nav .poi-fab {
 }
 
 .poi-element-btn svg {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   fill: white;
+  flex-shrink: 0;
 }
 
 .poi-element-label {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   color: white;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.15;
+  word-break: break-word;
+  hyphens: auto;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 /* Color coding for element types */
@@ -630,28 +700,88 @@ body.has-bottom-nav .poi-fab {
 /* ============================================
    RESPONSIVE ADJUSTMENTS
    ============================================ */
-@media (max-width: 380px) {
+/* Very small screens (320px) */
+@media (max-width: 340px) {
+  .poi-overlay-content {
+    margin: 8px;
+    max-height: 95vh;
+  }
+
   .poi-element-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    padding: 12px;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .poi-element-btn {
+    padding: 6px 3px;
+    gap: 3px;
+    border-radius: 10px;
   }
 
   .poi-element-btn svg {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
   }
 
   .poi-element-label {
-    font-size: 11px;
+    font-size: 9px;
+  }
+
+  .poi-overlay-header {
+    padding: 12px 14px;
+  }
+
+  .poi-overlay-title {
+    font-size: 18px;
+  }
+
+  .poi-overlay-footer {
+    padding: 10px 12px 12px;
+  }
+
+  .poi-cancel-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
+/* Small screens */
+@media (max-width: 380px) and (min-width: 341px) {
+  .poi-element-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .poi-element-btn svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .poi-element-label {
+    font-size: 10px;
   }
 }
 
 @media (min-width: 768px) {
+  .poi-overlay-content {
+    max-width: 450px;
+  }
+
   .poi-element-grid {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 500px;
-    margin: 0 auto;
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .poi-element-btn svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .poi-element-label {
+    font-size: 12px;
   }
 
   .poi-bottom-sheet {
@@ -677,8 +807,31 @@ html.high-contrast .poi-fab svg {
   fill: black;
 }
 
-html.high-contrast .poi-overlay {
-  background: black;
+html.high-contrast .poi-overlay-backdrop {
+  background: rgba(0, 0, 0, 0.95);
+}
+
+html.high-contrast .poi-overlay-content {
+  background: white;
+  border: 3px solid black;
+}
+
+html.high-contrast .poi-overlay-header {
+  background: white;
+  border-bottom: 2px solid black;
+}
+
+html.high-contrast .poi-overlay-title {
+  color: black;
+}
+
+html.high-contrast .poi-overlay-close {
+  background: white;
+  border: 2px solid black;
+}
+
+html.high-contrast .poi-overlay-close svg path {
+  fill: black;
 }
 
 html.high-contrast .poi-element-btn {
@@ -691,6 +844,17 @@ html.high-contrast .poi-element-btn svg {
 }
 
 html.high-contrast .poi-element-label {
+  color: black;
+}
+
+html.high-contrast .poi-overlay-footer {
+  background: white;
+  border-top: 2px solid black;
+}
+
+html.high-contrast .poi-cancel-btn {
+  background: white;
+  border: 2px solid black;
   color: black;
 }
 
