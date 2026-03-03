@@ -217,14 +217,14 @@ body.has-bottom-nav .poi-fab {
   aspect-ratio: 1;
   background: var(--poi-surface-elevated);
   border: 2px solid #333;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 8px 4px;
+  gap: 2px;
+  padding: 6px 3px;
   transition: all 0.2s;
   min-width: 0;
 }
@@ -240,18 +240,18 @@ body.has-bottom-nav .poi-fab {
 }
 
 .poi-element-btn svg {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   fill: white;
   flex-shrink: 0;
 }
 
 .poi-element-label {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
   color: white;
   text-align: center;
-  line-height: 1.15;
+  line-height: 1.1;
   word-break: break-word;
   hyphens: auto;
   max-width: 100%;
@@ -722,49 +722,77 @@ body.has-bottom-nav .poi-fab {
 
   .poi-element-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .poi-element-btn {
+    padding: 4px 2px;
+    gap: 1px;
+    border-radius: 8px;
+  }
+
+  .poi-element-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .poi-element-label {
+    font-size: 8px;
+  }
+
+  .poi-overlay-header {
+    padding: 10px 12px;
+  }
+
+  .poi-overlay-title {
+    font-size: 16px;
+  }
+
+  .poi-overlay-footer {
+    padding: 8px 10px 10px;
+  }
+
+  .poi-cancel-btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
+
+/* Small screens (341-380px) */
+@media (max-width: 380px) and (min-width: 341px) {
+  .poi-element-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
     padding: 8px;
   }
 
   .poi-element-btn {
-    padding: 6px 3px;
-    gap: 3px;
-    border-radius: 10px;
+    padding: 5px 3px;
+    gap: 2px;
   }
 
   .poi-element-btn svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
 
   .poi-element-label {
-    font-size: 9px;
-  }
-
-  .poi-overlay-header {
-    padding: 12px 14px;
-  }
-
-  .poi-overlay-title {
-    font-size: 18px;
-  }
-
-  .poi-overlay-footer {
-    padding: 10px 12px 12px;
-  }
-
-  .poi-cancel-btn {
-    padding: 12px;
-    font-size: 14px;
+    font-size: 8px;
   }
 }
 
-/* Small screens */
-@media (max-width: 380px) and (min-width: 341px) {
+/* Medium screens (381-767px) - slightly larger */
+@media (min-width: 381px) and (max-width: 767px) {
   .poi-element-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    gap: 8px;
     padding: 10px;
+  }
+
+  .poi-element-btn {
+    padding: 8px 4px;
+    gap: 4px;
+    border-radius: 12px;
   }
 
   .poi-element-btn svg {
@@ -774,23 +802,6 @@ body.has-bottom-nav .poi-fab {
 
   .poi-element-label {
     font-size: 10px;
-  }
-}
-
-/* Medium screens - keep 3 columns but larger icons */
-@media (min-width: 381px) and (max-width: 767px) {
-  .poi-element-btn svg {
-    width: 32px;
-    height: 32px;
-  }
-
-  .poi-element-label {
-    font-size: 12px;
-  }
-
-  .poi-element-btn {
-    padding: 10px 6px;
-    gap: 6px;
   }
 }
 
