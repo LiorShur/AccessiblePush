@@ -218,6 +218,37 @@ body.has-bottom-nav .poi-fab {
 }
 
 /* ============================================
+   OVERLAY FOOTER WITH CANCEL BUTTON
+   ============================================ */
+.poi-overlay-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #333;
+  background: var(--poi-surface);
+}
+
+.poi-cancel-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 2px solid #666;
+  border-radius: 12px;
+  color: var(--poi-text-secondary);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.poi-cancel-btn:hover {
+  border-color: var(--poi-text-primary);
+  color: var(--poi-text-primary);
+}
+
+.poi-cancel-btn:active {
+  transform: scale(0.98);
+}
+
+/* ============================================
    BOTTOM SHEET MODAL
    ============================================ */
 .poi-sheet-backdrop {

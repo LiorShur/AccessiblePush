@@ -114,7 +114,16 @@ export class POIElementsManager {
    */
   t(key) {
     if (window.i18n?.t) {
-      return window.i18n.t(`poi.${key}`) || key;
+      // Try poi namespace first, then common namespace
+      const poiTranslation = window.i18n.t(`poi.${key}`);
+      if (poiTranslation && poiTranslation !== `poi.${key}`) {
+        return poiTranslation;
+      }
+      const commonTranslation = window.i18n.t(`common.${key}`);
+      if (commonTranslation && commonTranslation !== `common.${key}`) {
+        return commonTranslation;
+      }
+      return key;
     }
     return key;
   }
@@ -196,6 +205,11 @@ export class POIElementsManager {
       </div>
       <div class="poi-element-grid">
         ${elementsHTML}
+      </div>
+      <div class="poi-overlay-footer">
+        <button class="poi-cancel-btn" id="poiCancelBtn">
+          <span data-i18n="common.cancel">${this.t('cancel')}</span>
+        </button>
       </div>
     `;
   }
@@ -334,8 +348,19 @@ export class POIElementsManager {
     // FAB click - open overlay
     this.fabButton.addEventListener('click', () => this.openOverlay());
 
-    // Overlay close
+    // Overlay close button
     this.overlay.querySelector('#poiOverlayClose').addEventListener('click', () => this.closeOverlay());
+
+    // Cancel button
+    this.overlay.querySelector('#poiCancelBtn').addEventListener('click', () => this.closeOverlay());
+
+    // Close overlay when clicking on backdrop (outside the content)
+    this.overlay.addEventListener('click', (e) => {
+      // Only close if clicking directly on the overlay (not on children like grid or header)
+      if (e.target === this.overlay) {
+        this.closeOverlay();
+      }
+    });
 
     // Element buttons
     this.overlay.querySelectorAll('.poi-element-btn').forEach(btn => {
@@ -660,6 +685,7 @@ export class POIElementsManager {
 
     // Rebind overlay events
     this.overlay.querySelector('#poiOverlayClose').addEventListener('click', () => this.closeOverlay());
+    this.overlay.querySelector('#poiCancelBtn').addEventListener('click', () => this.closeOverlay());
     this.overlay.querySelectorAll('.poi-element-btn').forEach(btn => {
       btn.addEventListener('click', () => this.openSheet(btn.dataset.element));
     });
