@@ -831,7 +831,33 @@ export class TrailGuideGeneratorV2 {
                 alert('PDF generation failed. Please try again or use Print to PDF.');
             }
         }
+
+        // Fullscreen photo modal
+        function openFullscreenPhoto(src) {
+            const modal = document.getElementById('fullscreenPhotoModal');
+            const img = document.getElementById('fullscreenPhotoImg');
+            img.src = src;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFullscreenPhoto() {
+            const modal = document.getElementById('fullscreenPhotoModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close on background click or ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeFullscreenPhoto();
+        });
     </script>
+
+    <!-- Fullscreen Photo Modal -->
+    <div id="fullscreenPhotoModal" class="fullscreen-photo-modal" onclick="if(event.target === this) closeFullscreenPhoto()">
+        <button class="fullscreen-photo-close" onclick="closeFullscreenPhoto()" aria-label="Close">×</button>
+        <img id="fullscreenPhotoImg" class="fullscreen-photo-img" src="" alt="Full size photo">
+    </div>
 </body>
 </html>`;
   }
@@ -1976,7 +2002,7 @@ export class TrailGuideGeneratorV2 {
                     iconSize: [28, 28],
                     iconAnchor: [14, 14]
                 })
-            }).addTo(map).bindPopup('<div style="text-align:center;"><img src="${photo.content || photo.data}" style="width:200px;max-height:150px;object-fit:cover;border-radius:8px;"><p style="margin:8px 0 0;font-size:12px;color:#666;">${photo.timestamp ? new Date(photo.timestamp).toLocaleTimeString() : ''}</p></div>', { maxWidth: 220 });
+            }).addTo(map).bindPopup('<div style="text-align:center;"><img src="${photo.content || photo.data}" onclick="openFullscreenPhoto(this.src)" style="width:200px;max-height:150px;object-fit:cover;border-radius:8px;cursor:pointer;"><p style="margin:8px 0 0;font-size:12px;color:#666;">${photo.timestamp ? new Date(photo.timestamp).toLocaleTimeString() : ''}</p></div>', { maxWidth: 220 });
             `).join('')}
             
             // Note markers
@@ -1999,6 +2025,7 @@ export class TrailGuideGeneratorV2 {
                 .map(([k, v]) => `<div style="font-size:11px;color:#666;">${k}: ${Array.isArray(v) ? v.join(', ') : v}</div>`)
                 .join('') : '';
               const notesHtml = poi.notes ? `<p style="margin-top:6px;font-size:12px;font-style:italic;color:#888;">${poi.notes.replace(/'/g, "\\'")}</p>` : '';
+              const photoHtml = poi.photoDataUrl ? `<img src="${poi.photoDataUrl}" onclick="openFullscreenPhoto(this.src)" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-top:8px;cursor:pointer;" alt="${config.label}">` : '';
               return `
             L.marker([${poi.location.lat}, ${poi.location.lng}], {
                 icon: L.divIcon({
@@ -2007,7 +2034,7 @@ export class TrailGuideGeneratorV2 {
                     iconSize: [28, 28],
                     iconAnchor: [14, 14]
                 })
-            }).addTo(map).bindPopup('<div style="max-width:220px;"><strong style="color:${config.color};">${config.icon} ${config.label}</strong>${fieldsHtml}${notesHtml}</div>');
+            }).addTo(map).bindPopup('<div style="max-width:220px;"><strong style="color:${config.color};">${config.icon} ${config.label}</strong>${fieldsHtml}${notesHtml}${photoHtml}</div>', { maxWidth: 250 });
             `;
             }).join('')}
         }
@@ -2841,6 +2868,74 @@ export class TrailGuideGeneratorV2 {
             
             .tg-survey-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        /* Fullscreen Photo Modal */
+        .fullscreen-photo-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .fullscreen-photo-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .fullscreen-photo-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+            z-index: 100000;
+        }
+
+        .fullscreen-photo-close:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .fullscreen-photo-img {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 480px) {
+            .fullscreen-photo-close {
+                top: 12px;
+                right: 12px;
+                width: 40px;
+                height: 40px;
+                font-size: 28px;
+            }
+
+            .fullscreen-photo-img {
+                max-width: 95vw;
+                max-height: 85vh;
             }
         }
     `;
