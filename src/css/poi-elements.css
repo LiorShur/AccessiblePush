@@ -85,11 +85,11 @@ body.has-bottom-nav .poi-fab {
 .poi-overlay {
   position: fixed;
   inset: 0;
-  z-index: 3000;
+  z-index: 9000;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s;
@@ -114,8 +114,8 @@ body.has-bottom-nav .poi-fab {
   z-index: 1;
   width: 100%;
   max-width: 400px;
-  max-height: 90vh;
-  margin: 16px;
+  max-height: 85vh;
+  margin: 0 16px 16px;
   background: var(--poi-surface);
   border-radius: 20px;
   display: flex;
@@ -688,6 +688,19 @@ body.has-bottom-nav .poi-fab {
   color: var(--poi-text-secondary);
 }
 
+.poi-popup-photo {
+  margin: 8px 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.poi-popup-photo img {
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
 .poi-popup-notes {
   font-size: 13px;
   color: var(--poi-text-secondary);
@@ -764,17 +777,8 @@ body.has-bottom-nav .poi-fab {
   }
 }
 
-@media (min-width: 768px) {
-  .poi-overlay-content {
-    max-width: 450px;
-  }
-
-  .poi-element-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    padding: 16px;
-  }
-
+/* Medium screens - keep 3 columns but larger icons */
+@media (min-width: 381px) and (max-width: 767px) {
   .poi-element-btn svg {
     width: 32px;
     height: 32px;
@@ -782,6 +786,43 @@ body.has-bottom-nav .poi-fab {
 
   .poi-element-label {
     font-size: 12px;
+  }
+
+  .poi-element-btn {
+    padding: 10px 6px;
+    gap: 6px;
+  }
+}
+
+/* Desktop - centered modal with 3 columns and large icons */
+@media (min-width: 768px) {
+  .poi-overlay {
+    justify-content: center;
+  }
+
+  .poi-overlay-content {
+    max-width: 420px;
+    margin: 16px;
+  }
+
+  .poi-element-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .poi-element-btn {
+    padding: 12px 8px;
+    gap: 8px;
+  }
+
+  .poi-element-btn svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .poi-element-label {
+    font-size: 13px;
   }
 
   .poi-bottom-sheet {
