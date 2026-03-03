@@ -485,6 +485,18 @@ export class POIElementsManager {
   }
 
   /**
+   * Convert file to base64 data URL
+   */
+  fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /**
    * Save element to storage and add marker
    */
   async saveElement(elementId) {
@@ -516,10 +528,14 @@ export class POIElementsManager {
       }
     });
 
-    // Handle photo if present
+    // Handle photo if present - convert to base64 for storage
     if (this.pendingPhoto) {
-      formData.photoBlob = this.pendingPhoto;
-      this.pendingPhoto = null;
+      try {
+        formData.photoDataUrl = await this.fileToBase64(this.pendingPhoto);
+        this.pendingPhoto = null;
+      } catch (e) {
+        console.warn('[POIElements] Failed to convert photo:', e);
+      }
     }
 
     // Generate ID
@@ -606,6 +622,11 @@ export class POIElementsManager {
       });
     }
 
+    // Photo section
+    const photoHtml = element.photoDataUrl
+      ? `<div class="poi-popup-photo"><img src="${element.photoDataUrl}" alt="${title}" /></div>`
+      : '';
+
     return `
       <div class="poi-popup-content">
         <div class="poi-popup-header">
@@ -613,6 +634,7 @@ export class POIElementsManager {
           <span class="poi-popup-title">${title}</span>
         </div>
         <div class="poi-popup-time">${time}</div>
+        ${photoHtml}
         ${fieldsHtml}
         ${element.notes ? `<div class="poi-popup-notes">${element.notes}</div>` : ''}
       </div>
@@ -624,12 +646,20 @@ export class POIElementsManager {
    */
   saveToStorage() {
     const key = this.routeId ? `poi_elements_${this.routeId}` : 'poi_elements_temp';
+    // photoDataUrl (base64) is stored, photoBlob (File object) is not
     const data = this.elements.map(el => {
-      // Don't store blob in localStorage
       const { photoBlob, ...rest } = el;
       return rest;
     });
-    localStorage.setItem(key, JSON.stringify(data));
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (e) {
+      // localStorage might be full with large images
+      console.warn('[POIElements] Storage error, trying without photos:', e);
+      const dataNoPhotos = data.map(({ photoDataUrl, ...rest }) => rest);
+      localStorage.setItem(key, JSON.stringify(dataNoPhotos));
+      toast.error(this.t('storageFullPhotosNotSaved') || 'Storage full - photos not saved');
+    }
   }
 
   /**
