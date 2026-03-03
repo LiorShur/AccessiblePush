@@ -197,19 +197,20 @@ export class POIElementsManager {
     }).join('');
 
     return `
-      <div class="poi-overlay-header">
-        <span class="poi-overlay-title" data-i18n="poi.addElement">${this.t('addElement')}</span>
-        <button class="poi-overlay-close" id="poiOverlayClose">
-          ${POI_ICONS.close}
-        </button>
-      </div>
-      <div class="poi-element-grid">
-        ${elementsHTML}
-      </div>
-      <div class="poi-overlay-footer">
-        <button class="poi-cancel-btn" id="poiCancelBtn">
-          <span data-i18n="common.cancel">${this.t('cancel')}</span>
-        </button>
+      <div class="poi-overlay-backdrop" id="poiOverlayBackdrop"></div>
+      <div class="poi-overlay-content">
+        <div class="poi-overlay-header">
+          <span class="poi-overlay-title" data-i18n="poi.addElement">${this.t('addElement')}</span>
+          <button class="poi-overlay-close" id="poiOverlayClose" aria-label="${this.t('cancel')}">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="white" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+        </div>
+        <div class="poi-element-grid">
+          ${elementsHTML}
+        </div>
+        <div class="poi-overlay-footer">
+          <button class="poi-cancel-btn" id="poiCancelBtn" data-i18n="poi.cancel">${this.t('cancel')}</button>
+        </div>
       </div>
     `;
   }
@@ -348,19 +349,14 @@ export class POIElementsManager {
     // FAB click - open overlay
     this.fabButton.addEventListener('click', () => this.openOverlay());
 
-    // Overlay close button
+    // Overlay close - X button
     this.overlay.querySelector('#poiOverlayClose').addEventListener('click', () => this.closeOverlay());
 
-    // Cancel button
-    this.overlay.querySelector('#poiCancelBtn').addEventListener('click', () => this.closeOverlay());
+    // Overlay close - backdrop click
+    this.overlay.querySelector('#poiOverlayBackdrop').addEventListener('click', () => this.closeOverlay());
 
-    // Close overlay when clicking on backdrop (outside the content)
-    this.overlay.addEventListener('click', (e) => {
-      // Only close if clicking directly on the overlay (not on children like grid or header)
-      if (e.target === this.overlay) {
-        this.closeOverlay();
-      }
-    });
+    // Overlay close - cancel button
+    this.overlay.querySelector('#poiCancelBtn').addEventListener('click', () => this.closeOverlay());
 
     // Element buttons
     this.overlay.querySelectorAll('.poi-element-btn').forEach(btn => {
@@ -685,6 +681,7 @@ export class POIElementsManager {
 
     // Rebind overlay events
     this.overlay.querySelector('#poiOverlayClose').addEventListener('click', () => this.closeOverlay());
+    this.overlay.querySelector('#poiOverlayBackdrop').addEventListener('click', () => this.closeOverlay());
     this.overlay.querySelector('#poiCancelBtn').addEventListener('click', () => this.closeOverlay());
     this.overlay.querySelectorAll('.poi-element-btn').forEach(btn => {
       btn.addEventListener('click', () => this.openSheet(btn.dataset.element));
