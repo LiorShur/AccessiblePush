@@ -537,6 +537,9 @@ export class TrailGuideGeneratorV2 {
             <h2 class="tg-section-title">🗺️ <span data-i18n="routeMap">${t('routeMap')}</span></h2>
             <div class="tg-map-container">
                 <div id="map"></div>
+                <button id="toggleMarkersBtn" class="tg-map-toggle-btn" title="${isRTL ? 'הסתר/הצג סמנים' : 'Toggle Markers'}" onclick="window.toggleMapMarkers && window.toggleMapMarkers()">
+                    📍
+                </button>
             </div>
             <p class="tg-map-hint" data-i18n="clickMarkers">${t('clickMarkers')}</p>
             <div class="tg-map-legend">
@@ -578,7 +581,7 @@ export class TrailGuideGeneratorV2 {
     </div>
 
     <!-- Map Script -->
-    ${locationPoints.length > 0 ? this.getMapScript(locationPoints, bounds, photos, notes, poiElements) : ''}
+    ${locationPoints.length > 0 ? this.getMapScript(locationPoints, bounds, photos, notes, poiElements, currentLang) : ''}
     
     <!-- PDF Download Script -->
     <script>
@@ -1921,120 +1924,192 @@ export class TrailGuideGeneratorV2 {
     `;
   }
 
-  getMapScript(locationPoints, bounds, photos, notes, poiElements = []) {
+  getMapScript(locationPoints, bounds, photos, notes, poiElements = [], lang = 'en') {
     const pathCoords = locationPoints.map(p => `[${p.coords.lat}, ${p.coords.lng}]`).join(',');
     const startCoord = locationPoints[0]?.coords;
     const endCoord = locationPoints[locationPoints.length - 1]?.coords;
+    const isHebrew = lang === 'he';
 
     // Filter photos and notes that have coordinates
     const geoPhotos = photos.filter(p => p.coords);
     const geoNotes = notes.filter(n => n.coords);
 
-    // POI element icons and colors
+    // POI element icons and colors with bilingual labels
     const poiConfig = {
-      photo: { icon: '📷', color: '#9c27b0', label: 'Photo' },
-      note: { icon: '📝', color: '#9c27b0', label: 'Note' },
-      voice: { icon: '🎤', color: '#9c27b0', label: 'Voice Note' },
-      bench: { icon: '🪑', color: '#4CAF50', label: 'Rest Bench' },
-      water: { icon: '🚰', color: '#2196F3', label: 'Water' },
-      restroom: { icon: '🚻', color: '#2196F3', label: 'Restroom' },
-      viewpoint: { icon: '🏔️', color: '#4CAF50', label: 'Viewpoint' },
-      picnic: { icon: '🧺', color: '#4CAF50', label: 'Picnic Area' },
-      steep: { icon: '⛰️', color: '#ff9800', label: 'Steep Section' },
-      accessibility: { icon: '♿', color: '#2196F3', label: 'Accessibility' },
-      hazard: { icon: '⚠️', color: '#f44336', label: 'Hazard' },
-      info: { icon: 'ℹ️', color: '#2196F3', label: 'Information' },
-      shade: { icon: '🌳', color: '#4CAF50', label: 'Shade' },
-      parking: { icon: '🅿️', color: '#2196F3', label: 'Parking' },
-      junction: { icon: '🚧', color: '#ff9800', label: 'Junction' },
-      steps: { icon: '🪜', color: '#ff9800', label: 'Steps' },
-      gate: { icon: '🚪', color: '#ff9800', label: 'Gate' },
-      bridge: { icon: '🌉', color: '#ff9800', label: 'Bridge' },
-      crossing: { icon: '🚗', color: '#ff9800', label: 'Crossing' }
+      photo: { icon: '📷', color: '#9c27b0', label: isHebrew ? 'תמונה' : 'Photo' },
+      note: { icon: '📝', color: '#9c27b0', label: isHebrew ? 'הערה' : 'Note' },
+      voice: { icon: '🎤', color: '#9c27b0', label: isHebrew ? 'הערה קולית' : 'Voice Note' },
+      bench: { icon: '🪑', color: '#4CAF50', label: isHebrew ? 'ספסל מנוחה' : 'Rest Bench' },
+      water: { icon: '🚰', color: '#2196F3', label: isHebrew ? 'מים' : 'Water' },
+      restroom: { icon: '🚻', color: '#2196F3', label: isHebrew ? 'שירותים' : 'Restroom' },
+      viewpoint: { icon: '🏔️', color: '#4CAF50', label: isHebrew ? 'תצפית' : 'Viewpoint' },
+      picnic: { icon: '🧺', color: '#4CAF50', label: isHebrew ? 'אזור פיקניק' : 'Picnic Area' },
+      steep: { icon: '⛰️', color: '#ff9800', label: isHebrew ? 'מקטע תלול' : 'Steep Section' },
+      accessibility: { icon: '♿', color: '#2196F3', label: isHebrew ? 'נגישות' : 'Accessibility' },
+      hazard: { icon: '⚠️', color: '#f44336', label: isHebrew ? 'סכנה' : 'Hazard' },
+      info: { icon: 'ℹ️', color: '#2196F3', label: isHebrew ? 'מידע' : 'Information' },
+      shade: { icon: '🌳', color: '#4CAF50', label: isHebrew ? 'צל' : 'Shade' },
+      parking: { icon: '🅿️', color: '#2196F3', label: isHebrew ? 'חניה' : 'Parking' },
+      junction: { icon: '🚧', color: '#ff9800', label: isHebrew ? 'צומת שבילים' : 'Junction' },
+      steps: { icon: '🪜', color: '#ff9800', label: isHebrew ? 'מדרגות' : 'Steps' },
+      gate: { icon: '🚪', color: '#ff9800', label: isHebrew ? 'שער/מחסום' : 'Gate' },
+      bridge: { icon: '🌉', color: '#ff9800', label: isHebrew ? 'גשר' : 'Bridge' },
+      crossing: { icon: '🚗', color: '#ff9800', label: isHebrew ? 'מעבר כביש' : 'Crossing' }
     };
+
+    // Field translations for popup
+    const fieldTranslations = isHebrew ? {
+      condition: 'מצב', good: 'טוב', fair: 'סביר', poor: 'גרוע',
+      features: 'תכונות', backrest: 'משענת גב', armrests: 'משענות יד', shaded: 'מוצל', wheelchairSpace: 'מקום לכיסא גלגלים',
+      waterStatus: 'מצב מים', working: 'פעיל', notWorking: 'לא פעיל', seasonal: 'עונתי',
+      accessibility: 'נגישות', accessible: 'נגיש', notAccessible: 'לא נגיש', unknown: 'לא ידוע',
+      facilities: 'מתקנים', grabBars: 'מוטות אחיזה', changingTable: 'שולחן החתלה', sink: 'כיור',
+      viewDirection: 'כיוון מבט', north: 'צפון', east: 'מזרח', south: 'דרום', west: 'מערב',
+      amenities: 'מתקנים', bbqGrill: 'גריל/מנגל', trashBins: 'פחי אשפה', wheelchairAccess: 'גישה לכיסא גלגלים',
+      direction: 'כיוון', uphill: 'עלייה', downhill: 'ירידה', both: 'שניהם',
+      difficulty: 'רמת קושי', moderate: 'בינוני', steep: 'תלול', verySteep: 'תלול מאוד',
+      issueType: 'סוג בעיה', surface: 'משטח', obstacle: 'מכשול', width: 'רוחב', slope: 'שיפוע',
+      surfaceType: 'סוג משטח', paved: 'סלול', gravel: 'חצץ', dirt: 'עפר', uneven: 'לא ישר',
+      hazardType: 'סוג סכנה', fallenTree: 'עץ קרוס', erosion: 'סחף', flooding: 'הצפה', wildlife: 'חיות בר',
+      severity: 'חומרה', low: 'נמוך', medium: 'בינוני', high: 'גבוה', trailClosed: 'שביל סגור',
+      infoType: 'סוג מידע', trailSign: 'שלט שביל', infoBoard: 'לוח מידע', mileMarker: 'סימון מרחק', other: 'אחר',
+      shadeCoverage: 'כיסוי צל', partial: 'חלקי', full: 'מלא',
+      seatingAvailable: 'ישיבה זמינה', yes: 'כן', no: 'לא',
+      parkingType: 'סוג חניה', lot: 'מגרש', street: 'רחוב', trailhead: 'תחילת שביל',
+      fee: 'תשלום', free: 'חינם', paid: 'בתשלום', permitRequired: 'נדרש היתר',
+      numPaths: 'מספר שבילים', way2: '2 כיוונים', way3: '3 כיוונים', way4plus: '4+ כיוונים',
+      signage: 'שילוט', clearSigns: 'שילוט ברור', partialSigns: 'שילוט חלקי', noSigns: 'ללא שילוט',
+      handrail: 'מעקה', handrailBoth: 'משני הצדדים', handrailOne: 'צד אחד', handrailNone: 'ללא',
+      altRamp: 'רמפה חלופית', available: 'זמין', notAvailable: 'לא זמין',
+      gateType: 'סוג שער', gate: 'שער', barrier: 'מחסום', bollards: 'עמודונים', turnstile: 'קרוסלה',
+      wheelchairPassable: 'מעבר לכיסא גלגלים',
+      bridgeWidth: 'רוחב גשר', wideBridge: 'רחב', standardBridge: 'סטנדרטי', narrowBridge: 'צר',
+      railings: 'מעקות', railingsBoth: 'משני הצדדים', railingsOne: 'צד אחד', railingsNone: 'ללא',
+      crossingType: 'סוג מעבר', crosswalk: 'מעבר חציה', signal: 'רמזור', unmarked: 'לא מסומן', underpass: 'מעבר תחתון',
+      trafficLevel: 'עומס תנועה', light: 'קל', heavy: 'כבד'
+    } : {};
     
     return `
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <script>
         const map = L.map('map').setView([${bounds ? (bounds.north + bounds.south) / 2 : 0}, ${bounds ? (bounds.east + bounds.west) / 2 : 0}], 14);
-        
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
-        
+
         const pathCoords = [${pathCoords}];
-        
+
+        // Arrays to store toggleable markers
+        const photoMarkers = [];
+        const noteMarkers = [];
+        const poiMarkers = [];
+        let markersVisible = true;
+
+        // Toggle markers visibility function
+        window.toggleMapMarkers = function() {
+            markersVisible = !markersVisible;
+            const btn = document.getElementById('toggleMarkersBtn');
+
+            const allMarkers = [...photoMarkers, ...noteMarkers, ...poiMarkers];
+            allMarkers.forEach(marker => {
+                if (markersVisible) {
+                    marker.addTo(map);
+                } else {
+                    marker.remove();
+                }
+            });
+
+            if (btn) {
+                btn.classList.toggle('markers-hidden', !markersVisible);
+                btn.title = markersVisible ? '${isHebrew ? 'הסתר סמנים' : 'Hide Markers'}' : '${isHebrew ? 'הצג סמנים' : 'Show Markers'}';
+            }
+        };
+
         if (pathCoords.length > 0) {
             const polyline = L.polyline(pathCoords, {
                 color: '#4a7c59',
                 weight: 4,
                 opacity: 0.8
             }).addTo(map);
-            
+
             map.fitBounds(polyline.getBounds(), { padding: [30, 30] });
-            
-            // Start marker
+
+            // Start marker (always visible)
             L.marker([${startCoord?.lat || 0}, ${startCoord?.lng || 0}], {
                 icon: L.divIcon({
                     className: 'custom-marker',
-                    html: '<div style="background:#22c55e;width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;">S</div>',
+                    html: '<div style="background:#22c55e;width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;">${isHebrew ? 'ה' : 'S'}</div>',
                     iconSize: [24, 24],
                     iconAnchor: [12, 12]
                 })
-            }).addTo(map).bindPopup('<strong>🟢 Start</strong>');
-            
-            // End marker
+            }).addTo(map).bindPopup('<strong>🟢 ${isHebrew ? 'התחלה' : 'Start'}</strong>');
+
+            // End marker (always visible)
             L.marker([${endCoord?.lat || 0}, ${endCoord?.lng || 0}], {
                 icon: L.divIcon({
                     className: 'custom-marker',
-                    html: '<div style="background:#ef4444;width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;">E</div>',
+                    html: '<div style="background:#ef4444;width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;">${isHebrew ? 'ס' : 'E'}</div>',
                     iconSize: [24, 24],
                     iconAnchor: [12, 12]
                 })
-            }).addTo(map).bindPopup('<strong>🔴 End</strong>');
-            
+            }).addTo(map).bindPopup('<strong>🔴 ${isHebrew ? 'סיום' : 'End'}</strong>');
+
             // Photo markers
             ${geoPhotos.map(photo => `
-            L.marker([${photo.coords.lat}, ${photo.coords.lng}], {
-                icon: L.divIcon({
-                    className: 'photo-marker',
-                    html: '<div style="background:#3b82f6;width:28px;height:28px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">📷</div>',
-                    iconSize: [28, 28],
-                    iconAnchor: [14, 14]
-                })
-            }).addTo(map).bindPopup('<div style="text-align:center;"><img src="${photo.content || photo.data}" onclick="window.openFullscreenPhoto(this.src)" style="width:200px;max-height:150px;object-fit:cover;border-radius:8px;cursor:pointer;"><p style="margin:8px 0 0;font-size:12px;color:#666;">${photo.timestamp ? new Date(photo.timestamp).toLocaleTimeString() : ''}</p></div>', { maxWidth: 220 });
+            (function() {
+                const marker = L.marker([${photo.coords.lat}, ${photo.coords.lng}], {
+                    icon: L.divIcon({
+                        className: 'photo-marker',
+                        html: '<div style="background:#3b82f6;width:28px;height:28px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">📷</div>',
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    })
+                }).addTo(map).bindPopup('<div style="text-align:center;"><img src="${photo.content || photo.data}" onclick="window.openFullscreenPhoto(this.src)" style="width:200px;max-height:150px;object-fit:cover;border-radius:8px;cursor:pointer;"><p style="margin:8px 0 0;font-size:12px;color:#666;">${photo.timestamp ? new Date(photo.timestamp).toLocaleTimeString() : ''}</p></div>', { maxWidth: 220 });
+                photoMarkers.push(marker);
+            })();
             `).join('')}
-            
+
             // Note markers
             ${geoNotes.map(note => `
-            L.marker([${note.coords.lat}, ${note.coords.lng}], {
-                icon: L.divIcon({
-                    className: 'note-marker',
-                    html: '<div style="background:#f59e0b;width:28px;height:28px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">📝</div>',
-                    iconSize: [28, 28],
-                    iconAnchor: [14, 14]
-                })
-            }).addTo(map).bindPopup('<div style="max-width:200px;"><strong style="color:#92400e;">📝 Note</strong><p style="margin:8px 0 0;font-size:13px;color:#333;">${(note.text || note.content || note.data || '').replace(/'/g, "\\'")}</p></div>');
+            (function() {
+                const marker = L.marker([${note.coords.lat}, ${note.coords.lng}], {
+                    icon: L.divIcon({
+                        className: 'note-marker',
+                        html: '<div style="background:#f59e0b;width:28px;height:28px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">📝</div>',
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    })
+                }).addTo(map).bindPopup('<div style="max-width:200px;${isHebrew ? 'direction:rtl;text-align:right;' : ''}"><strong style="color:#92400e;">📝 ${isHebrew ? 'הערה' : 'Note'}</strong><p style="margin:8px 0 0;font-size:13px;color:#333;">${(note.text || note.content || note.data || '').replace(/'/g, "\\'")}</p></div>');
+                noteMarkers.push(marker);
+            })();
             `).join('')}
 
             // POI Element markers
             ${(poiElements || []).filter(p => p.location).map(poi => {
               const config = poiConfig[poi.type] || { icon: '📍', color: '#666', label: poi.type };
+              const translateField = (key) => fieldTranslations[key] || key;
+              const translateValue = (val) => Array.isArray(val)
+                ? val.map(v => fieldTranslations[v] || v).join(', ')
+                : (fieldTranslations[val] || val);
               const fieldsHtml = poi.fields ? Object.entries(poi.fields)
                 .filter(([k, v]) => v && (Array.isArray(v) ? v.length > 0 : true))
-                .map(([k, v]) => `<div style="font-size:11px;color:#666;">${k}: ${Array.isArray(v) ? v.join(', ') : v}</div>`)
+                .map(([k, v]) => `<div style="font-size:11px;color:#666;${isHebrew ? 'direction:rtl;text-align:right;' : ''}">${translateField(k)}: ${translateValue(v)}</div>`)
                 .join('') : '';
-              const notesHtml = poi.notes ? `<p style="margin-top:6px;font-size:12px;font-style:italic;color:#888;">${poi.notes.replace(/'/g, "\\'")}</p>` : '';
+              const notesHtml = poi.notes ? `<p style="margin-top:6px;font-size:12px;font-style:italic;color:#888;${isHebrew ? 'direction:rtl;text-align:right;' : ''}">${poi.notes.replace(/'/g, "\\'")}</p>` : '';
               const photoHtml = poi.photoDataUrl ? `<img src="${poi.photoDataUrl}" onclick="window.openFullscreenPhoto(this.src)" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-top:8px;cursor:pointer;" alt="${config.label}">` : '';
               return `
-            L.marker([${poi.location.lat}, ${poi.location.lng}], {
-                icon: L.divIcon({
-                    className: 'poi-marker',
-                    html: '<div style="background:${config.color};width:28px;height:28px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">${config.icon}</div>',
-                    iconSize: [28, 28],
-                    iconAnchor: [14, 14]
-                })
-            }).addTo(map).bindPopup('<div style="max-width:220px;"><strong style="color:${config.color};">${config.icon} ${config.label}</strong>${fieldsHtml}${notesHtml}${photoHtml}</div>', { maxWidth: 250 });
+            (function() {
+                const marker = L.marker([${poi.location.lat}, ${poi.location.lng}], {
+                    icon: L.divIcon({
+                        className: 'poi-marker',
+                        html: '<div style="background:${config.color};width:28px;height:28px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">${config.icon}</div>',
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    })
+                }).addTo(map).bindPopup('<div style="max-width:220px;${isHebrew ? 'direction:rtl;text-align:right;' : ''}"><strong style="color:${config.color};">${config.icon} ${config.label}</strong>${fieldsHtml}${notesHtml}${photoHtml}</div>', { maxWidth: 250 });
+                poiMarkers.push(marker);
+            })();
             `;
             }).join('')}
         }
@@ -2422,11 +2497,40 @@ export class TrailGuideGeneratorV2 {
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
         }
-        
+
         #map {
             height: 100%;
             width: 100%;
+        }
+
+        .tg-map-toggle-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #ccc;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+
+        .tg-map-toggle-btn:hover {
+            background: #f0f0f0;
+            border-color: #999;
+        }
+
+        .tg-map-toggle-btn.markers-hidden {
+            opacity: 0.5;
         }
         
         .tg-map-hint {

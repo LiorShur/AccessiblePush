@@ -1221,6 +1221,21 @@ textarea:focus-visible,
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18V4c4.41 0 8 3.59 8 8s-3.59 8-8 8z"/>
       </svg>
     </button>
+
+    <!-- Toggle Map Markers Visibility -->
+    <button id="toggleMarkersBtn" title="Toggle Markers" aria-label="Toggle map markers visibility" style="
+      width: 44px; height: 44px;
+      background: rgba(26, 26, 26, 0.95);
+      border: 1px solid #333;
+      border-radius: 50%;
+      color: white; font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    ">
+      <svg id="toggleMarkersIcon" width="22" height="22" viewBox="0 0 24 24" fill="white">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      </svg>
+    </button>
   </div>
 
   <!-- ============================================
@@ -2368,7 +2383,57 @@ textarea:focus-visible,
       try { if (navigator.vibrate) navigator.vibrate(10); } catch(e) {}
     });
   })();
-  
+
+  // ===== TOGGLE MAP MARKERS VISIBILITY =====
+  (function() {
+    const toggleMarkersBtn = document.getElementById('toggleMarkersBtn');
+    const toggleMarkersIcon = document.getElementById('toggleMarkersIcon');
+    let markersVisible = true;
+
+    function updateToggleBtn() {
+      if (toggleMarkersBtn) {
+        toggleMarkersBtn.style.opacity = markersVisible ? '1' : '0.5';
+        toggleMarkersBtn.title = markersVisible ? 'Hide Markers' : 'Show Markers';
+      }
+    }
+
+    updateToggleBtn();
+
+    toggleMarkersBtn?.addEventListener('click', function() {
+      markersVisible = !markersVisible;
+      updateToggleBtn();
+
+      // Toggle POI elements markers
+      const poiController = window.AccessNatureApp?.controllers?.poiElements;
+      if (poiController?.markerLayer) {
+        if (markersVisible) {
+          poiController.markerLayer.addTo(poiController.map);
+        } else {
+          poiController.markerLayer.remove();
+        }
+      }
+
+      // Toggle route data markers (photos, notes) from tracking controller
+      const trackingController = window.AccessNatureApp?.controllers?.tracking;
+      if (trackingController?.routeMarkers) {
+        trackingController.routeMarkers.forEach(marker => {
+          if (markersVisible) {
+            marker.addTo(trackingController.map);
+          } else {
+            marker.remove();
+          }
+        });
+      }
+
+      // Dispatch event for other components to listen
+      window.dispatchEvent(new CustomEvent('markersVisibilityChanged', {
+        detail: { visible: markersVisible }
+      }));
+
+      try { if (navigator.vibrate) navigator.vibrate(10); } catch(e) {}
+    });
+  })();
+
   // ===== REAL-TIME ELEVATION DISPLAY =====
   (function() {
     const elevationValue = document.getElementById('elevationValue');

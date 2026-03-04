@@ -85,7 +85,7 @@ body.has-bottom-nav .poi-fab {
 .poi-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9000;
+  z-index: 99998;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -326,7 +326,7 @@ body.has-bottom-nav .poi-fab {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  z-index: 3500;
+  z-index: 99998;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s;
@@ -344,7 +344,7 @@ body.has-bottom-nav .poi-fab {
   right: 0;
   background: var(--poi-surface);
   border-radius: 20px 20px 0 0;
-  z-index: 3501;
+  z-index: 99999;
   transform: translateY(100%);
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   max-height: 85vh;
