@@ -734,7 +734,67 @@ export class POIElementsManager {
     this.elements = [];
     this.markers.forEach(m => this.markerLayer.removeLayer(m));
     this.markers = [];
-    this.saveToStorage();
+    // Remove from localStorage completely instead of saving empty array
+    const key = this.routeId ? `poi_elements_${this.routeId}` : 'poi_elements_temp';
+    try {
+      localStorage.removeItem(key);
+      console.log(`[POIElements] Cleared storage key: ${key}`);
+    } catch (e) {
+      console.warn('[POIElements] Failed to clear storage:', e);
+    }
+  }
+
+  /**
+   * Clear all POI data from localStorage (static utility)
+   * Clears all poi_elements_* keys
+   */
+  static clearAllStoredData() {
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('poi_elements_')) {
+        keysToRemove.push(key);
+      }
+    }
+
+    let totalSize = 0;
+    keysToRemove.forEach(key => {
+      const data = localStorage.getItem(key);
+      if (data) totalSize += data.length;
+      localStorage.removeItem(key);
+    });
+
+    const freedKB = Math.round(totalSize / 1024);
+    console.log(`[POIElements] Cleared ${keysToRemove.length} storage keys, freed ~${freedKB}KB`);
+    return { keysCleared: keysToRemove.length, freedBytes: totalSize };
+  }
+
+  /**
+   * Get storage usage info
+   */
+  static getStorageInfo() {
+    let totalSize = 0;
+    let count = 0;
+    const keys = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('poi_elements_')) {
+        const data = localStorage.getItem(key);
+        if (data) {
+          totalSize += data.length;
+          count++;
+          keys.push({ key, size: data.length });
+        }
+      }
+    }
+
+    return {
+      totalBytes: totalSize,
+      totalKB: Math.round(totalSize / 1024),
+      count,
+      keys
+    };
   }
 
   /**
@@ -769,3 +829,21 @@ export class POIElementsManager {
 
 // Export singleton instance
 export const poiElements = new POIElementsManager();
+
+// Make utilities available globally for console access
+if (typeof window !== 'undefined') {
+  window.clearPOIStorage = () => {
+    const result = POIElementsManager.clearAllStoredData();
+    console.log(`✅ Cleared ${result.keysCleared} POI storage entries, freed ~${Math.round(result.freedBytes / 1024)}KB`);
+    return result;
+  };
+
+  window.getPOIStorageInfo = () => {
+    const info = POIElementsManager.getStorageInfo();
+    console.log(`📊 POI Storage: ${info.count} entries, ~${info.totalKB}KB total`);
+    if (info.keys.length > 0) {
+      console.table(info.keys.map(k => ({ key: k.key, sizeKB: Math.round(k.size / 1024) })));
+    }
+    return info;
+  };
+}
