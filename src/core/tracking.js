@@ -812,6 +812,9 @@ async saveRoute(skipSurveyPrompt = false) {
       date: new Date().toISOString()
     };
 
+    // Capture POI elements before they get cleared
+    const poiElementsData = window.AccessNatureApp?.controllers?.poiElements?.getElements?.() || [];
+
     // Save to local storage first (for route history)
     const savedSession = await this.appState.saveSession(routeName);
     
@@ -832,11 +835,12 @@ async saveRoute(skipSurveyPrompt = false) {
         routeData: routeData,
         routeInfo: routeInfo,
         accessibilityData: accessibilityData,
+        poiElements: poiElementsData,
         name: routeName,
         totalDistance: routeInfo.totalDistance,
         elapsedTime: routeInfo.elapsedTime
       };
-      
+
       const result = await offlineSync.saveRoute(pendingData, null);
       pendingLocalId = result.localId;
       console.log('✅ Route saved to pending queue with ID:', pendingLocalId);
@@ -868,6 +872,7 @@ async saveRoute(skipSurveyPrompt = false) {
               routeData: routeData,
               routeInfo: routeInfo,
               accessibilityData: accessibilityData,
+              poiElements: poiElementsData,
               name: routeName,
               totalDistance: routeInfo.totalDistance,
               elapsedTime: routeInfo.elapsedTime
@@ -884,6 +889,7 @@ async saveRoute(skipSurveyPrompt = false) {
             routeData: routeData,
             routeInfo: routeInfo,
             accessibilityData: accessibilityData,
+            poiElements: poiElementsData,
             name: routeName,
             totalDistance: routeInfo.totalDistance,
             elapsedTime: routeInfo.elapsedTime

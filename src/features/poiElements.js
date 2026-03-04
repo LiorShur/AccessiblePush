@@ -175,11 +175,62 @@ export class POIElementsManager {
     this.bottomSheet.id = 'poiBottomSheet';
     this.bottomSheet.className = 'poi-bottom-sheet';
 
+    // Create fullscreen photo modal
+    this.fullscreenModal = document.createElement('div');
+    this.fullscreenModal.id = 'poiFullscreenModal';
+    this.fullscreenModal.className = 'poi-fullscreen-modal';
+    this.fullscreenModal.innerHTML = `
+      <button class="poi-fullscreen-close" aria-label="Close">×</button>
+      <img class="poi-fullscreen-img" src="" alt="Full size photo">
+    `;
+
     // Append to body
     document.body.appendChild(this.fabButton);
     document.body.appendChild(this.overlay);
     document.body.appendChild(this.sheetBackdrop);
     document.body.appendChild(this.bottomSheet);
+    document.body.appendChild(this.fullscreenModal);
+
+    // Setup fullscreen modal events
+    this.setupFullscreenModal();
+  }
+
+  /**
+   * Setup fullscreen photo modal
+   */
+  setupFullscreenModal() {
+    const modal = this.fullscreenModal;
+    const img = modal.querySelector('.poi-fullscreen-img');
+    const closeBtn = modal.querySelector('.poi-fullscreen-close');
+
+    // Global function for opening from popup onclick
+    window.openPOIFullscreenPhoto = (src) => {
+      img.src = src;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    // Close on button click
+    closeBtn.addEventListener('click', () => {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
+
+    // Close on ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
   }
 
   /**
@@ -656,9 +707,9 @@ export class POIElementsManager {
       });
     }
 
-    // Photo section
+    // Photo section - clickable for fullscreen
     const photoHtml = element.photoDataUrl
-      ? `<div class="poi-popup-photo"><img src="${element.photoDataUrl}" alt="${title}" /></div>`
+      ? `<div class="poi-popup-photo"><img src="${element.photoDataUrl}" alt="${title}" onclick="window.openPOIFullscreenPhoto && window.openPOIFullscreenPhoto(this.src)" style="cursor:pointer;" /></div>`
       : '';
 
     return `
