@@ -2413,12 +2413,12 @@ textarea:focus-visible,
         }
       }
 
-      // Toggle route data markers (photos, notes) from tracking controller
-      const trackingController = window.AccessNatureApp?.controllers?.tracking;
-      if (trackingController?.routeMarkers) {
-        trackingController.routeMarkers.forEach(marker => {
+      // Toggle route data markers (photos, notes) from map controller
+      const mapController = window.AccessNatureApp?.controllers?.map;
+      if (mapController?.routeMarkers) {
+        mapController.routeMarkers.forEach(marker => {
           if (markersVisible) {
-            marker.addTo(trackingController.map);
+            marker.addTo(mapController.map);
           } else {
             marker.remove();
           }

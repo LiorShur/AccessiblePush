@@ -57,13 +57,21 @@ export class MediaController {
 
       const compressedImage = await this.compressImage(file, 0.7);
 
-      this.appState.addRoutePoint({
+      const photoEntry = {
         type: 'photo',
         coords: coords,
         content: compressedImage,
         timestamp: Date.now(),
         originalSize: file.size
-      });
+      };
+
+      this.appState.addRoutePoint(photoEntry);
+
+      // Add marker to map in real-time
+      const mapController = window.AccessNatureApp?.getController('map');
+      if (mapController?.addPhotoMarker) {
+        mapController.addPhotoMarker(photoEntry);
+      }
 
       toast.successKey('photoCaptured');
       
@@ -97,12 +105,20 @@ export class MediaController {
         lng: position.coords.longitude
       };
 
-      this.appState.addRoutePoint({
+      const noteEntry = {
         type: 'text',
         coords: coords,
         content: note.trim(),
         timestamp: Date.now()
-      });
+      };
+
+      this.appState.addRoutePoint(noteEntry);
+
+      // Add marker to map in real-time
+      const mapController = window.AccessNatureApp?.getController('map');
+      if (mapController?.addNoteMarker) {
+        mapController.addNoteMarker(noteEntry);
+      }
 
       toast.successKey('noteAddedSuccess');
     } catch (error) {

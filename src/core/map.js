@@ -327,6 +327,55 @@ export class MapController {
     console.log('🧹 Route display cleared');
   }
 
+  // Add a single photo marker to the map (real-time during tracking)
+  addPhotoMarker(entry) {
+    if (!this.map || !entry.coords) return null;
+
+    const icon = L.divIcon({
+      html: '📷',
+      iconSize: [30, 30],
+      className: 'custom-div-icon photo-marker'
+    });
+
+    const photoMarker = L.marker([entry.coords.lat, entry.coords.lng], { icon })
+      .addTo(this.map)
+      .bindPopup(`
+        <div style="text-align: center;">
+          <img src="${entry.content}" onclick="window.openFullscreenPhoto && window.openFullscreenPhoto(this.src)" style="width:200px; max-height:150px; object-fit:cover; border-radius:8px; cursor:pointer;">
+          <br><small>${new Date(entry.timestamp).toLocaleString()}</small>
+        </div>
+      `);
+
+    this.routeMarkers.push(photoMarker);
+    console.log('📷 Photo marker added to map');
+    return photoMarker;
+  }
+
+  // Add a single note marker to the map (real-time during tracking)
+  addNoteMarker(entry) {
+    if (!this.map || !entry.coords) return null;
+
+    const icon = L.divIcon({
+      html: '📝',
+      iconSize: [30, 30],
+      className: 'custom-div-icon note-marker'
+    });
+
+    const noteMarker = L.marker([entry.coords.lat, entry.coords.lng], { icon })
+      .addTo(this.map)
+      .bindPopup(`
+        <div style="max-width: 200px;">
+          <strong>Note:</strong><br>
+          ${entry.content}<br>
+          <small>${new Date(entry.timestamp).toLocaleString()}</small>
+        </div>
+      `);
+
+    this.routeMarkers.push(noteMarker);
+    console.log('📝 Note marker added to map');
+    return noteMarker;
+  }
+
   // NEW: Clear just the route line (keep markers)
   clearRoute() {
     this.routePolylines.forEach(polyline => {
