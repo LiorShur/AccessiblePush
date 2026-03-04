@@ -832,8 +832,8 @@ export class TrailGuideGeneratorV2 {
             }
         }
 
-        // Fullscreen photo modal
-        function openFullscreenPhoto(src) {
+        // Fullscreen photo modal - make globally accessible for Leaflet popups
+        window.openFullscreenPhoto = function(src) {
             const modal = document.getElementById('fullscreenPhotoModal');
             const img = document.getElementById('fullscreenPhotoImg');
             img.src = src;
@@ -841,7 +841,7 @@ export class TrailGuideGeneratorV2 {
             document.body.style.overflow = 'hidden';
         }
 
-        function closeFullscreenPhoto() {
+        window.closeFullscreenPhoto = function() {
             const modal = document.getElementById('fullscreenPhotoModal');
             modal.classList.remove('active');
             document.body.style.overflow = '';
@@ -849,13 +849,13 @@ export class TrailGuideGeneratorV2 {
 
         // Close on background click or ESC
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeFullscreenPhoto();
+            if (e.key === 'Escape') window.closeFullscreenPhoto();
         });
     </script>
 
     <!-- Fullscreen Photo Modal -->
-    <div id="fullscreenPhotoModal" class="fullscreen-photo-modal" onclick="if(event.target === this) closeFullscreenPhoto()">
-        <button class="fullscreen-photo-close" onclick="closeFullscreenPhoto()" aria-label="Close">×</button>
+    <div id="fullscreenPhotoModal" class="fullscreen-photo-modal" onclick="if(event.target === this) window.closeFullscreenPhoto()">
+        <button class="fullscreen-photo-close" onclick="window.closeFullscreenPhoto()" aria-label="Close">×</button>
         <img id="fullscreenPhotoImg" class="fullscreen-photo-img" src="" alt="Full size photo">
     </div>
 </body>
@@ -2002,7 +2002,7 @@ export class TrailGuideGeneratorV2 {
                     iconSize: [28, 28],
                     iconAnchor: [14, 14]
                 })
-            }).addTo(map).bindPopup('<div style="text-align:center;"><img src="${photo.content || photo.data}" onclick="openFullscreenPhoto(this.src)" style="width:200px;max-height:150px;object-fit:cover;border-radius:8px;cursor:pointer;"><p style="margin:8px 0 0;font-size:12px;color:#666;">${photo.timestamp ? new Date(photo.timestamp).toLocaleTimeString() : ''}</p></div>', { maxWidth: 220 });
+            }).addTo(map).bindPopup('<div style="text-align:center;"><img src="${photo.content || photo.data}" onclick="window.openFullscreenPhoto(this.src)" style="width:200px;max-height:150px;object-fit:cover;border-radius:8px;cursor:pointer;"><p style="margin:8px 0 0;font-size:12px;color:#666;">${photo.timestamp ? new Date(photo.timestamp).toLocaleTimeString() : ''}</p></div>', { maxWidth: 220 });
             `).join('')}
             
             // Note markers
@@ -2025,7 +2025,7 @@ export class TrailGuideGeneratorV2 {
                 .map(([k, v]) => `<div style="font-size:11px;color:#666;">${k}: ${Array.isArray(v) ? v.join(', ') : v}</div>`)
                 .join('') : '';
               const notesHtml = poi.notes ? `<p style="margin-top:6px;font-size:12px;font-style:italic;color:#888;">${poi.notes.replace(/'/g, "\\'")}</p>` : '';
-              const photoHtml = poi.photoDataUrl ? `<img src="${poi.photoDataUrl}" onclick="openFullscreenPhoto(this.src)" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-top:8px;cursor:pointer;" alt="${config.label}">` : '';
+              const photoHtml = poi.photoDataUrl ? `<img src="${poi.photoDataUrl}" onclick="window.openFullscreenPhoto(this.src)" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-top:8px;cursor:pointer;" alt="${config.label}">` : '';
               return `
             L.marker([${poi.location.lat}, ${poi.location.lng}], {
                 icon: L.divIcon({
