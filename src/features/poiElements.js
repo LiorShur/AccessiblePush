@@ -485,12 +485,46 @@ export class POIElementsManager {
   }
 
   /**
-   * Convert file to base64 data URL
+   * Convert file to compressed base64 data URL
+   * Resizes and compresses images to reduce storage size
    */
   fileToBase64(file) {
     return new Promise((resolve, reject) => {
+      const img = new Image();
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
+
+      reader.onload = (e) => {
+        img.onload = () => {
+          // Max dimensions for compressed image
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          const QUALITY = 0.7;
+
+          let { width, height } = img;
+
+          // Calculate new dimensions maintaining aspect ratio
+          if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+            const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+
+          // Create canvas and draw resized image
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to compressed JPEG
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', QUALITY);
+          resolve(compressedDataUrl);
+        };
+
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
