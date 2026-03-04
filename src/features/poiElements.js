@@ -175,11 +175,62 @@ export class POIElementsManager {
     this.bottomSheet.id = 'poiBottomSheet';
     this.bottomSheet.className = 'poi-bottom-sheet';
 
+    // Create fullscreen photo modal
+    this.fullscreenModal = document.createElement('div');
+    this.fullscreenModal.id = 'poiFullscreenModal';
+    this.fullscreenModal.className = 'poi-fullscreen-modal';
+    this.fullscreenModal.innerHTML = `
+      <button class="poi-fullscreen-close" aria-label="Close">×</button>
+      <img class="poi-fullscreen-img" src="" alt="Full size photo">
+    `;
+
     // Append to body
     document.body.appendChild(this.fabButton);
     document.body.appendChild(this.overlay);
     document.body.appendChild(this.sheetBackdrop);
     document.body.appendChild(this.bottomSheet);
+    document.body.appendChild(this.fullscreenModal);
+
+    // Setup fullscreen modal events
+    this.setupFullscreenModal();
+  }
+
+  /**
+   * Setup fullscreen photo modal
+   */
+  setupFullscreenModal() {
+    const modal = this.fullscreenModal;
+    const img = modal.querySelector('.poi-fullscreen-img');
+    const closeBtn = modal.querySelector('.poi-fullscreen-close');
+
+    // Global function for opening from popup onclick
+    window.openPOIFullscreenPhoto = (src) => {
+      img.src = src;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    // Close on button click
+    closeBtn.addEventListener('click', () => {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
+
+    // Close on ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
   }
 
   /**
@@ -656,9 +707,9 @@ export class POIElementsManager {
       });
     }
 
-    // Photo section
+    // Photo section - clickable for fullscreen
     const photoHtml = element.photoDataUrl
-      ? `<div class="poi-popup-photo"><img src="${element.photoDataUrl}" alt="${title}" /></div>`
+      ? `<div class="poi-popup-photo"><img src="${element.photoDataUrl}" alt="${title}" onclick="window.openPOIFullscreenPhoto && window.openPOIFullscreenPhoto(this.src)" style="cursor:pointer;" /></div>`
       : '';
 
     return `
@@ -734,7 +785,67 @@ export class POIElementsManager {
     this.elements = [];
     this.markers.forEach(m => this.markerLayer.removeLayer(m));
     this.markers = [];
-    this.saveToStorage();
+    // Remove from localStorage completely instead of saving empty array
+    const key = this.routeId ? `poi_elements_${this.routeId}` : 'poi_elements_temp';
+    try {
+      localStorage.removeItem(key);
+      console.log(`[POIElements] Cleared storage key: ${key}`);
+    } catch (e) {
+      console.warn('[POIElements] Failed to clear storage:', e);
+    }
+  }
+
+  /**
+   * Clear all POI data from localStorage (static utility)
+   * Clears all poi_elements_* keys
+   */
+  static clearAllStoredData() {
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('poi_elements_')) {
+        keysToRemove.push(key);
+      }
+    }
+
+    let totalSize = 0;
+    keysToRemove.forEach(key => {
+      const data = localStorage.getItem(key);
+      if (data) totalSize += data.length;
+      localStorage.removeItem(key);
+    });
+
+    const freedKB = Math.round(totalSize / 1024);
+    console.log(`[POIElements] Cleared ${keysToRemove.length} storage keys, freed ~${freedKB}KB`);
+    return { keysCleared: keysToRemove.length, freedBytes: totalSize };
+  }
+
+  /**
+   * Get storage usage info
+   */
+  static getStorageInfo() {
+    let totalSize = 0;
+    let count = 0;
+    const keys = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('poi_elements_')) {
+        const data = localStorage.getItem(key);
+        if (data) {
+          totalSize += data.length;
+          count++;
+          keys.push({ key, size: data.length });
+        }
+      }
+    }
+
+    return {
+      totalBytes: totalSize,
+      totalKB: Math.round(totalSize / 1024),
+      count,
+      keys
+    };
   }
 
   /**
@@ -769,3 +880,21 @@ export class POIElementsManager {
 
 // Export singleton instance
 export const poiElements = new POIElementsManager();
+
+// Make utilities available globally for console access
+if (typeof window !== 'undefined') {
+  window.clearPOIStorage = () => {
+    const result = POIElementsManager.clearAllStoredData();
+    console.log(`✅ Cleared ${result.keysCleared} POI storage entries, freed ~${Math.round(result.freedBytes / 1024)}KB`);
+    return result;
+  };
+
+  window.getPOIStorageInfo = () => {
+    const info = POIElementsManager.getStorageInfo();
+    console.log(`📊 POI Storage: ${info.count} entries, ~${info.totalKB}KB total`);
+    if (info.keys.length > 0) {
+      console.table(info.keys.map(k => ({ key: k.key, sizeKB: Math.round(k.size / 1024) })));
+    }
+    return info;
+  };
+}

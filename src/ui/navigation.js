@@ -243,4 +243,102 @@ formatBytes(bytes) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
+
+/**
+ * View a saved route on the map with its POI elements
+ */
+async viewRouteOnMap(route) {
+  try {
+    const app = window.AccessNatureApp;
+    const mapController = app?.getController('map');
+    const poiController = app?.controllers?.poiElements;
+
+    if (!mapController) {
+      toast.error('Map not available');
+      return;
+    }
+
+    // Clear existing route display
+    if (mapController.clearRoute) {
+      mapController.clearRoute();
+    }
+
+    // Display the route on the map
+    if (route.data && route.data.length > 0) {
+      // Draw route polyline
+      const coords = route.data
+        .filter(p => p.coords)
+        .map(p => [p.coords.lat, p.coords.lng]);
+
+      if (coords.length > 0 && mapController.map) {
+        // Remove existing route layer if any
+        if (this._viewedRouteLayer) {
+          mapController.map.removeLayer(this._viewedRouteLayer);
+        }
+
+        // Draw route polyline
+        this._viewedRouteLayer = L.polyline(coords, {
+          color: '#4a7c59',
+          weight: 4,
+          opacity: 0.8
+        }).addTo(mapController.map);
+
+        // Fit map to route bounds
+        mapController.map.fitBounds(this._viewedRouteLayer.getBounds(), { padding: [50, 50] });
+
+        // Add start/end markers
+        if (coords.length >= 2) {
+          L.marker(coords[0], {
+            icon: L.divIcon({
+              className: 'custom-marker',
+              html: '<div style="background:#22c55e;width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;">S</div>',
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            })
+          }).addTo(mapController.map).bindPopup('<strong>🟢 Start</strong>');
+
+          L.marker(coords[coords.length - 1], {
+            icon: L.divIcon({
+              className: 'custom-marker',
+              html: '<div style="background:#ef4444;width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;">E</div>',
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            })
+          }).addTo(mapController.map).bindPopup('<strong>🔴 End</strong>');
+        }
+      }
+    }
+
+    // Load POI elements if available
+    if (poiController && route.poiElements && route.poiElements.length > 0) {
+      // Clear existing POI elements
+      poiController.clearElements();
+
+      // Add each POI element
+      route.poiElements.forEach(element => {
+        poiController.elements.push(element);
+        poiController.addMarker(element);
+      });
+
+      console.log(`✅ Loaded ${route.poiElements.length} POI elements for route`);
+    }
+
+    toast.success(`Viewing: ${route.name}`);
+  } catch (error) {
+    console.error('❌ Failed to view route:', error);
+    toast.error('Failed to display route');
+  }
+}
+
+/**
+ * Show all routes in a list view
+ */
+showAllRoutes(routes) {
+  // Sort by date, newest first
+  const sortedRoutes = [...routes].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  sortedRoutes.forEach(route => {
+    this.manageRoute(route);
+  });
+}
 }
