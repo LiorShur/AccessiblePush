@@ -438,6 +438,8 @@ export class TrailGuideGeneratorV2 {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${routeInfo.name} - ${t('trailGuide')}</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         ${this.getStyles(isRTL)}
@@ -1991,12 +1993,22 @@ export class TrailGuideGeneratorV2 {
     
     return `
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script>
         const map = L.map('map').setView([${bounds ? (bounds.north + bounds.south) / 2 : 0}, ${bounds ? (bounds.east + bounds.west) / 2 : 0}], 14);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
+
+        // Initialize marker cluster group for trail guide markers
+        const markerCluster = L.markerClusterGroup({
+            maxClusterRadius: 50,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            disableClusteringAtZoom: 17
+        });
 
         const pathCoords = [${pathCoords}];
 
@@ -2055,7 +2067,7 @@ export class TrailGuideGeneratorV2 {
                 })
             }).addTo(map).bindPopup('<strong>🔴 ${isHebrew ? 'סיום' : 'End'}</strong>');
 
-            // Photo markers
+            // Photo markers (added to cluster)
             ${geoPhotos.map(photo => `
             (function() {
                 const marker = L.marker([${photo.coords.lat}, ${photo.coords.lng}], {
@@ -2065,12 +2077,13 @@ export class TrailGuideGeneratorV2 {
                         iconSize: [28, 28],
                         iconAnchor: [14, 14]
                     })
-                }).addTo(map).bindPopup('<div style="text-align:center;"><img src="${photo.content || photo.data}" onclick="window.openFullscreenPhoto(this.src)" style="width:200px;max-height:150px;object-fit:cover;border-radius:8px;cursor:pointer;"><p style="margin:8px 0 0;font-size:12px;color:#666;">${photo.timestamp ? new Date(photo.timestamp).toLocaleTimeString() : ''}</p></div>', { maxWidth: 220 });
+                }).bindPopup('<div style="text-align:center;"><img src="${photo.content || photo.data}" onclick="window.openFullscreenPhoto(this.src)" style="width:200px;max-height:150px;object-fit:cover;border-radius:8px;cursor:pointer;"><p style="margin:8px 0 0;font-size:12px;color:#666;">${photo.timestamp ? new Date(photo.timestamp).toLocaleTimeString() : ''}</p></div>', { maxWidth: 220 });
+                markerCluster.addLayer(marker);
                 photoMarkers.push(marker);
             })();
             `).join('')}
 
-            // Note markers
+            // Note markers (added to cluster)
             ${geoNotes.map(note => `
             (function() {
                 const marker = L.marker([${note.coords.lat}, ${note.coords.lng}], {
@@ -2080,12 +2093,13 @@ export class TrailGuideGeneratorV2 {
                         iconSize: [28, 28],
                         iconAnchor: [14, 14]
                     })
-                }).addTo(map).bindPopup('<div style="max-width:200px;${isHebrew ? 'direction:rtl;text-align:right;' : ''}"><strong style="color:#92400e;">📝 ${isHebrew ? 'הערה' : 'Note'}</strong><p style="margin:8px 0 0;font-size:13px;color:#333;">${(note.text || note.content || note.data || '').replace(/'/g, "\\'")}</p></div>');
+                }).bindPopup('<div style="max-width:200px;${isHebrew ? 'direction:rtl;text-align:right;' : ''}"><strong style="color:#92400e;">📝 ${isHebrew ? 'הערה' : 'Note'}</strong><p style="margin:8px 0 0;font-size:13px;color:#333;">${(note.text || note.content || note.data || '').replace(/'/g, "\\'")}</p></div>');
+                markerCluster.addLayer(marker);
                 noteMarkers.push(marker);
             })();
             `).join('')}
 
-            // POI Element markers
+            // POI Element markers (added to cluster)
             ${(poiElements || []).filter(p => p.location).map(poi => {
               const config = poiConfig[poi.type] || { icon: '📍', color: '#666', label: poi.type };
               const translateField = (key) => fieldTranslations[key] || key;
@@ -2107,11 +2121,15 @@ export class TrailGuideGeneratorV2 {
                         iconSize: [28, 28],
                         iconAnchor: [14, 14]
                     })
-                }).addTo(map).bindPopup('<div style="max-width:220px;${isHebrew ? 'direction:rtl;text-align:right;' : ''}"><strong style="color:${config.color};">${config.icon} ${config.label}</strong>${fieldsHtml}${notesHtml}${photoHtml}</div>', { maxWidth: 250 });
+                }).bindPopup('<div style="max-width:220px;${isHebrew ? 'direction:rtl;text-align:right;' : ''}"><strong style="color:${config.color};">${config.icon} ${config.label}</strong>${fieldsHtml}${notesHtml}${photoHtml}</div>', { maxWidth: 250 });
+                markerCluster.addLayer(marker);
                 poiMarkers.push(marker);
             })();
             `;
             }).join('')}
+
+            // Add the cluster group to the map
+            map.addLayer(markerCluster);
         }
     </script>`;
   }

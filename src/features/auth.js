@@ -1228,6 +1228,19 @@ async loadCloudRouteData(route) {
         console.warn('⚠️ Map controller showRouteData method not available');
       }
 
+      // Load POI elements if available
+      const poiElementsData = route.poiElements || route.poiElementsData;
+      if (poiElementsData && Array.isArray(poiElementsData) && poiElementsData.length > 0) {
+        const poiController = app?.getController('poiElements');
+        if (poiController && typeof poiController.loadElements === 'function') {
+          console.log(`📍 Loading ${poiElementsData.length} POI elements...`);
+          poiController.loadElements(poiElementsData);
+          console.log('✅ POI elements loaded');
+        } else {
+          console.warn('⚠️ POI controller not available for loading elements');
+        }
+      }
+
       this.showSuccessMessage(`✅ "${route.routeName}" loaded from cloud!`);
       console.log('✅ Cloud route loaded successfully:', route.routeName);
       
@@ -1416,6 +1429,17 @@ async updateUserStats() {
     if (mapController) {
       console.log('🗺️ Displaying cloud route on map...');
       mapController.showRouteData(route.routeData);
+    }
+
+    // Load POI elements if available
+    const poiElementsData = route.poiElements || route.poiElementsData;
+    if (poiElementsData && Array.isArray(poiElementsData) && poiElementsData.length > 0) {
+      const poiController = app?.getController('poiElements');
+      if (poiController && typeof poiController.loadElements === 'function') {
+        console.log(`📍 Loading ${poiElementsData.length} POI elements...`);
+        poiController.loadElements(poiElementsData);
+        console.log('✅ POI elements loaded');
+      }
     }
 
     toast.successKey('routeLoadedSuccess');
