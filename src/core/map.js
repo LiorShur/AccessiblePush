@@ -7,6 +7,7 @@ export class MapController {
     this.marker = null;
     this.routePolylines = [];
     this.routeMarkers = []; // Add this to track all route markers
+    this.markerClusterGroup = null; // Cluster group for route markers
     this.currentLayer = null;
     this.layers = {};
     this.currentLayerName = 'street';
@@ -44,8 +45,135 @@ export class MapController {
       .addTo(this.map)
       .bindPopup("Current Location");
 
+    // Initialize marker cluster group for route markers (photos, notes, saved routes, trail guides)
+    this.initializeMarkerCluster();
+
     await this.getCurrentLocation();
-    console.log('✅ Map controller initialized with layer switching support');
+    console.log('✅ Map controller initialized with layer switching and clustering support');
+  }
+
+  /**
+   * Initialize marker cluster group for route markers
+   */
+  initializeMarkerCluster() {
+    // Check if L.markerClusterGroup is available
+    if (typeof L.markerClusterGroup !== 'function') {
+      console.warn('⚠️ MarkerCluster plugin not loaded, markers will not be clustered');
+      return;
+    }
+
+    this.markerClusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 50,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: false, // Handle custom click behavior
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount();
+        let sizeClass = 'cluster-small';
+        if (count > 10) sizeClass = 'cluster-large';
+        else if (count > 5) sizeClass = 'cluster-medium';
+
+        return L.divIcon({
+          html: `<div class="tracker-cluster ${sizeClass}">${count}</div>`,
+          className: 'marker-cluster-custom',
+          iconSize: L.point(40, 40)
+        });
+      }
+    });
+
+    // Handle cluster clicks - show list of items
+    this.markerClusterGroup.on('clusterclick', (e) => {
+      const cluster = e.layer;
+      const markers = cluster.getAllChildMarkers();
+      this.showClusteredMarkersPopup(markers, e.latlng);
+    });
+
+    this.map.addLayer(this.markerClusterGroup);
+
+    // Add cluster styles
+    this.addClusterStyles();
+    console.log('✅ Marker cluster initialized');
+  }
+
+  /**
+   * Add CSS styles for marker clusters
+   */
+  addClusterStyles() {
+    if (document.getElementById('tracker-cluster-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'tracker-cluster-styles';
+    style.textContent = `
+      .marker-cluster-custom {
+        background: transparent;
+      }
+      .tracker-cluster {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        color: white;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        background: #4CAF50;
+      }
+      .tracker-cluster.cluster-medium {
+        width: 50px;
+        height: 50px;
+        font-size: 15px;
+        background: #f59e0b;
+      }
+      .tracker-cluster.cluster-large {
+        width: 60px;
+        height: 60px;
+        font-size: 16px;
+        background: #ef4444;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  /**
+   * Show popup with list of clustered markers
+   */
+  showClusteredMarkersPopup(markers, latlng) {
+    const items = markers.map(m => m.markerData || { type: 'unknown', content: '' });
+
+    const content = `
+      <div style="max-width: 280px;">
+        <h3 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">
+          📍 ${markers.length} items at this location
+        </h3>
+        <div style="max-height: 250px; overflow-y: auto;">
+          ${items.map((item, idx) => {
+            const icon = item.type === 'photo' ? '📷' : item.type === 'text' ? '📝' : '📍';
+            const label = item.type === 'photo' ? 'Photo' : item.type === 'text' ? 'Note' : 'Location';
+            const preview = item.type === 'text' ? item.content?.substring(0, 50) + (item.content?.length > 50 ? '...' : '') : '';
+            const time = item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : '';
+
+            return `
+              <div style="padding: 8px; border-bottom: 1px solid #e5e7eb; cursor: pointer;"
+                   onclick="this.closest('.leaflet-popup').querySelector('.leaflet-popup-close-button').click(); document.querySelectorAll('.leaflet-marker-icon')[${idx}]?.click();">
+                <div style="font-weight: 600; font-size: 13px; margin-bottom: 2px;">
+                  ${icon} ${label}
+                </div>
+                ${preview ? `<div style="font-size: 11px; color: #6b7280;">${preview}</div>` : ''}
+                ${time ? `<div style="font-size: 10px; color: #9ca3af; margin-top: 2px;">${time}</div>` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+
+    L.popup()
+      .setLatLng(latlng)
+      .setContent(content)
+      .openOn(this.map);
   }
 
   /**
@@ -230,10 +358,10 @@ export class MapController {
   bounds.extend(polyline.getBounds());
 }
 
-    // Add markers for all data points
+    // Add markers for all data points (using cluster if available)
     routeData.forEach((entry, index) => {
       if (!entry.coords || !entry.coords.lat || !entry.coords.lng) return;
-      
+
       bounds.extend([entry.coords.lat, entry.coords.lng]);
 
       if (entry.type === 'photo') {
@@ -244,16 +372,18 @@ export class MapController {
         });
 
         const photoMarker = L.marker([entry.coords.lat, entry.coords.lng], { icon })
-          .addTo(this.map)
           .bindPopup(`
             <div style="text-align: center;">
               <img src="${entry.content}" style="width:200px; max-height:150px; object-fit:cover; border-radius:8px;">
               <br><small>${new Date(entry.timestamp).toLocaleString()}</small>
             </div>
           `);
-        
+
+        // Store data for cluster popup
+        photoMarker.markerData = { type: 'photo', content: entry.content, timestamp: entry.timestamp };
+        this.addMarkerToClusterOrMap(photoMarker);
         this.routeMarkers.push(photoMarker);
-        
+
       } else if (entry.type === 'text') {
         const icon = L.divIcon({
           html: '📝',
@@ -262,7 +392,6 @@ export class MapController {
         });
 
         const noteMarker = L.marker([entry.coords.lat, entry.coords.lng], { icon })
-          .addTo(this.map)
           .bindPopup(`
             <div style="max-width: 200px;">
               <strong>Note:</strong><br>
@@ -270,11 +399,14 @@ export class MapController {
               <small>${new Date(entry.timestamp).toLocaleString()}</small>
             </div>
           `);
-        
+
+        // Store data for cluster popup
+        noteMarker.markerData = { type: 'text', content: entry.content, timestamp: entry.timestamp };
+        this.addMarkerToClusterOrMap(noteMarker);
         this.routeMarkers.push(noteMarker);
-        
+
       } else if (entry.type === 'location' && (index === 0 || index === locationPoints.length - 1)) {
-        // Add start/end markers
+        // Add start/end markers (NOT clustered - always visible)
         const isStart = index === 0;
         const icon = L.divIcon({
           html: isStart ? '🚩' : '🏁',
@@ -283,14 +415,14 @@ export class MapController {
         });
 
         const locationMarker = L.marker([entry.coords.lat, entry.coords.lng], { icon })
-          .addTo(this.map)
+          .addTo(this.map) // Start/end markers always on map directly
           .bindPopup(`
             <div>
               <strong>${isStart ? 'Start' : 'End'} Point</strong><br>
               <small>${new Date(entry.timestamp).toLocaleString()}</small>
             </div>
           `);
-        
+
         this.routeMarkers.push(locationMarker);
       }
     });
@@ -310,7 +442,29 @@ export class MapController {
     console.log(`✅ Route displayed: ${locationPoints.length} GPS points, ${photos} photos, ${notes} notes`);
   }
 
-  // FIXED: Complete route clearing including all markers
+  /**
+   * Add marker to cluster group or directly to map if clustering not available
+   */
+  addMarkerToClusterOrMap(marker) {
+    if (this.markerClusterGroup) {
+      this.markerClusterGroup.addLayer(marker);
+    } else {
+      marker.addTo(this.map);
+    }
+  }
+
+  /**
+   * Remove marker from cluster group or map
+   */
+  removeMarkerFromClusterOrMap(marker) {
+    if (this.markerClusterGroup && this.markerClusterGroup.hasLayer(marker)) {
+      this.markerClusterGroup.removeLayer(marker);
+    } else if (this.map.hasLayer(marker)) {
+      this.map.removeLayer(marker);
+    }
+  }
+
+  // FIXED: Complete route clearing including all markers and cluster
   clearRouteDisplay() {
     // Clear route lines
     this.routePolylines.forEach(polyline => {
@@ -318,16 +472,21 @@ export class MapController {
     });
     this.routePolylines = [];
 
-    // Clear route markers
+    // Clear route markers (from both cluster and map)
     this.routeMarkers.forEach(marker => {
-      this.map.removeLayer(marker);
+      this.removeMarkerFromClusterOrMap(marker);
     });
     this.routeMarkers = [];
 
-    console.log('🧹 Route display cleared');
+    // Also clear the cluster group if it exists
+    if (this.markerClusterGroup) {
+      this.markerClusterGroup.clearLayers();
+    }
+
+    console.log('🧹 Route display cleared (including cluster)');
   }
 
-  // Add a single photo marker to the map (real-time during tracking)
+  // Add a single photo marker to the map (real-time during tracking) - with clustering
   addPhotoMarker(entry) {
     if (!this.map || !entry.coords) return null;
 
@@ -338,7 +497,6 @@ export class MapController {
     });
 
     const photoMarker = L.marker([entry.coords.lat, entry.coords.lng], { icon })
-      .addTo(this.map)
       .bindPopup(`
         <div style="text-align: center;">
           <img src="${entry.content}" onclick="window.openFullscreenPhoto && window.openFullscreenPhoto(this.src)" style="width:200px; max-height:150px; object-fit:cover; border-radius:8px; cursor:pointer;">
@@ -346,12 +504,15 @@ export class MapController {
         </div>
       `);
 
+    // Store data for cluster popup
+    photoMarker.markerData = { type: 'photo', content: entry.content, timestamp: entry.timestamp };
+    this.addMarkerToClusterOrMap(photoMarker);
     this.routeMarkers.push(photoMarker);
-    console.log('📷 Photo marker added to map');
+    console.log('📷 Photo marker added to cluster/map');
     return photoMarker;
   }
 
-  // Add a single note marker to the map (real-time during tracking)
+  // Add a single note marker to the map (real-time during tracking) - with clustering
   addNoteMarker(entry) {
     if (!this.map || !entry.coords) return null;
 
@@ -362,7 +523,6 @@ export class MapController {
     });
 
     const noteMarker = L.marker([entry.coords.lat, entry.coords.lng], { icon })
-      .addTo(this.map)
       .bindPopup(`
         <div style="max-width: 200px;">
           <strong>Note:</strong><br>
@@ -371,8 +531,11 @@ export class MapController {
         </div>
       `);
 
+    // Store data for cluster popup
+    noteMarker.markerData = { type: 'text', content: entry.content, timestamp: entry.timestamp };
+    this.addMarkerToClusterOrMap(noteMarker);
     this.routeMarkers.push(noteMarker);
-    console.log('📝 Note marker added to map');
+    console.log('📝 Note marker added to cluster/map');
     return noteMarker;
   }
 
