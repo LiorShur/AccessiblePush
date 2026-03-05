@@ -143,6 +143,15 @@ export class MapController {
   showClusteredMarkersPopup(markers, latlng) {
     const items = markers.map(m => m.markerData || { type: 'unknown', content: '' });
 
+    // POI icon mapping
+    const poiIcons = {
+      photo: '📷', note: '📝', voice: '🎤', bench: '🪑', water: '💧',
+      restroom: '🚻', viewpoint: '🏞️', picnic: '🧺', steep: '⛰️',
+      accessibility: '♿', hazard: '⚠️', info: 'ℹ️', shade: '🌳',
+      parking: '🅿️', junction: '🔀', steps: '🪜', gate: '🚧',
+      bridge: '🌉', crossing: '🚸'
+    };
+
     const content = `
       <div style="max-width: 280px;">
         <h3 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">
@@ -150,14 +159,28 @@ export class MapController {
         </h3>
         <div style="max-height: 250px; overflow-y: auto;">
           ${items.map((item, idx) => {
-            const icon = item.type === 'photo' ? '📷' : item.type === 'text' ? '📝' : '📍';
-            const label = item.type === 'photo' ? 'Photo' : item.type === 'text' ? 'Note' : 'Location';
-            const preview = item.type === 'text' ? item.content?.substring(0, 50) + (item.content?.length > 50 ? '...' : '') : '';
+            let icon, label;
+            if (item.type === 'poi') {
+              icon = poiIcons[item.icon] || poiIcons[item.poiType] || '📍';
+              label = item.poiType ? item.poiType.charAt(0).toUpperCase() + item.poiType.slice(1) : 'POI';
+            } else if (item.type === 'photo') {
+              icon = '📷';
+              label = 'Photo';
+            } else if (item.type === 'text') {
+              icon = '📝';
+              label = 'Note';
+            } else {
+              icon = '📍';
+              label = 'Location';
+            }
+            const preview = (item.type === 'text' || item.type === 'poi') && item.content
+              ? item.content.substring(0, 50) + (item.content.length > 50 ? '...' : '')
+              : '';
             const time = item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : '';
 
             return `
               <div style="padding: 8px; border-bottom: 1px solid #e5e7eb; cursor: pointer;"
-                   onclick="this.closest('.leaflet-popup').querySelector('.leaflet-popup-close-button').click(); document.querySelectorAll('.leaflet-marker-icon')[${idx}]?.click();">
+                   onclick="this.closest('.leaflet-popup').querySelector('.leaflet-popup-close-button').click();">
                 <div style="font-weight: 600; font-size: 13px; margin-bottom: 2px;">
                   ${icon} ${label}
                 </div>
