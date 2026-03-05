@@ -527,13 +527,14 @@ showError(message) {
 
     await Promise.all(initPromises);
 
-    // Initialize POI elements after map is ready
+    // Initialize POI elements after map is ready (share cluster group with MapController)
     if (this.controllers.map?.map) {
       try {
-        poiElements.init(this.controllers.map.map);
+        const clusterGroup = this.controllers.map.markerClusterGroup;
+        poiElements.init(this.controllers.map.map, clusterGroup);
         // Store reference for route attachment
         this.controllers.poiElements = poiElements;
-        console.log('✅ POI elements initialized');
+        console.log('✅ POI elements initialized' + (clusterGroup ? ' with clustering' : ''));
       } catch (error) {
         console.error('❌ Failed to initialize POI elements:', error);
       }

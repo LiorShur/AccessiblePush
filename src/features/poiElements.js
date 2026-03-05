@@ -130,10 +130,13 @@ export class POIElementsManager {
 
   /**
    * Initialize the POI system
+   * @param {L.Map} mapInstance - Leaflet map instance
+   * @param {L.MarkerClusterGroup} clusterGroup - Optional marker cluster group for clustering POI markers
    */
-  init(mapInstance) {
+  init(mapInstance, clusterGroup = null) {
     this.map = mapInstance;
-    this.markerLayer = L.layerGroup().addTo(this.map);
+    this.clusterGroup = clusterGroup; // Use shared cluster group if provided
+    this.markerLayer = clusterGroup || L.layerGroup().addTo(this.map);
 
     this.createUI();
     this.bindEvents();
@@ -145,7 +148,7 @@ export class POIElementsManager {
       this.refreshUI();
     });
 
-    console.log('[POIElements] Initialized');
+    console.log('[POIElements] Initialized' + (clusterGroup ? ' with clustering' : ''));
   }
 
   /**
@@ -669,8 +672,7 @@ export class POIElementsManager {
       popupAnchor: [0, -36]
     });
 
-    const marker = L.marker([element.location.lat, element.location.lng], { icon })
-      .addTo(this.markerLayer);
+    const marker = L.marker([element.location.lat, element.location.lng], { icon });
 
     // Build popup content
     const popupContent = this.buildPopupContent(element);
@@ -678,6 +680,23 @@ export class POIElementsManager {
       maxWidth: 280,
       className: 'poi-popup'
     });
+
+    // Store data for cluster popup (if clustering is enabled)
+    const el = POI_ELEMENTS.find(e => e.id === element.type);
+    marker.markerData = {
+      type: 'poi',
+      poiType: element.type,
+      icon: el?.icon || 'info',
+      content: element.notes || this.t(`el_${element.type}`),
+      timestamp: element.timestamp
+    };
+
+    // Add to layer (cluster group or regular layer)
+    if (this.clusterGroup) {
+      this.clusterGroup.addLayer(marker);
+    } else {
+      marker.addTo(this.markerLayer);
+    }
 
     // Store reference
     marker._poiId = element.id;
