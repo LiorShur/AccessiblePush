@@ -62,11 +62,12 @@ export class MapController {
       return;
     }
 
-    this.markerClusterGroup = L.markerClusterGroup({
+        this.markerClusterGroup = L.markerClusterGroup({
       maxClusterRadius: 50,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
-      zoomToBoundsOnClick: false, // Handle custom click behavior
+      zoomToBoundsOnClick: true,
+      disableClusteringAtZoom: 18, // Show individual markers at high zoom
       iconCreateFunction: (cluster) => {
         const count = cluster.getChildCount();
         let sizeClass = 'cluster-small';
@@ -81,11 +82,9 @@ export class MapController {
       }
     });
 
-    // Handle cluster clicks - show list of items
-    this.markerClusterGroup.on('clusterclick', (e) => {
-      const cluster = e.layer;
-      const markers = cluster.getAllChildMarkers();
-      this.showClusteredMarkersPopup(markers, e.latlng);
+    // Show popup on spiderfy for easy marker selection
+    this.markerClusterGroup.on('spiderfied', (e) => {
+      console.log('[Map] Cluster spiderfied with', e.markers.length, 'markers');
     });
 
     this.map.addLayer(this.markerClusterGroup);
