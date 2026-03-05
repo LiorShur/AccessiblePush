@@ -9,7 +9,7 @@
  * - Images: Cache First
  */
 
-const CACHE_VERSION = 'v2.9.72-marker-toggle-fix';
+const CACHE_VERSION = 'v2.9.73-marker-clustering';
 const APP_CACHE = `access-nature-app-${CACHE_VERSION}`;
 const DATA_CACHE = `access-nature-data-${CACHE_VERSION}`;
 const MAP_CACHE = `access-nature-maps-${CACHE_VERSION}`;
