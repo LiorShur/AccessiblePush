@@ -790,6 +790,34 @@ export class POIElementsManager {
   }
 
   /**
+   * Load elements from an array (for loading saved routes)
+   * @param {Array} elementsArray - Array of POI element objects
+   */
+  loadElements(elementsArray) {
+    if (!elementsArray || !Array.isArray(elementsArray)) {
+      console.warn('[POIElements] Invalid elements array provided');
+      return;
+    }
+
+    // Clear existing elements first
+    this.clearElements();
+
+    // Load new elements
+    this.elements = [...elementsArray];
+
+    // Add markers for each element
+    this.elements.forEach(el => {
+      // Normalize location format (handle both formats)
+      if (!el.location && el.coords) {
+        el.location = el.coords;
+      }
+      this.addMarker(el);
+    });
+
+    console.log(`[POIElements] Loaded ${this.elements.length} elements from route data`);
+  }
+
+  /**
    * Set route ID (for attaching elements to a specific route)
    */
   setRouteId(routeId) {

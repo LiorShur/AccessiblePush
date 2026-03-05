@@ -921,6 +921,13 @@ async saveRoute(skipSurveyPrompt = false) {
     // Clear route data after saving
     this.appState.clearRouteData();
 
+    // Clear map markers (photos, notes, route line)
+    const mapController = window.AccessNatureApp?.controllers?.map;
+    if (mapController) {
+      mapController.clearRouteDisplay();
+      console.log('✅ Map markers cleared after save');
+    }
+
     // Clear POI elements from map
     const poiElements = window.AccessNatureApp?.controllers?.poiElements;
     if (poiElements) {
@@ -1226,6 +1233,13 @@ async saveRouteToCloud(routeData, routeInfo, accessibilityData, authController) 
 
   discardRoute() {
     this.appState.clearRouteData();
+
+    // Clear map markers (photos, notes, route line)
+    const mapController = window.AccessNatureApp?.controllers?.map;
+    if (mapController) {
+      mapController.clearRouteDisplay();
+      console.log('✅ Map markers cleared on discard');
+    }
 
     // Clear POI elements from map
     const poiElements = window.AccessNatureApp?.controllers?.poiElements;
