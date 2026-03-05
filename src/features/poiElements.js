@@ -682,7 +682,6 @@ export class POIElementsManager {
     });
 
     // Store data for cluster popup (if clustering is enabled)
-    const el = POI_ELEMENTS.find(e => e.id === element.type);
     marker.markerData = {
       type: 'poi',
       poiType: element.type,
