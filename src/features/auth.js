@@ -857,7 +857,19 @@ async saveCurrentRouteToCloud() {
     } catch (error) {
       console.warn('Could not load accessibility data:', error);
     }
-    
+
+    // Get POI elements if available
+    let poiElements = [];
+    try {
+      const poiController = window.AccessNatureApp?.controllers?.poiElements;
+      if (poiController && typeof poiController.getElements === 'function') {
+        poiElements = poiController.getElements() || [];
+        console.log(`📍 Found ${poiElements.length} POI elements to save`);
+      }
+    } catch (error) {
+      console.warn('Could not load POI elements:', error);
+    }
+
     uploadProgress.setStageCompleted('prepare');
     uploadProgress.setProgress(10);
 
@@ -920,13 +932,17 @@ async saveCurrentRouteToCloud() {
         locationPoints: processedRouteData.filter(p => p.type === 'location').length,
         photos: processedRouteData.filter(p => p.type === 'photo').length,
         notes: processedRouteData.filter(p => p.type === 'text').length,
+        poiElements: poiElements.length,
         totalDataPoints: processedRouteData.length,
         photosInStorage: photosUploaded
       },
       
       // Accessibility information
       accessibilityData: accessibilityData,
-      
+
+      // POI elements (trail markers like benches, water sources, etc.)
+      poiElements: poiElements,
+
       // Technical info
       deviceInfo: {
         userAgent: navigator.userAgent,
