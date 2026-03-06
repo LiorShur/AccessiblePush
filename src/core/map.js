@@ -62,7 +62,13 @@ export class MapController {
       return;
     }
 
-        this.markerClusterGroup = L.markerClusterGroup({
+    // Skip if already initialized
+    if (this.markerClusterGroup) {
+      console.log('[Map] Marker cluster already initialized');
+      return;
+    }
+
+    this.markerClusterGroup = L.markerClusterGroup({
       maxClusterRadius: 50,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
@@ -345,7 +351,13 @@ export class MapController {
     }
 
     console.log(`🗺️ Displaying route with ${routeData.length} data points`);
-    
+
+    // Ensure marker cluster is initialized before displaying route
+    if (!this.markerClusterGroup && typeof L.markerClusterGroup === 'function') {
+      console.log('[Map] Initializing marker cluster for route display...');
+      this.initializeMarkerCluster();
+    }
+
     this.clearRouteDisplay();
     const bounds = L.latLngBounds([]);
 
