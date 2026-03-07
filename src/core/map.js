@@ -56,9 +56,13 @@ export class MapController {
    * Initialize marker cluster group for route markers
    */
   initializeMarkerCluster() {
+    console.log('[Map] initializeMarkerCluster called');
+    console.log('[Map] L.markerClusterGroup type:', typeof L.markerClusterGroup);
+
     // Check if L.markerClusterGroup is available
     if (typeof L.markerClusterGroup !== 'function') {
-      console.warn('⚠️ MarkerCluster plugin not loaded, markers will not be clustered');
+      console.error('❌ MarkerCluster plugin not loaded! L.markerClusterGroup is:', typeof L.markerClusterGroup);
+      console.error('Available L properties:', Object.keys(L).filter(k => k.toLowerCase().includes('cluster')));
       return;
     }
 
@@ -68,6 +72,7 @@ export class MapController {
       return;
     }
 
+    console.log('[Map] Creating marker cluster group...');
     this.markerClusterGroup = L.markerClusterGroup({
       maxClusterRadius: 50,
       spiderfyOnMaxZoom: true,
@@ -351,11 +356,17 @@ export class MapController {
     }
 
     console.log(`🗺️ Displaying route with ${routeData.length} data points`);
+    console.log('[Map] Current markerClusterGroup:', this.markerClusterGroup ? 'exists' : 'null');
 
     // Ensure marker cluster is initialized before displaying route
-    if (!this.markerClusterGroup && typeof L.markerClusterGroup === 'function') {
-      console.log('[Map] Initializing marker cluster for route display...');
-      this.initializeMarkerCluster();
+    if (!this.markerClusterGroup) {
+      console.log('[Map] Marker cluster not initialized, attempting to initialize...');
+      if (typeof L.markerClusterGroup === 'function') {
+        this.initializeMarkerCluster();
+        console.log('[Map] After init, markerClusterGroup:', this.markerClusterGroup ? 'exists' : 'still null');
+      } else {
+        console.error('[Map] Cannot initialize cluster - L.markerClusterGroup not available');
+      }
     }
 
     this.clearRouteDisplay();
@@ -482,7 +493,9 @@ export class MapController {
   addMarkerToClusterOrMap(marker) {
     if (this.markerClusterGroup) {
       this.markerClusterGroup.addLayer(marker);
+      console.log('[Map] Marker added to cluster group');
     } else {
+      console.warn('[Map] No cluster group available, adding marker directly to map');
       marker.addTo(this.map);
     }
   }

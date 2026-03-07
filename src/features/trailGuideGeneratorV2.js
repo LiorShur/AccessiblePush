@@ -2018,19 +2018,16 @@ export class TrailGuideGeneratorV2 {
         const poiMarkers = [];
         let markersVisible = true;
 
-        // Toggle markers visibility function
+        // Toggle markers visibility function (works with cluster)
         window.toggleMapMarkers = function() {
             markersVisible = !markersVisible;
             const btn = document.getElementById('toggleMarkersBtn');
 
-            const allMarkers = [...photoMarkers, ...noteMarkers, ...poiMarkers];
-            allMarkers.forEach(marker => {
-                if (markersVisible) {
-                    marker.addTo(map);
-                } else {
-                    marker.remove();
-                }
-            });
+            if (markersVisible) {
+                map.addLayer(markerCluster);
+            } else {
+                map.removeLayer(markerCluster);
+            }
 
             if (btn) {
                 btn.classList.toggle('markers-hidden', !markersVisible);
