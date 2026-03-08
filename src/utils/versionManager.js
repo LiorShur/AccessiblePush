@@ -5,7 +5,7 @@
  */
 
 // Current app version - INCREMENT THIS WITH EACH UPDATE
-const APP_VERSION = '1.2.5';
+const APP_VERSION = '1.2.6';
 const VERSION_KEY = 'accessNature_appVersion';
 const LAST_CHECK_KEY = 'accessNature_lastVersionCheck';
 
@@ -70,6 +70,14 @@ class VersionManager {
    */
   getChangelog(version) {
     const changelogs = {
+      '1.2.6': {
+        title: 'Critical Bug Fix',
+        changes: [
+          '🔧 Fixed mobile console initialization error',
+          '🗺️ Map now loads correctly',
+          '📋 Added version update notifications'
+        ]
+      },
       '1.2.5': {
         title: 'Debug & Mobile Tools',
         changes: [
