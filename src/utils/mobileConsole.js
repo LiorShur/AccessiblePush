@@ -13,12 +13,6 @@ class MobileConsole {
     this.logContainer = null;
     this.badge = null;
     this.unreadCount = 0;
-
-    // Bind methods
-    this.log = this.log.bind(this);
-    this.toggle = this.toggle.bind(this);
-    this.copyLogs = this.copyLogs.bind(this);
-    this.clear = this.clear.bind(this);
   }
 
   init() {
