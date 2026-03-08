@@ -26,6 +26,10 @@ import { betaFeedback } from './utils/betaFeedback.js';
 import { t } from './i18n/i18n.js';
 import { poiElements } from './features/poiElements.js';
 import { mobileConsole } from './utils/mobileConsole.js'; // Mobile debug console
+import { versionManager } from './utils/versionManager.js'; // Version update notifications
+
+// Initialize version manager immediately to detect updates
+versionManager.init();
 
 class AccessNatureApp {
   constructor() {
@@ -699,6 +703,7 @@ window.mobilityProfileUI = mobilityProfileUI;
 window.accessibilityRating = accessibilityRating;
 window.trailSearch = trailSearch;
 window.mobileConsole = mobileConsole;
+window.versionManager = versionManager;
 window.showError = showError;
 window.getErrorMessage = getErrorMessage;
 
