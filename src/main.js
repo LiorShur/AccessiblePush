@@ -25,6 +25,7 @@ import { showError, getErrorMessage } from './utils/errorMessages.js';
 import { betaFeedback } from './utils/betaFeedback.js';
 import { t } from './i18n/i18n.js';
 import { poiElements } from './features/poiElements.js';
+import { mobileConsole } from './utils/mobileConsole.js'; // Mobile debug console
 
 class AccessNatureApp {
   constructor() {
@@ -697,6 +698,7 @@ window.gamificationUI = gamificationUI;
 window.mobilityProfileUI = mobilityProfileUI;
 window.accessibilityRating = accessibilityRating;
 window.trailSearch = trailSearch;
+window.mobileConsole = mobileConsole;
 window.showError = showError;
 window.getErrorMessage = getErrorMessage;
 
