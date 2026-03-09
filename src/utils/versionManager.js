@@ -5,7 +5,7 @@
  */
 
 // Current app version - INCREMENT THIS WITH EACH UPDATE
-const APP_VERSION = '1.2.6';
+const APP_VERSION = '1.2.7';
 const VERSION_KEY = 'accessNature_appVersion';
 const LAST_CHECK_KEY = 'accessNature_lastVersionCheck';
 
@@ -70,6 +70,13 @@ class VersionManager {
    */
   getChangelog(version) {
     const changelogs = {
+      '1.2.7': {
+        title: 'Mobile Console Fix',
+        changes: [
+          '🐛 Fixed mobile console toggle button',
+          '🔧 Fixed Copy/Clear/Close buttons in console'
+        ]
+      },
       '1.2.6': {
         title: 'Critical Bug Fix',
         changes: [
