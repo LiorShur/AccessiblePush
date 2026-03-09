@@ -5,7 +5,7 @@
  */
 
 // Current app version - INCREMENT THIS WITH EACH UPDATE
-const APP_VERSION = '1.2.7';
+const APP_VERSION = '1.2.8';
 const VERSION_KEY = 'accessNature_appVersion';
 const LAST_CHECK_KEY = 'accessNature_lastVersionCheck';
 
@@ -70,6 +70,14 @@ class VersionManager {
    */
   getChangelog(version) {
     const changelogs = {
+      '1.2.8': {
+        title: 'Performance Fix',
+        changes: [
+          '⚡ Fixed slow page loading',
+          '🐛 Mobile console now lazy-loaded (no overhead until opened)',
+          '🔧 Console interception only enabled when panel is opened'
+        ]
+      },
       '1.2.7': {
         title: 'Mobile Console Fix',
         changes: [

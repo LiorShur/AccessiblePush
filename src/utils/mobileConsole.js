@@ -1,27 +1,29 @@
 /**
  * Mobile Console Utility
  * Captures and displays console output for debugging on mobile devices
+ * OPTIMIZED: Only intercepts console when explicitly enabled
  */
 
 class MobileConsole {
   constructor() {
     this.logs = [];
-    this.maxLogs = 500;
+    this.maxLogs = 200;
     this.isVisible = false;
-    this.isMinimized = true;
+    this.isEnabled = false; // Console interception disabled by default
     this.panel = null;
     this.logContainer = null;
     this.badge = null;
     this.unreadCount = 0;
+    this.originalConsole = {}; // Store original console methods
   }
 
   init() {
-    this.createUI();
-    this.interceptConsole();
-    console.log('[MobileConsole] Initialized - tap the bug icon to view logs');
+    // Only create the toggle button initially - don't intercept console yet
+    this.createToggleButton();
+    console.log('[MobileConsole] Ready - tap bug icon to enable');
   }
 
-  createUI() {
+  createToggleButton() {
     // Create toggle button (floating)
     this.toggleBtn = document.createElement('button');
     this.toggleBtn.id = 'mobileConsoleToggle';
@@ -36,7 +38,7 @@ class MobileConsole {
       border-radius: 50%;
       background: #1a1a2e;
       color: white;
-      border: 2px solid #4CAF50;
+      border: 2px solid #666;
       font-size: 20px;
       z-index: 99999;
       cursor: pointer;
@@ -44,6 +46,7 @@ class MobileConsole {
       display: flex;
       align-items: center;
       justify-content: center;
+      opacity: 0.7;
     `;
     this.toggleBtn.onclick = () => this.toggle();
 
@@ -64,6 +67,12 @@ class MobileConsole {
       justify-content: center;
     `;
     this.toggleBtn.appendChild(this.badge);
+
+    document.body.appendChild(this.toggleBtn);
+  }
+
+  createPanel() {
+    if (this.panel) return; // Already created
 
     // Create panel
     this.panel = document.createElement('div');
@@ -97,7 +106,7 @@ class MobileConsole {
       flex-shrink: 0;
     `;
     header.innerHTML = `
-      <span style="font-weight: bold; color: #4CAF50;">Console</span>
+      <span style="font-weight: bold; color: #4CAF50;">Console <span style="font-size:10px;color:#888;">(v${window.APP_VERSION || '?'})</span></span>
       <div style="display: flex; gap: 8px;">
         <button id="mcCopy" style="padding: 6px 12px; background: #2196F3; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">Copy All</button>
         <button id="mcClear" style="padding: 6px 12px; background: #ff9800; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">Clear</button>
@@ -138,10 +147,9 @@ class MobileConsole {
     this.panel.appendChild(filters);
     this.panel.appendChild(this.logContainer);
 
-    document.body.appendChild(this.toggleBtn);
     document.body.appendChild(this.panel);
 
-    // Event listeners (use arrow functions to preserve 'this' context)
+    // Event listeners
     this.panel.querySelector('#mcCopy').onclick = () => this.copyLogs();
     this.panel.querySelector('#mcClear').onclick = () => this.clear();
     this.panel.querySelector('#mcClose').onclick = () => this.toggle();
@@ -164,25 +172,58 @@ class MobileConsole {
     });
   }
 
-  interceptConsole() {
+  enableConsoleInterception() {
+    if (this.isEnabled) return;
+
     const methods = ['log', 'warn', 'error', 'info', 'debug'];
 
     methods.forEach(method => {
-      const original = console[method].bind(console);
+      this.originalConsole[method] = console[method].bind(console);
       console[method] = (...args) => {
         this.addLog(method, args);
-        original(...args);
+        this.originalConsole[method](...args);
       };
     });
 
     // Capture uncaught errors
-    window.addEventListener('error', (e) => {
+    this.errorHandler = (e) => {
       this.addLog('error', [`Uncaught: ${e.message}`, `at ${e.filename}:${e.lineno}`]);
+    };
+    this.rejectionHandler = (e) => {
+      this.addLog('error', [`Unhandled Promise: ${e.reason}`]);
+    };
+
+    window.addEventListener('error', this.errorHandler);
+    window.addEventListener('unhandledrejection', this.rejectionHandler);
+
+    this.isEnabled = true;
+    this.toggleBtn.style.borderColor = '#4CAF50';
+    this.toggleBtn.style.opacity = '1';
+
+    console.log('[MobileConsole] Console interception ENABLED');
+  }
+
+  disableConsoleInterception() {
+    if (!this.isEnabled) return;
+
+    // Restore original console methods
+    Object.keys(this.originalConsole).forEach(method => {
+      console[method] = this.originalConsole[method];
     });
 
-    window.addEventListener('unhandledrejection', (e) => {
-      this.addLog('error', [`Unhandled Promise: ${e.reason}`]);
-    });
+    // Remove error handlers
+    if (this.errorHandler) {
+      window.removeEventListener('error', this.errorHandler);
+    }
+    if (this.rejectionHandler) {
+      window.removeEventListener('unhandledrejection', this.rejectionHandler);
+    }
+
+    this.isEnabled = false;
+    this.toggleBtn.style.borderColor = '#666';
+    this.toggleBtn.style.opacity = '0.7';
+
+    console.log('[MobileConsole] Console interception DISABLED');
   }
 
   addLog(type, args) {
@@ -190,8 +231,7 @@ class MobileConsole {
       hour12: false,
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit',
-      fractionalSecondDigits: 3
+      second: '2-digit'
     });
 
     const message = args.map(arg => {
@@ -212,28 +252,22 @@ class MobileConsole {
       this.logs = this.logs.slice(-this.maxLogs);
     }
 
-    // Update badge if panel is closed
+    // Update badge
     if (!this.isVisible) {
       this.unreadCount++;
       this.badge.textContent = this.unreadCount > 99 ? '99+' : this.unreadCount;
       this.badge.style.display = 'flex';
-
-      // Flash red for errors
-      if (type === 'error') {
-        this.toggleBtn.style.borderColor = '#f44336';
-        setTimeout(() => {
-          this.toggleBtn.style.borderColor = '#4CAF50';
-        }, 1000);
-      }
     }
 
-    // Render if visible and matches filter
-    if (this.isVisible) {
+    // Render if visible
+    if (this.isVisible && this.logContainer) {
       this.renderLogs();
     }
   }
 
   renderLogs() {
+    if (!this.logContainer) return;
+
     const filteredLogs = this.currentFilter === 'all'
       ? this.logs
       : this.logs.filter(l => l.type === this.currentFilter);
@@ -287,6 +321,16 @@ class MobileConsole {
   }
 
   toggle() {
+    // Create panel on first use
+    if (!this.panel) {
+      this.createPanel();
+    }
+
+    // Enable console interception on first open
+    if (!this.isEnabled) {
+      this.enableConsoleInterception();
+    }
+
     this.isVisible = !this.isVisible;
     this.panel.style.display = this.isVisible ? 'flex' : 'none';
 
@@ -312,7 +356,6 @@ class MobileConsole {
   }
 
   fallbackCopy(text) {
-    // Create textarea for fallback copy
     const textarea = document.createElement('textarea');
     textarea.value = text;
     textarea.style.cssText = 'position: fixed; top: 0; left: 0; opacity: 0;';
@@ -324,7 +367,6 @@ class MobileConsole {
       document.execCommand('copy');
       this.showToast('Logs copied!');
     } catch {
-      // Show selectable text modal as last resort
       this.showSelectableModal(text);
     }
 
@@ -383,10 +425,10 @@ class MobileConsole {
   }
 }
 
-// Create and export singleton
+// Create singleton
 const mobileConsole = new MobileConsole();
 
-// Auto-initialize when DOM is ready
+// Auto-initialize when DOM is ready (only creates button, no console interception)
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => mobileConsole.init());
 } else {
