@@ -45,7 +45,7 @@ class MobileConsole {
       align-items: center;
       justify-content: center;
     `;
-    this.toggleBtn.onclick = this.toggle;
+    this.toggleBtn.onclick = () => this.toggle();
 
     // Badge for unread count
     this.badge = document.createElement('span');
@@ -141,10 +141,10 @@ class MobileConsole {
     document.body.appendChild(this.toggleBtn);
     document.body.appendChild(this.panel);
 
-    // Event listeners
-    this.panel.querySelector('#mcCopy').onclick = this.copyLogs;
-    this.panel.querySelector('#mcClear').onclick = this.clear;
-    this.panel.querySelector('#mcClose').onclick = this.toggle;
+    // Event listeners (use arrow functions to preserve 'this' context)
+    this.panel.querySelector('#mcCopy').onclick = () => this.copyLogs();
+    this.panel.querySelector('#mcClear').onclick = () => this.clear();
+    this.panel.querySelector('#mcClose').onclick = () => this.toggle();
 
     // Filter listeners
     this.currentFilter = 'all';
