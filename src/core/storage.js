@@ -246,7 +246,7 @@ export class AppState {
   }
 
   // Smart save session (IndexedDB first, localStorage fallback)
-  async saveSession(name) {
+  async saveSession(name, poiElements = []) {
     if (!name || this.routeData.length === 0) {
       throw new Error('Invalid session data');
     }
@@ -258,6 +258,7 @@ export class AppState {
       totalDistance: this.totalDistance,
       elapsedTime: this.elapsedTime,
       data: [...this.routeData],
+      poiElements: poiElements,
       dataSize: JSON.stringify(this.routeData).length,
       version: '2.0' // Mark as new version
     };

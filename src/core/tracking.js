@@ -816,7 +816,7 @@ async saveRoute(skipSurveyPrompt = false) {
     const poiElementsData = window.AccessNatureApp?.controllers?.poiElements?.getElements?.() || [];
 
     // Save to local storage first (for route history)
-    const savedSession = await this.appState.saveSession(routeName);
+    const savedSession = await this.appState.saveSession(routeName, poiElementsData);
     
     // Check if user is logged in
     const app = window.AccessNatureApp;
@@ -855,7 +855,7 @@ async saveRoute(skipSurveyPrompt = false) {
           routeInfo.makePublic = cloudChoice === 'public';
           
           // Save to cloud directly
-          const cloudId = await this.saveRouteToCloud(routeData, routeInfo, accessibilityData, authController);
+          const cloudId = await this.saveRouteToCloud(routeData, routeInfo, accessibilityData, authController, poiElementsData);
           
           // Mark pending as uploaded if it exists
           if (pendingLocalId) {
@@ -1056,8 +1056,8 @@ async generateTrailGuide(routeId, routeData, routeInfo, accessibilityData, authC
   }
 }
 
-// NEW: Save route to cloud (separate method)
-async saveRouteToCloud(routeData, routeInfo, accessibilityData, authController) {
+/// NEW: Save route to cloud (separate method)
+async saveRouteToCloud(routeData, routeInfo, accessibilityData, authController, poiElements = []) {
   // Count photos to determine stages
   const photoCount = routeData.filter(p => p.type === 'photo' && p.content).length;
   const hasPhotos = photoCount > 0;
@@ -1157,13 +1157,17 @@ async saveRouteToCloud(routeData, routeInfo, accessibilityData, authController) 
         locationPoints: processedRouteData.filter(p => p.type === 'location').length,
         photos: processedRouteData.filter(p => p.type === 'photo').length,
         notes: processedRouteData.filter(p => p.type === 'text').length,
+        poiElements: poiElements.length,
         totalDataPoints: processedRouteData.length,
         photosInStorage: photosUploaded
       },
-      
+
       // Accessibility information
       accessibilityData: accessibilityData,
-      
+
+      // POI elements (trail markers like benches, water sources, etc.)
+      poiElements: poiElements,
+
       // Technical info
       deviceInfo: {
         userAgent: navigator.userAgent,

@@ -508,16 +508,19 @@ class OfflineSync {
       let routeInfo;
       let accessibilityData;
       
+      let poiElements = [];
       if (routeData.routeData && routeData.routeInfo) {
         // New format from tracking.js saveRoute
         actualRouteData = routeData.routeData;
         routeInfo = routeData.routeInfo;
         accessibilityData = routeData.accessibilityData;
+        poiElements = routeData.poiElements || [];
       } else {
         // Old format - spread as-is
         actualRouteData = routeData.routeData || routeData.data || [];
         routeInfo = { name: routeData.name || 'Untitled Route' };
         accessibilityData = routeData.accessibilityData;
+        poiElements = routeData.poiElements || [];
       }
       
       // Mark prepare stage as done
@@ -590,13 +593,17 @@ class OfflineSync {
           locationPoints: processedRouteData.filter(p => p.type === 'location').length,
           photos: processedRouteData.filter(p => p.type === 'photo').length,
           notes: processedRouteData.filter(p => p.type === 'text').length,
+          poiElements: poiElements.length,
           totalDataPoints: processedRouteData.length,
           photosInStorage: photosUploaded
         },
-        
+
         // Accessibility information
         accessibilityData: accessibilityData,
-        
+
+        // POI elements (trail markers like benches, water sources, etc.)
+        poiElements: poiElements,
+
         // Technical info
         deviceInfo: {
           userAgent: navigator.userAgent,
