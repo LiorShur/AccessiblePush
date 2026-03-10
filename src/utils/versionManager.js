@@ -5,7 +5,7 @@
  */
 
 // Current app version - INCREMENT THIS WITH EACH UPDATE
-const APP_VERSION = '1.2.8';
+const APP_VERSION = '1.2.9';
 const VERSION_KEY = 'accessNature_appVersion';
 const LAST_CHECK_KEY = 'accessNature_lastVersionCheck';
 
@@ -70,6 +70,13 @@ class VersionManager {
    */
   getChangelog(version) {
     const changelogs = {
+      '1.2.9': {
+        title: 'POI Debug Logging',
+        changes: [
+          '🔍 Added debug logging for POI save/load',
+          '📍 Diagnose why POI elements not showing'
+        ]
+      },
       '1.2.8': {
         title: 'Performance Fix',
         changes: [
