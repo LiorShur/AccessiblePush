@@ -691,10 +691,20 @@ export class POIElementsManager {
     };
 
     // Add to layer (cluster group or regular layer)
-    if (this.clusterGroup) {
-      this.clusterGroup.addLayer(marker);
+    // Check for cluster group - use cached reference or try to get from map controller
+    const clusterGroup = this.clusterGroup || window.AccessNatureApp?.controllers?.map?.markerClusterGroup;
+
+    if (clusterGroup) {
+      clusterGroup.addLayer(marker);
+      // Update cached reference if we got it from the map controller
+      if (!this.clusterGroup && clusterGroup) {
+        this.clusterGroup = clusterGroup;
+        this.markerLayer = clusterGroup;
+        console.log('[POIElements] Updated cluster group reference from map controller');
+      }
     } else {
       marker.addTo(this.markerLayer);
+      console.log('[POIElements] No cluster group available, adding to layer directly');
     }
 
     // Store reference
@@ -829,7 +839,15 @@ export class POIElementsManager {
    */
   clearElements() {
     this.elements = [];
-    this.markers.forEach(m => this.markerLayer.removeLayer(m));
+    // Remove markers from cluster or layer group
+    const clusterGroup = this.clusterGroup || window.AccessNatureApp?.controllers?.map?.markerClusterGroup;
+    this.markers.forEach(m => {
+      if (clusterGroup && clusterGroup.hasLayer(m)) {
+        clusterGroup.removeLayer(m);
+      } else if (this.markerLayer && this.markerLayer.hasLayer(m)) {
+        this.markerLayer.removeLayer(m);
+      }
+    });
     this.markers = [];
     // Remove from localStorage completely instead of saving empty array
     const key = this.routeId ? `poi_elements_${this.routeId}` : 'poi_elements_temp';
