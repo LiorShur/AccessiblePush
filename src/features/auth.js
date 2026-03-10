@@ -861,10 +861,14 @@ async saveCurrentRouteToCloud() {
     // Get POI elements if available
     let poiElements = [];
     try {
+      console.log('📍 Attempting to get POI elements...');
       const poiController = window.AccessNatureApp?.controllers?.poiElements;
+      console.log('📍 poiController:', poiController ? 'found' : 'not found');
       if (poiController && typeof poiController.getElements === 'function') {
         poiElements = poiController.getElements() || [];
-        console.log(`📍 Found ${poiElements.length} POI elements to save`);
+        console.log(`📍 Got ${poiElements.length} POI elements to save`);
+      } else {
+        console.warn('📍 POI controller or getElements method not available');
       }
     } catch (error) {
       console.warn('Could not load POI elements:', error);
@@ -1245,9 +1249,13 @@ async loadCloudRouteData(route) {
       }
 
       // Load POI elements if available
+      console.log('📍 Checking for POI elements in route...');
+      console.log('📍 route.poiElements:', route.poiElements?.length || 'none');
+      console.log('📍 route.poiElementsData:', route.poiElementsData?.length || 'none');
       const poiElementsData = route.poiElements || route.poiElementsData;
       if (poiElementsData && Array.isArray(poiElementsData) && poiElementsData.length > 0) {
         const poiController = app?.getController('poiElements');
+        console.log('📍 poiController:', poiController ? 'found' : 'not found');
         if (poiController && typeof poiController.loadElements === 'function') {
           console.log(`📍 Loading ${poiElementsData.length} POI elements...`);
           poiController.loadElements(poiElementsData);
@@ -1255,6 +1263,8 @@ async loadCloudRouteData(route) {
         } else {
           console.warn('⚠️ POI controller not available for loading elements');
         }
+      } else {
+        console.log('📍 No POI elements found in route data');
       }
 
       this.showSuccessMessage(`✅ "${route.routeName}" loaded from cloud!`);
