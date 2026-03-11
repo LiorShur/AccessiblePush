@@ -2007,7 +2007,13 @@ export class TrailGuideGeneratorV2 {
             spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
             zoomToBoundsOnClick: true,
-            disableClusteringAtZoom: 17
+            // Always cluster overlapping markers at any zoom level
+            spiderfyDistanceMultiplier: 1.5,
+            spiderLegPolylineOptions: {
+                weight: 1.5,
+                color: '#4a7c59',
+                opacity: 0.5
+            }
         });
 
         const pathCoords = [${pathCoords}];

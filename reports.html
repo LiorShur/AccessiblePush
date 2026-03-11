@@ -1732,6 +1732,13 @@
         maxClusterRadius: 50,
         spiderfyOnMaxZoom: true,
         showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        spiderfyDistanceMultiplier: 1.5,
+        spiderLegPolylineOptions: {
+          weight: 1.5,
+          color: '#4a7c59',
+          opacity: 0.5
+        },
         iconCreateFunction: function(cluster) {
           const count = cluster.getChildCount();
           let size = 'small';

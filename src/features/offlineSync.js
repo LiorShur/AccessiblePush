@@ -102,7 +102,8 @@ class OfflineSync {
       }
     });
     
-    // Also check sessionStorage for pending upload after auth redirect
+    // Also check sessionStorage for pending upload after auth redirect (e.g., OAuth)
+    // This handles cases where the page reloads during auth
     setTimeout(async () => {
       const pendingUploadData = sessionStorage.getItem('pendingCloudUpload');
       if (pendingUploadData) {
@@ -113,13 +114,17 @@ class OfflineSync {
             const app = window.AccessNatureApp;
             const authController = app?.getController('auth');
             if (authController?.isAuthenticated()) {
+              // handleUserSignIn will check and clear sessionStorage
               await this.handleUserSignIn(authController.getCurrentUser());
             }
+          } else {
+            // Expired, remove it
+            sessionStorage.removeItem('pendingCloudUpload');
           }
         } catch (e) {
           console.warn('Could not process pending upload:', e);
+          sessionStorage.removeItem('pendingCloudUpload');
         }
-        sessionStorage.removeItem('pendingCloudUpload');
       }
     }, 2000); // Wait for app to fully initialize
   }
@@ -129,14 +134,39 @@ class OfflineSync {
    */
   async handleUserSignIn(user) {
     if (!user) return;
-    
+
     const pendingCount = await this.getPendingCount();
     if (pendingCount === 0) return;
-    
+
     console.log(`🔐 User signed in with ${pendingCount} pending uploads`);
-    
+
+    // Check if user just signed in specifically to save a route
+    const pendingUploadData = sessionStorage.getItem('pendingCloudUpload');
+    let autoUpload = false;
+
+    if (pendingUploadData) {
+      try {
+        const { routeName, timestamp } = JSON.parse(pendingUploadData);
+        // Auto-upload if saved within last 5 minutes
+        if (Date.now() - timestamp < 5 * 60 * 1000) {
+          autoUpload = true;
+          console.log(`🚀 Auto-uploading route "${routeName}" after sign-in`);
+        }
+        sessionStorage.removeItem('pendingCloudUpload');
+      } catch (e) {
+        console.warn('Could not parse pending upload data:', e);
+      }
+    }
+
     // Show prompt after a short delay to let auth UI settle
     setTimeout(async () => {
+      // If auto-upload, skip the confirmation
+      if (autoUpload) {
+        toast.info('Uploading your route to the cloud...');
+        await this.syncAllPending();
+        return;
+      }
+
       const { modal } = await import('../utils/modal.js');
       const wantsToUpload = await modal.confirm(
         `You have ${pendingCount} route${pendingCount > 1 ? 's' : ''} saved locally.\n\nWould you like to upload ${pendingCount > 1 ? 'them' : 'it'} to the cloud now?`,

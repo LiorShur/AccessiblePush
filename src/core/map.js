@@ -78,7 +78,14 @@ export class MapController {
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
-      disableClusteringAtZoom: 18, // Show individual markers at high zoom
+      // Removed disableClusteringAtZoom to always cluster overlapping markers
+      // Spiderfy configuration for better fanout
+      spiderfyDistanceMultiplier: 1.5, // More spacing between spiderfied markers
+      spiderLegPolylineOptions: {
+        weight: 1.5,
+        color: '#4a7c59',
+        opacity: 0.5
+      },
       iconCreateFunction: (cluster) => {
         const count = cluster.getChildCount();
         let sizeClass = 'cluster-small';
