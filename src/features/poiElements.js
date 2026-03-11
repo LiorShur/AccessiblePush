@@ -524,7 +524,10 @@ export class POIElementsManager {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.capture = action === 'camera' ? 'environment' : undefined;
+    // Only set capture attribute for camera - omitting it for gallery allows photo picker
+    if (action === 'camera') {
+      input.capture = 'environment';
+    }
 
     input.onchange = (e) => {
       const file = e.target.files[0];
