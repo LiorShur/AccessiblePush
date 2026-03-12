@@ -838,51 +838,45 @@ async searchTrails() {
   // Stats Functions
 // UPDATED: Load community stats without count queries
 async loadCommunityStats(retryCount = 0) {
-  const MAX_RETRIES = 3;
-  const TIMEOUT_MS = 12000; // 12 second timeout
-  
+  const MAX_RETRIES = 2;
+  const TIMEOUT_MS = 20000; // 20 second timeout for slow connections
+
   try {
     console.log('📈 Loading community stats...');
-    
+
     // If we already loaded public guides, use cached data
     if (this.publicGuidesCache && this.publicGuidesCache.length > 0) {
       console.log('📈 Using cached public guides for stats');
       this.calculateAndDisplayStats(this.publicGuidesCache);
       return { success: true, count: this.publicGuidesCache.length };
     }
-    
-    // Wait for any other Firebase operations to complete
-    await new Promise(resolve => setTimeout(resolve, 100 + (retryCount * 500)));
-    
-    const { collection, query, where, getDocs, getDocsFromServer } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
-    
+
+    const { collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
+
     // Query public guides
     const publicGuidesQuery = query(
-      collection(db, 'trail_guides'), 
+      collection(db, 'trail_guides'),
       where('isPublic', '==', true)
     );
-    
+
     // Add timeout wrapper
-    const timeoutPromise = new Promise((_, reject) => 
+    const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Query timeout')), TIMEOUT_MS)
     );
-    
-    // Try getDocsFromServer first to avoid cache conflicts, fall back to getDocs
+
+    // Use getDocs which automatically uses cache when offline and syncs when online
+    // This is more reliable than trying server-first which causes timeouts
     let guidesSnapshot;
-    let source = 'unknown';
-    
+
     try {
-      console.log('   Trying server...');
-      const serverPromise = getDocsFromServer(publicGuidesQuery);
-      guidesSnapshot = await Promise.race([serverPromise, timeoutPromise]);
-      source = 'server';
-    } catch (serverError) {
-      console.log('   Server failed:', serverError.message, '- trying cache...');
-      const cachePromise = getDocs(publicGuidesQuery);
-      guidesSnapshot = await Promise.race([cachePromise, timeoutPromise]);
-      source = 'cache';
+      console.log('   Loading guides...');
+      const docsPromise = getDocs(publicGuidesQuery);
+      guidesSnapshot = await Promise.race([docsPromise, timeoutPromise]);
+    } catch (queryError) {
+      console.log('   Query failed:', queryError.message);
+      throw queryError;
     }
-    
+
     // Cache the results for loadFeaturedTrails
     this.publicGuidesCache = [];
     guidesSnapshot.forEach(doc => {
@@ -891,30 +885,30 @@ async loadCommunityStats(retryCount = 0) {
         ...doc.data()
       });
     });
-    
+
     this.calculateAndDisplayStats(this.publicGuidesCache);
-    
-    // Warn if cache returned 0 items (likely offline with empty cache)
-    if (this.publicGuidesCache.length === 0 && source === 'cache') {
-      console.warn('⚠️ Community stats: Cache returned 0 items - may be offline');
-      return { success: true, count: 0, warning: 'empty_cache' };
+
+    // Warn if returned 0 items
+    if (this.publicGuidesCache.length === 0) {
+      console.warn('⚠️ Community stats: No public guides found');
+      return { success: true, count: 0, warning: 'no_guides' };
     }
-    
-    console.log(`✅ Community stats loaded from ${source}: ${this.publicGuidesCache.length} public guides`);
-    return { success: true, count: this.publicGuidesCache.length, source };
-    
+
+    console.log(`✅ Community stats loaded: ${this.publicGuidesCache.length} public guides`);
+    return { success: true, count: this.publicGuidesCache.length };
+
   } catch (error) {
     console.error('❌ Failed to load community stats:', error);
-    
-    // Retry on Target ID error or timeout
-    if ((error.message?.includes('Target ID') || error.message?.includes('timeout')) && retryCount < MAX_RETRIES) {
+
+    // Retry on timeout
+    if (error.message?.includes('timeout') && retryCount < MAX_RETRIES) {
       console.log(`🔄 Retrying community stats... (${retryCount + 1}/${MAX_RETRIES})`);
       // Exponential backoff
       const waitTime = Math.pow(2, retryCount) * 1000;
       await new Promise(resolve => setTimeout(resolve, waitTime));
       return this.loadCommunityStats(retryCount + 1);
     }
-    
+
     // Set default values if failing
     this.updateElement('publicGuides', '0');
     this.updateElement('totalKm', '0');
