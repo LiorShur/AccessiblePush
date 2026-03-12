@@ -1612,6 +1612,7 @@ class OfflineSync {
         date: cloudRouteData.originalDate || cloudRouteData.createdAt
       };
       const accessibilityData = cloudRouteData.accessibilityData || {};
+      const poiElements = cloudRouteData.poiElements || [];
 
       if (!routeData || routeData.length === 0) {
         toast.error('Route has no data points - cannot generate guide');
@@ -1620,6 +1621,7 @@ class OfflineSync {
 
       console.log('📖 Generating trail guide for:', routeInfo.name);
       console.log('  - Route points:', routeData.length);
+      console.log('  - POI elements:', poiElements.length);
       toast.info('Generating trail guide... 📚');
 
       // Generate and upload the trail guide
@@ -1628,7 +1630,8 @@ class OfflineSync {
         routeData,
         routeInfo,
         accessibilityData,
-        user
+        user,
+        poiElements
       );
 
       console.log('✅ Trail guide created with ID:', guideId);
