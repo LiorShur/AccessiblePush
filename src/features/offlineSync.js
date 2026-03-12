@@ -163,7 +163,12 @@ class OfflineSync {
       // If auto-upload, skip the confirmation
       if (autoUpload) {
         toast.info('Uploading your route to the cloud...');
-        await this.syncAllPending();
+        const result = await this.syncAllPending();
+        // Notify that sync is complete so routes list can be refreshed
+        if (result?.success !== false) {
+          toast.success('Route saved to cloud! You can now load it from "My Routes".');
+          window.dispatchEvent(new CustomEvent('routesSynced', { detail: { success: true } }));
+        }
         return;
       }
 
@@ -661,7 +666,7 @@ class OfflineSync {
       // Generate trail guide for this route
       if (processedRouteData && processedRouteData.length > 0) {
         try {
-          await this.generateAndUploadTrailGuide(docRef.id, processedRouteData, routeInfo, accessibilityData, user);
+          await this.generateAndUploadTrailGuide(docRef.id, processedRouteData, routeInfo, accessibilityData, user, poiElements);
           if (onProgress) {
             onProgress('guide-done');
           }
@@ -681,7 +686,7 @@ class OfflineSync {
   /**
    * Generate and upload trail guide for a route
    */
-  async generateAndUploadTrailGuide(routeId, routeData, routeInfo, accessibilityData, user) {
+  async generateAndUploadTrailGuide(routeId, routeData, routeInfo, accessibilityData, user, poiElements = []) {
     try {
       const { trailGuideGeneratorV2 } = await import('./trailGuideGeneratorV2.js');
       const { db } = await import('../../firebase-setup.js');
@@ -689,8 +694,8 @@ class OfflineSync {
         'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js'
       );
 
-      // Generate HTML
-      const htmlContent = trailGuideGeneratorV2.generateHTML(routeData, routeInfo, accessibilityData || {});
+      // Generate HTML with POI elements
+      const htmlContent = trailGuideGeneratorV2.generateHTML(routeData, routeInfo, accessibilityData || {}, null, poiElements);
       
       // Save to Firestore with correct field names
       const guideDoc = {
@@ -708,8 +713,12 @@ class OfflineSync {
           originalDate: routeInfo.date,
           locationCount: routeData.filter(p => p.type === 'location').length,
           photoCount: routeData.filter(p => p.type === 'photo').length,
-          noteCount: routeData.filter(p => p.type === 'text').length
+          noteCount: routeData.filter(p => p.type === 'text').length,
+          poiElementCount: poiElements?.length || 0
         },
+
+        // POI elements data for loading on map
+        poiElements: poiElements || [],
         
         accessibility: accessibilityData ? {
           wheelchairAccess: accessibilityData.wheelchairAccess || 'Unknown',

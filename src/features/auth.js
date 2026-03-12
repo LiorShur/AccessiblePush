@@ -1337,12 +1337,25 @@ async updateUserStats() {
       
       querySnapshot.forEach(doc => {
         const data = doc.data();
+        // Handle Firestore Timestamp or regular date
+        let createdDate;
+        if (data.createdAt?.toDate) {
+          // Firestore Timestamp
+          createdDate = data.createdAt.toDate();
+        } else if (data.createdAt) {
+          // ISO string or other
+          createdDate = new Date(data.createdAt);
+        } else {
+          // Fallback to uploadedAt or now
+          createdDate = data.uploadedAt ? new Date(data.uploadedAt) : new Date();
+        }
+
         routes.push({
           id: doc.id,
           ...data,
           // Add computed fields for display
-          displayDate: new Date(data.createdAt).toLocaleDateString(),
-          displayTime: new Date(data.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+          displayDate: createdDate.toLocaleDateString(),
+          displayTime: createdDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
           locationCount: data.stats?.locationPoints || 0,
           photoCount: data.stats?.photos || 0,
           noteCount: data.stats?.notes || 0
