@@ -1,12 +1,6 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js';
-import { 
-  getFirestore,
-  initializeFirestore,
-  persistentLocalCache,
-  persistentSingleTabManager,
-  CACHE_SIZE_UNLIMITED
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -30,28 +24,15 @@ if (getApps().length === 0) {
 }
 
 // Initialize Firestore with IndexedDB persistence for offline support
-// Using single-tab manager to prevent Target ID conflicts across tabs
+// Using standard getFirestore for better compatibility and cache sync
 let db;
 try {
-  db = initializeFirestore(app, {
-    localCache: persistentLocalCache({
-      tabManager: persistentSingleTabManager({
-        forceOwnership: true  // Force this tab to own persistence
-      }),
-      cacheSizeBytes: CACHE_SIZE_UNLIMITED
-    })
-  });
-  console.log('🔥 Firestore initialized with IndexedDB persistence');
+  // Check if Firestore is already initialized
+  db = getFirestore(app);
+  console.log('🔥 Firestore initialized');
 } catch (e) {
-  // If initializeFirestore fails (already initialized), fall back to getFirestore
-  if (e.code === 'failed-precondition' || e.message?.includes('already been called')) {
-    db = getFirestore(app);
-    console.log('🔥 Using existing Firestore instance');
-  } else {
-    // For any other error, try getFirestore as last resort
-    console.warn('⚠️ Firestore init error:', e.message);
-    db = getFirestore(app);
-  }
+  console.warn('⚠️ Firestore init error:', e.message);
+  db = getFirestore(app);
 }
 
 export const auth = getAuth(app);

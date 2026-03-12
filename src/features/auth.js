@@ -681,15 +681,22 @@ setupCloudButtonsWithRetry() {
   showCloudSyncIndicator(message) {
     const indicator = document.getElementById('cloudSyncIndicator');
     const textElement = indicator?.querySelector('.sync-text');
-    
+
     if (indicator && textElement) {
       textElement.textContent = message;
       indicator.classList.remove('hidden');
-      
+
       // Auto-hide after 3 seconds
       setTimeout(() => {
         indicator.classList.add('hidden');
       }, 3000);
+    }
+  }
+
+  hideCloudSyncIndicator() {
+    const indicator = document.getElementById('cloudSyncIndicator');
+    if (indicator) {
+      indicator.classList.add('hidden');
     }
   }
 
@@ -1296,7 +1303,8 @@ async updateUserStats() {
 
   async loadUserRoutes(retryCount = 0) {
     const MAX_RETRIES = 2;
-    
+    const TIMEOUT_MS = 25000; // 25 second timeout
+
     if (!this.currentUser) {
       this.showAuthError('Please sign in to load your routes');
       return;
@@ -1306,35 +1314,25 @@ async updateUserStats() {
       this.showCloudSyncIndicator(retryCount > 0 ? 'Retrying...' : 'Loading your routes...');
 
       // Import Firestore functions
-      const { collection, query, where, orderBy, getDocs, getDocsFromServer } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
-      
+      const { collection, query, where, orderBy, getDocs } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
+
       const routesQuery = query(
         collection(db, 'routes'),
         where('userId', '==', this.currentUser.uid),
         orderBy('createdAt', 'desc')
       );
 
-      // Try server first to avoid cache conflicts, with 30 second timeout
-      let querySnapshot;
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout')), 30000)
+      // Use getDocs which handles cache/server automatically
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Query timeout')), TIMEOUT_MS)
       );
-      
-      try {
-        // Try getDocsFromServer first to bypass cache issues
-        const serverPromise = getDocsFromServer(routesQuery);
-        querySnapshot = await Promise.race([serverPromise, timeoutPromise]);
-        console.log('📂 Routes loaded from server');
-      } catch (serverError) {
-        // Fallback to cached getDocs
-        console.log('📂 Server fetch failed, trying cache...', serverError.message);
-        const cachePromise = getDocs(routesQuery);
-        querySnapshot = await Promise.race([cachePromise, timeoutPromise]);
-        console.log('📂 Routes loaded from cache');
-      }
-      
+
+      console.log('📂 Loading routes...');
+      const querySnapshot = await Promise.race([getDocs(routesQuery), timeoutPromise]);
+      console.log('📂 Routes loaded');
+
       const routes = [];
-      
+
       querySnapshot.forEach(doc => {
         const data = doc.data();
         // Handle Firestore Timestamp or regular date
@@ -1362,6 +1360,9 @@ async updateUserStats() {
         });
       });
 
+      // Hide loading indicator
+      this.hideCloudSyncIndicator();
+
       if (routes.length === 0) {
         toast.info('No cloud routes found. Start tracking and save your first route!');
         return;
@@ -1369,18 +1370,19 @@ async updateUserStats() {
 
       await this.showCloudRoutesList(routes);
       toast.success(`Found ${routes.length} cloud routes!`);
-      
+
     } catch (error) {
       console.error('❌ Failed to load routes:', error);
-      
+      this.hideCloudSyncIndicator();
+
       // Retry on timeout or unavailable
       if ((error.message === 'Query timeout' || error.code === 'unavailable') && retryCount < MAX_RETRIES) {
         console.log(`🔄 Retrying... (${retryCount + 1}/${MAX_RETRIES})`);
         toast.warning('Connection slow, retrying...');
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Longer delay between retries
+        await new Promise(resolve => setTimeout(resolve, 2000));
         return this.loadUserRoutes(retryCount + 1);
       }
-      
+
       if (error.message === 'Query timeout') {
         toast.error('Request timed out. Please check your internet connection and try again.');
       } else if (error.code === 'failed-precondition') {
@@ -2092,13 +2094,13 @@ async loadMyTrailGuides(retryCount = 0) {
     }
 
     console.log('📤 Executing Firestore query...');
-    
-    // Add timeout to the query (15 seconds to allow for slow connections)
+
+    // Add timeout to the query (25 seconds to allow for slow connections)
     const queryPromise = getDocs(guidesQuery);
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Query timeout')), 15000)
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Query timeout')), 25000)
     );
-    
+
     const querySnapshot = await Promise.race([queryPromise, timeoutPromise]);
     
     console.log('📥 Query completed, processing results...');
