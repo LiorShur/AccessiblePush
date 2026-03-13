@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js';
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, CACHE_SIZE_UNLIMITED, getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -23,16 +23,27 @@ if (getApps().length === 0) {
   console.log('🔥 Using existing Firebase app');
 }
 
-// Initialize Firestore with IndexedDB persistence for offline support
-// Using standard getFirestore for better compatibility and cache sync
+// Initialize Firestore with persistent cache for offline support (Firebase v10+)
 let db;
 try {
-  // Check if Firestore is already initialized
-  db = getFirestore(app);
-  console.log('🔥 Firestore initialized');
+  // Use initializeFirestore with persistent cache settings
+  // This replaces the deprecated enableIndexedDbPersistence
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager(),
+      cacheSizeBytes: CACHE_SIZE_UNLIMITED
+    })
+  });
+  console.log('🔥 Firestore initialized with persistent cache');
 } catch (e) {
-  console.warn('⚠️ Firestore init error:', e.message);
-  db = getFirestore(app);
+  // If Firestore is already initialized (e.g., hot reload), use existing instance
+  if (e.code === 'failed-precondition' || e.message?.includes('already been called')) {
+    db = getFirestore(app);
+    console.log('🔥 Using existing Firestore instance');
+  } else {
+    console.warn('⚠️ Firestore persistent cache init failed, using default:', e.message);
+    db = getFirestore(app);
+  }
 }
 
 export const auth = getAuth(app);

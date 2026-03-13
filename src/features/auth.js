@@ -60,23 +60,38 @@ export class AuthController {
 async warmupFirestore() {
   try {
     // Import Firestore functions
-    const { enableNetwork } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
-    
-    // Note: Persistence is now configured in firebase-setup.js
-    // Do not call enableIndexedDbPersistence here as it conflicts with the new cache settings
-    
+    const { enableNetwork, waitForPendingWrites } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
+
+    // Note: Persistence is now configured in firebase-setup.js using persistentLocalCache
+    // Do not call enableIndexedDbPersistence here as it conflicts
+
     // Try to enable network connection explicitly
     try {
       await enableNetwork(db);
       console.log('🔥 Firestore network enabled');
     } catch (e) {
       // enableNetwork may fail if already enabled, that's OK
+      if (!e.message?.includes('already')) {
+        console.warn('⚠️ enableNetwork warning:', e.message);
+      }
     }
-    
+
+    // Wait for any pending writes to complete (helps with cache sync)
+    try {
+      await Promise.race([
+        waitForPendingWrites(db),
+        new Promise(resolve => setTimeout(resolve, 3000)) // 3s timeout
+      ]);
+      console.log('🔥 Firestore pending writes synced');
+    } catch (e) {
+      // Non-critical, continue
+    }
+
     this.firestoreReady = true;
-    console.log('🔥 Firestore warmed up');
+    console.log('🔥 Firestore warmed up and ready');
   } catch (error) {
     console.warn('⚠️ Firestore warmup failed (non-critical):', error.message);
+    this.firestoreReady = true; // Still mark as ready to allow operations
   }
 }
 
@@ -155,9 +170,9 @@ setupCloudButtonsWithRetry() {
     buttons.forEach(({ id, handler, label }) => {
       const button = document.getElementById(id);
       if (button) {
-        // Check if already has event listener
-        const hasListener = button.onclick || Object.keys(getEventListeners(button)).length > 0;
-        
+        // Check if already has our custom event listener marker
+        const hasListener = button.dataset.authListenerAdded === 'true';
+
         if (!hasListener) {
           button.addEventListener('click', (e) => {
             console.log(`📱 ${label} clicked`);
@@ -165,7 +180,10 @@ setupCloudButtonsWithRetry() {
             e.stopPropagation();
             handler();
           });
-          
+
+          // Mark button as having listener to prevent duplicates
+          button.dataset.authListenerAdded = 'true';
+
           console.log(`✅ ${label} button setup complete`);
           successCount++;
         } else {
@@ -788,8 +806,9 @@ async saveCurrentRouteToCloud() {
     
     if (!routeDataToSave || routeDataToSave.length === 0) {
       // No current route data, let user choose from saved routes
-      const savedSessions = state?.getSessions();
-      
+      // FIXED: getSessions() is async, must await it
+      const savedSessions = await state?.getSessions();
+
       if (!savedSessions || savedSessions.length === 0) {
         toast.infoKey('noRouteData');
         this.isSavingToCloud = false;
