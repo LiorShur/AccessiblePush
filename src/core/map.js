@@ -518,7 +518,7 @@ export class MapController {
     }
   }
 
-  // FIXED: Complete route clearing including all markers and cluster
+  // FIXED: Clear only route-specific markers, not POI markers
   clearRouteDisplay() {
     // Clear route lines
     this.routePolylines.forEach(polyline => {
@@ -526,18 +526,14 @@ export class MapController {
     });
     this.routePolylines = [];
 
-    // Clear route markers (from both cluster and map)
+    // Clear only route markers (from both cluster and map)
+    // NOTE: Do NOT call markerClusterGroup.clearLayers() as that would also remove POI markers
     this.routeMarkers.forEach(marker => {
       this.removeMarkerFromClusterOrMap(marker);
     });
     this.routeMarkers = [];
 
-    // Also clear the cluster group if it exists
-    if (this.markerClusterGroup) {
-      this.markerClusterGroup.clearLayers();
-    }
-
-    console.log('🧹 Route display cleared (including cluster)');
+    console.log('🧹 Route display cleared (route markers only, preserving POI markers)');
   }
 
   // Add a single photo marker to the map (real-time during tracking) - with clustering
