@@ -658,6 +658,13 @@ export class POIElementsManager {
     const el = POI_ELEMENTS.find(e => e.id === element.type);
     if (!el) return;
 
+    // Normalize coordinates - handle both 'location' and 'coords' formats
+    const location = element.location || element.coords;
+    if (!location || !location.lat || !location.lng) {
+      console.warn('[POIElements] Invalid location data for element:', element.id || element.type);
+      return null;
+    }
+
     const color = TYPE_COLORS[el.type] || TYPE_COLORS.default;
 
     // Create custom icon
@@ -675,7 +682,7 @@ export class POIElementsManager {
       popupAnchor: [0, -36]
     });
 
-    const marker = L.marker([element.location.lat, element.location.lng], { icon });
+    const marker = L.marker([location.lat, location.lng], { icon });
 
     // Build popup content
     const popupContent = this.buildPopupContent(element);

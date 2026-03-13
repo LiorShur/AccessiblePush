@@ -133,17 +133,29 @@ class UnifiedNavigation {
     document.body.style.overflow = '';
   }
   
-  async setupAuthListener() {
+  setupAuthListener() {
+    // Listen to the centralized auth state change event from auth.js
+    // This avoids duplicate Firebase listeners and ensures consistency
+    window.addEventListener('authStateChanged', (e) => {
+      const user = e.detail?.user || null;
+      this.currentUser = user;
+      this.updateAuthUI(user);
+    });
+
+    // Also check current auth state immediately for pages that load after auth
+    this.checkCurrentAuthState();
+  }
+
+  async checkCurrentAuthState() {
     try {
-      const { auth } = await import('../firebase-setup.js');
-      const { onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js');
-      
-      onAuthStateChanged(auth, (user) => {
-        this.currentUser = user;
-        this.updateAuthUI(user);
-      });
+      const { auth } = await import('../../firebase-setup.js');
+      // Just check current state, don't register a new listener
+      if (auth.currentUser) {
+        this.currentUser = auth.currentUser;
+        this.updateAuthUI(auth.currentUser);
+      }
     } catch (error) {
-      console.warn('⚠️ Failed to setup auth listener for nav:', error);
+      // Auth may not be available on all pages, that's OK
     }
   }
   
