@@ -2103,7 +2103,9 @@ export class TrailGuideGeneratorV2 {
             `).join('')}
 
             // POI Element markers (added to cluster)
-            ${(poiElements || []).filter(p => p.location).map(poi => {
+            // Handle both 'location' and 'coords' formats for POI elements
+            ${(poiElements || []).filter(p => p.location || p.coords).map(poi => {
+              const loc = poi.location || poi.coords;
               const config = poiConfig[poi.type] || { icon: '📍', color: '#666', label: poi.type };
               const translateField = (key) => fieldTranslations[key] || key;
               const translateValue = (val) => Array.isArray(val)
@@ -2117,7 +2119,7 @@ export class TrailGuideGeneratorV2 {
               const photoHtml = poi.photoDataUrl ? `<img src="${poi.photoDataUrl}" onclick="window.openFullscreenPhoto(this.src)" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-top:8px;cursor:pointer;" alt="${config.label}">` : '';
               return `
             (function() {
-                const marker = L.marker([${poi.location.lat}, ${poi.location.lng}], {
+                const marker = L.marker([${loc.lat}, ${loc.lng}], {
                     icon: L.divIcon({
                         className: 'poi-marker',
                         html: '<div style="background:${config.color};width:28px;height:28px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">${config.icon}</div>',

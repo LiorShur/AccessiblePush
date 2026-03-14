@@ -439,40 +439,35 @@ export class GlobalNav {
     // Initial check
     updateAuthUI();
 
-    // Listen for custom auth changes event (from auth.js)
+    // Listen for centralized auth changes event (from auth.js)
+    // This avoids duplicate Firebase listeners and ensures consistency
     window.addEventListener('authStateChanged', (e) => {
       console.log('[GlobalNav] Received authStateChanged event');
       updateAuthUI(e);
     });
-    
-    // Firebase auth state listener
-    const setupFirebaseListener = () => {
-      if (window.auth?.onAuthStateChanged) {
-        window.auth.onAuthStateChanged((user) => {
-          console.log('[GlobalNav] Firebase auth state changed:', !!user);
-          updateAuthUI({ detail: { user } });
-        });
+
+    // Check if user is already signed in (for pages that load after auth is established)
+    // This uses window.auth if available but does NOT register a new listener
+    const checkCurrentAuthState = () => {
+      if (window.auth?.currentUser) {
+        console.log('[GlobalNav] Found existing signed-in user');
+        updateAuthUI({ detail: { user: window.auth.currentUser } });
         return true;
       }
       return false;
     };
-    
-    // Try immediately
-    if (!setupFirebaseListener()) {
-      // If not available, wait for Firebase to initialize
-      const waitForAuth = setInterval(() => {
-        if (setupFirebaseListener()) {
-          clearInterval(waitForAuth);
-          updateAuthUI(); // Check again now that we have auth
+
+    // Try immediately, then retry a few times for late-loading auth
+    if (!checkCurrentAuthState()) {
+      let attempts = 0;
+      const maxAttempts = 10;
+      const checkInterval = setInterval(() => {
+        attempts++;
+        if (checkCurrentAuthState() || attempts >= maxAttempts) {
+          clearInterval(checkInterval);
         }
-      }, 200);
-      
-      // Clear after 5 seconds
-      setTimeout(() => clearInterval(waitForAuth), 5000);
+      }, 300);
     }
-    
-    // Note: Removed aggressive periodic check - pages now handle their own auth state updates
-    // and push them to global nav via updateGlobalNavProfile functions
   }
 
   /**

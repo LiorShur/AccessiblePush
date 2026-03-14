@@ -1,5 +1,6 @@
 // FIXED: Map controller with proper route restoration and visualization
 import { toast } from '../utils/toast.js';
+import { createMarkerClusterGroup, addClusterStylesToDocument, isValidClusterGroup } from '../utils/clusterConfig.js';
 
 export class MapController {
   constructor() {
@@ -54,51 +55,24 @@ export class MapController {
 
   /**
    * Initialize marker cluster group for route markers
+   * Uses shared cluster configuration for consistency across pages
    */
   initializeMarkerCluster() {
     console.log('[Map] initializeMarkerCluster called');
-    console.log('[Map] L.markerClusterGroup type:', typeof L.markerClusterGroup);
-
-    // Check if L.markerClusterGroup is available
-    if (typeof L.markerClusterGroup !== 'function') {
-      console.error('❌ MarkerCluster plugin not loaded! L.markerClusterGroup is:', typeof L.markerClusterGroup);
-      console.error('Available L properties:', Object.keys(L).filter(k => k.toLowerCase().includes('cluster')));
-      return;
-    }
 
     // Skip if already initialized
-    if (this.markerClusterGroup) {
+    if (isValidClusterGroup(this.markerClusterGroup)) {
       console.log('[Map] Marker cluster already initialized');
       return;
     }
 
     console.log('[Map] Creating marker cluster group...');
-    this.markerClusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 50,
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: false,
-      zoomToBoundsOnClick: true,
-      // Removed disableClusteringAtZoom to always cluster overlapping markers
-      // Spiderfy configuration for better fanout
-      spiderfyDistanceMultiplier: 1.5, // More spacing between spiderfied markers
-      spiderLegPolylineOptions: {
-        weight: 1.5,
-        color: '#4a7c59',
-        opacity: 0.5
-      },
-      iconCreateFunction: (cluster) => {
-        const count = cluster.getChildCount();
-        let sizeClass = 'cluster-small';
-        if (count > 10) sizeClass = 'cluster-large';
-        else if (count > 5) sizeClass = 'cluster-medium';
+    this.markerClusterGroup = createMarkerClusterGroup();
 
-        return L.divIcon({
-          html: `<div class="tracker-cluster ${sizeClass}">${count}</div>`,
-          className: 'marker-cluster-custom',
-          iconSize: L.point(40, 40)
-        });
-      }
-    });
+    if (!this.markerClusterGroup) {
+      console.error('❌ Failed to create marker cluster group');
+      return;
+    }
 
     // Show popup on spiderfy for easy marker selection
     this.markerClusterGroup.on('spiderfied', (e) => {
@@ -107,51 +81,9 @@ export class MapController {
 
     this.map.addLayer(this.markerClusterGroup);
 
-    // Add cluster styles
-    this.addClusterStyles();
-    console.log('✅ Marker cluster initialized');
-  }
-
-  /**
-   * Add CSS styles for marker clusters
-   */
-  addClusterStyles() {
-    if (document.getElementById('tracker-cluster-styles')) return;
-
-    const style = document.createElement('style');
-    style.id = 'tracker-cluster-styles';
-    style.textContent = `
-      .marker-cluster-custom {
-        background: transparent;
-      }
-      .tracker-cluster {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 14px;
-        color: white;
-        border: 3px solid white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        background: #4CAF50;
-      }
-      .tracker-cluster.cluster-medium {
-        width: 50px;
-        height: 50px;
-        font-size: 15px;
-        background: #f59e0b;
-      }
-      .tracker-cluster.cluster-large {
-        width: 60px;
-        height: 60px;
-        font-size: 16px;
-        background: #ef4444;
-      }
-    `;
-    document.head.appendChild(style);
+    // Add cluster styles using shared configuration
+    addClusterStylesToDocument('tracker-cluster-styles');
+    console.log('✅ Marker cluster initialized with shared configuration');
   }
 
   /**
