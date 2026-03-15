@@ -1332,8 +1332,8 @@ async updateUserStats() {
     try {
       this.showCloudSyncIndicator(retryCount > 0 ? 'Retrying...' : 'Loading your routes...');
 
-      // Import Firestore functions
-      const { collection, query, where, orderBy, getDocs } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
+      // Import Firestore functions - use getDocsFromServer to bypass cache and get fresh data
+      const { collection, query, where, orderBy, getDocsFromServer, getDocs } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
 
       const routesQuery = query(
         collection(db, 'routes'),
@@ -1341,14 +1341,23 @@ async updateUserStats() {
         orderBy('createdAt', 'desc')
       );
 
-      // Use getDocs which handles cache/server automatically
+      // Use getDocsFromServer to ensure we get fresh data (fixes issue where newly synced routes don't appear)
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Query timeout')), TIMEOUT_MS)
       );
 
-      console.log('📂 Loading routes...');
-      const querySnapshot = await Promise.race([getDocs(routesQuery), timeoutPromise]);
-      console.log('📂 Routes loaded');
+      console.log('📂 Loading routes from server...');
+      let querySnapshot;
+      try {
+        // First try to get fresh data from server
+        querySnapshot = await Promise.race([getDocsFromServer(routesQuery), timeoutPromise]);
+        console.log('📂 Routes loaded from server');
+      } catch (serverError) {
+        // If server fetch fails (e.g., offline), fall back to cache
+        console.warn('⚠️ Server fetch failed, trying cache:', serverError.message);
+        querySnapshot = await Promise.race([getDocs(routesQuery), timeoutPromise]);
+        console.log('📂 Routes loaded from cache');
+      }
 
       const routes = [];
 
