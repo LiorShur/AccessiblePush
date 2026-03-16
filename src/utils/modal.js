@@ -291,6 +291,21 @@ class ModalManager {
           overflow-x: hidden;
         }
 
+        .modal-footer.paginated-choices .modal-btn {
+          flex: none;
+          width: 100%;
+          max-width: 100%;
+          min-width: unset;
+          text-align: left;
+          padding: 14px 16px;
+          white-space: normal;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          word-break: break-word;
+          line-height: 1.3;
+          box-sizing: border-box;
+        }
+
         .modal-choices-container {
           display: flex;
           flex-direction: column;
