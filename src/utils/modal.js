@@ -21,14 +21,19 @@ const modalTranslations = {
     delete: "Delete",
     discard: "Discard",
     submit: "Submit",
-    
+
     // Common modal titles
     success: "Success",
     error: "Error",
     warning: "Warning",
     info: "Information",
     confirmAction: "Confirm Action",
-    
+
+    // Pagination
+    previous: "Previous",
+    next: "Next",
+    pageOf: "of",
+
     // Common messages
     areYouSure: "Are you sure?",
     unsavedChanges: "You have unsaved changes. Do you want to discard them?",
@@ -47,14 +52,19 @@ const modalTranslations = {
     delete: "מחק",
     discard: "בטל",
     submit: "שלח",
-    
+
     // Common modal titles
     success: "הצלחה",
     error: "שגיאה",
     warning: "אזהרה",
     info: "מידע",
     confirmAction: "אישור פעולה",
-    
+
+    // Pagination
+    previous: "הקודם",
+    next: "הבא",
+    pageOf: "מתוך",
+
     // Common messages
     areYouSure: "האם אתה בטוח?",
     unsavedChanges: "יש לך שינויים שלא נשמרו. האם לבטל אותם?",
@@ -254,18 +264,75 @@ class ModalManager {
           gap: 8px;
           max-height: 60vh;
           padding-bottom: 24px;
+          overflow-x: hidden;
         }
-        
+
         .modal-footer.many-choices .modal-btn {
           flex: none;
           width: 100%;
+          max-width: 100%;
           min-width: unset;
           text-align: left;
           padding: 14px 16px;
           white-space: normal;
           word-wrap: break-word;
           overflow-wrap: break-word;
+          word-break: break-word;
           line-height: 1.3;
+          box-sizing: border-box;
+        }
+
+        /* Paginated choice list */
+        .modal-footer.paginated-choices {
+          flex-direction: column;
+          gap: 8px;
+          max-height: 60vh;
+          padding-bottom: 16px;
+          overflow-x: hidden;
+        }
+
+        .modal-choices-container {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
+        }
+
+        .modal-pagination {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 0;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          margin-top: 8px;
+          width: 100%;
+        }
+
+        .modal-pagination-btn {
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.8);
+          padding: 8px 16px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: all 0.2s;
+        }
+
+        .modal-pagination-btn:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.12);
+        }
+
+        .modal-pagination-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .modal-pagination-info {
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 13px;
         }
         
         .modal-btn-secondary {
@@ -311,14 +378,15 @@ class ModalManager {
             padding: 0;
             align-items: flex-end;
           }
-          
+
           .modal-dialog {
             max-width: none;
             width: 100%;
             border-radius: 20px 20px 0 0;
             max-height: 85vh;
+            overflow-x: hidden;
           }
-          
+
           .modal-footer {
             flex-direction: column;
             max-height: 50vh;
@@ -326,22 +394,40 @@ class ModalManager {
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
           }
-          
+
           .modal-footer .modal-btn {
             width: 100%;
+            max-width: 100%;
             flex: none;
             min-width: unset;
+            box-sizing: border-box;
+            word-break: break-word;
           }
-          
-          .modal-footer.many-choices {
+
+          .modal-footer.many-choices,
+          .modal-footer.paginated-choices {
             padding: 12px 16px 24px;
             max-height: 55vh;
+            overflow-x: hidden;
           }
-          
-          .modal-footer.many-choices .modal-btn {
+
+          .modal-footer.many-choices .modal-btn,
+          .modal-footer.paginated-choices .modal-btn {
             padding: 12px 14px;
             font-size: 14px;
             white-space: normal;
+            word-break: break-word;
+          }
+
+          .modal-pagination {
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+          }
+
+          .modal-pagination-btn {
+            padding: 10px 20px;
+            font-size: 16px;
           }
         }
         
@@ -636,21 +722,185 @@ class ModalManager {
     return this.show({ type: 'warning', title, message });
   }
 
-  // Custom choice modal
-  choice(message, title, choices) {
-    const buttons = choices.map((c, i) => ({
-      label: c.label,
-      // Use nullish coalescing to handle value of 0 correctly
-      action: c.value !== undefined && c.value !== null ? c.value : c.label,
-      variant: i === choices.length - 1 ? 'primary' : 'secondary'
-    }));
-    
-    return this.show({
-      type: 'confirm',
-      title,
-      message,
-      buttons,
-      closable: true
+  // Custom choice modal with pagination for long lists
+  choice(message, title, choices, options = {}) {
+    const ITEMS_PER_PAGE = options.itemsPerPage || 5;
+
+    // If few choices, use simple mode
+    if (choices.length <= ITEMS_PER_PAGE + 1) {
+      const buttons = choices.map((c, i) => ({
+        label: c.label,
+        action: c.value !== undefined && c.value !== null ? c.value : c.label,
+        variant: i === choices.length - 1 ? 'primary' : 'secondary'
+      }));
+
+      return this.show({
+        type: 'confirm',
+        title,
+        message,
+        buttons,
+        closable: true
+      });
+    }
+
+    // For many choices, use paginated modal
+    return this.showPaginatedChoice(message, title, choices, ITEMS_PER_PAGE);
+  }
+
+  // Paginated choice modal for long lists
+  showPaginatedChoice(message, title, choices, itemsPerPage) {
+    this.init();
+
+    return new Promise((resolve) => {
+      let currentPage = 0;
+      const totalPages = Math.ceil((choices.length - 1) / itemsPerPage); // -1 for cancel button
+
+      // Separate cancel from other choices
+      const cancelChoice = choices.find(c => c.value === 'cancel' || c.label.includes('Cancel') || c.label.includes('ביטול'));
+      const itemChoices = choices.filter(c => c !== cancelChoice);
+
+      const modalId = `modal-${++this.modalCounter}`;
+
+      // Create backdrop
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      backdrop.id = modalId;
+
+      const renderPage = () => {
+        const startIdx = currentPage * itemsPerPage;
+        const endIdx = Math.min(startIdx + itemsPerPage, itemChoices.length);
+        const pageItems = itemChoices.slice(startIdx, endIdx);
+
+        let html = `
+          <div class="modal-dialog modal-confirm">
+            <div class="modal-header">
+              <span class="modal-icon">📋</span>
+              <h3 class="modal-title">${this.escapeHtml(title)}</h3>
+              <button class="modal-close" data-action="close">×</button>
+            </div>
+            <div class="modal-body">
+              <p class="modal-message">${this.escapeHtml(message)}</p>
+            </div>
+            <div class="modal-footer paginated-choices">
+              <div class="modal-choices-container">
+        `;
+
+        pageItems.forEach((c, i) => {
+          const action = c.value !== undefined && c.value !== null ? c.value : c.label;
+          html += `<button class="modal-btn modal-btn-secondary" data-action="${action}" data-choice-index="${startIdx + i}">
+            ${this.escapeHtml(c.label)}
+          </button>`;
+        });
+
+        html += '</div>';
+
+        // Pagination controls
+        const prevText = this.t('previous');
+        const nextText = this.t('next');
+        html += `
+          <div class="modal-pagination">
+            <button class="modal-pagination-btn" data-page="prev" ${currentPage === 0 ? 'disabled' : ''}>
+              ▲ ${prevText}
+            </button>
+            <span class="modal-pagination-info">${currentPage + 1} / ${totalPages}</span>
+            <button class="modal-pagination-btn" data-page="next" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>
+              ${nextText} ▼
+            </button>
+          </div>
+        `;
+
+        // Cancel button
+        if (cancelChoice) {
+          const cancelAction = cancelChoice.value !== undefined ? cancelChoice.value : 'cancel';
+          html += `<button class="modal-btn modal-btn-primary" data-action="${cancelAction}" style="margin-top: 8px;">
+            ${this.escapeHtml(cancelChoice.label)}
+          </button>`;
+        }
+
+        html += '</div></div>';
+
+        backdrop.innerHTML = html;
+      };
+
+      renderPage();
+      document.body.appendChild(backdrop);
+
+      // Store reference
+      this.activeModals.set(modalId, { backdrop, resolve });
+
+      // Event delegation for all clicks
+      const handleClick = (e) => {
+        const target = e.target.closest('[data-action], [data-page]');
+        if (!target) {
+          // Backdrop click
+          if (e.target === backdrop) {
+            cleanup();
+            this.close(modalId, 'cancel', resolve);
+          }
+          return;
+        }
+
+        const page = target.getAttribute('data-page');
+        if (page) {
+          if (page === 'prev' && currentPage > 0) {
+            currentPage--;
+            renderPage();
+            attachEvents();
+          } else if (page === 'next' && currentPage < totalPages - 1) {
+            currentPage++;
+            renderPage();
+            attachEvents();
+          }
+          return;
+        }
+
+        const action = target.getAttribute('data-action');
+        if (action) {
+          cleanup();
+          this.close(modalId, action, resolve);
+        }
+      };
+
+      const handleKeydown = (e) => {
+        if (e.key === 'Escape') {
+          cleanup();
+          this.close(modalId, 'cancel', resolve);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          if (currentPage > 0) {
+            currentPage--;
+            renderPage();
+            attachEvents();
+          }
+        } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          if (currentPage < totalPages - 1) {
+            currentPage++;
+            renderPage();
+            attachEvents();
+          }
+        }
+      };
+
+      const attachEvents = () => {
+        backdrop.removeEventListener('click', handleClick);
+        backdrop.addEventListener('click', handleClick);
+      };
+
+      const cleanup = () => {
+        backdrop.removeEventListener('click', handleClick);
+        document.removeEventListener('keydown', handleKeydown);
+      };
+
+      attachEvents();
+      document.addEventListener('keydown', handleKeydown);
+
+      // Show with animation
+      requestAnimationFrame(() => {
+        backdrop.classList.add('active');
+      });
+
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('modal-open');
     });
   }
 }

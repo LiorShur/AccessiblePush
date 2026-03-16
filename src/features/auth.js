@@ -1384,9 +1384,14 @@ async updateUserStats() {
           displayTime: createdDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
           locationCount: data.stats?.locationPoints || 0,
           photoCount: data.stats?.photos || 0,
-          noteCount: data.stats?.notes || 0
+          noteCount: data.stats?.notes || 0,
+          // Store the actual date for sorting
+          _sortDate: createdDate
         });
       });
+
+      // Sort client-side to ensure newest first (fallback if Firestore orderBy doesn't work)
+      routes.sort((a, b) => b._sortDate - a._sortDate);
 
       // Hide loading indicator
       this.hideCloudSyncIndicator();
