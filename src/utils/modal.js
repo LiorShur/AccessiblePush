@@ -827,7 +827,7 @@ class ModalManager {
         // Cancel button
         if (cancelChoice) {
           const cancelAction = cancelChoice.value !== undefined ? cancelChoice.value : 'cancel';
-          html += `<button class="modal-btn modal-btn-primary" data-action="${cancelAction}" style="margin-top: 8px;">
+          html += `<button class="modal-btn modal-btn-primary" data-action="${cancelAction}" style="margin-top: 8px; width: 100%; box-sizing: border-box;">
             ${this.escapeHtml(cancelChoice.label)}
           </button>`;
         }
