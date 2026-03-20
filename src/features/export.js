@@ -138,9 +138,11 @@ export class ExportController {
     
     const choice = await modal.choice(t('trackerUI.export.selectRouteToExport'), `📂 ${t('trackerUI.export.exportSavedRoute')}`, choices);
     
-    if (choice !== null && choice !== 'cancel') {
-      this.exportSavedRoute(sessions[choice]);
+    // Handle close/cancel - 'close' is returned when X button or backdrop is clicked
+    if (choice === null || choice === 'cancel' || choice === 'close' || choice === false) {
+      return;
     }
+    this.exportSavedRoute(sessions[choice]);
   }
 
   // Export a specific saved route
@@ -324,11 +326,11 @@ export class ExportController {
     
     const choice = await modal.choice('Select a route to export:', '📂 Select Route', choices);
     
-    if (choice !== null && choice !== 'cancel') {
-      return sessions[choice];
+    // Handle close/cancel - 'close' is returned when X button or backdrop is clicked
+    if (choice === null || choice === 'cancel' || choice === 'close' || choice === false) {
+      return null;
     }
-    
-    return null;
+    return sessions[choice];
   }
 
   // Generate PDF report
@@ -506,7 +508,8 @@ export class ExportController {
       choices.push({ label: '❌ Cancel', value: 'cancel' });
       
       const choice = await modal.choice('Multiple routes found. Select one:', '📂 Select Route', choices);
-      if (choice !== null && choice !== 'cancel') {
+      // Handle close/cancel - 'close' is returned when X button or backdrop is clicked
+      if (choice !== null && choice !== 'cancel' && choice !== 'close' && choice !== false) {
         routeData = data.routes[choice].route;
       }
     }

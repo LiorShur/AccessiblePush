@@ -2674,8 +2674,9 @@ Happy trail mapping! 🥾`);
     choices.push({ label: '❌ Cancel', value: 'cancel' });
     
     const choice = await modal.choice('Select a guide to view:', '🌐 Your Trail Guides', choices);
-    
-    if (choice !== null && choice !== 'cancel') {
+
+    // Handle close/cancel - 'close' is returned when X button or backdrop is clicked
+    if (choice !== null && choice !== 'cancel' && choice !== 'close' && choice !== false) {
       await this.viewTrailGuide(guides[choice].id);
     }
   }

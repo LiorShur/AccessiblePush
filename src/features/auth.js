@@ -7,6 +7,7 @@ import { storageService } from '../services/storageService.js';
 import { uploadProgress } from '../ui/uploadProgress.js';
 import { trailGuideGeneratorV2 } from './trailGuideGeneratorV2.js';
 import { t } from '../i18n/i18n.js';
+import { announcementsService } from '../services/announcementsService.js';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -523,10 +524,17 @@ setupCloudButtonsWithRetry() {
       const confirmed = await modal.confirm('Are you sure you want to sign out?', '👋 Sign Out');
       if (!confirmed) return;
 
+      // Stop Firestore listeners before signing out to prevent sync engine errors
+      try {
+        announcementsService.stopListening();
+      } catch (e) {
+        console.warn('⚠️ Error stopping announcements listener:', e);
+      }
+
       await signOut(auth);
       console.log('👋 Logout successful');
       toast.successKey('seeYouNextTime');
-      
+
     } catch (error) {
       console.error('❌ Logout failed:', error);
       toast.errorKey('logoutFailed');
@@ -762,12 +770,13 @@ async selectRouteForCloudSave(sessions) {
     choices.push({ label: '❌ Cancel', value: 'cancel' });
     
     const choice = await modal.choice('Select a route to save to cloud:', '☁️ Upload Route', choices);
-    
-    if (choice === null || choice === 'cancel') {
-      console.log('Route selection cancelled');
+
+    // Handle close/cancel - 'close' is returned when X button or backdrop is clicked
+    if (choice === null || choice === 'cancel' || choice === 'close' || choice === false) {
+      console.log('Route selection cancelled/closed');
       return null;
     }
-    
+
     const selectedRoute = sessions[choice];
     console.log('✅ Route selected:', selectedRoute.name);
     return selectedRoute;
@@ -1189,14 +1198,15 @@ async showCloudRoutesList(routes) {
   
   console.log('📋 Modal returned choice:', choice, 'type:', typeof choice);
   
-  if (choice === null || choice === 'cancel') {
-    console.log('📋 User cancelled selection');
+  // Handle close/cancel - 'close' is returned when X button or backdrop is clicked
+  if (choice === null || choice === 'cancel' || choice === 'close' || choice === false) {
+    console.log('📋 User cancelled/closed selection');
     return;
   }
-  
+
   // Convert to number if it's a string number
   const selectedIndex = typeof choice === 'string' ? parseInt(choice, 10) : choice;
-  
+
   if (typeof selectedIndex === 'number' && !isNaN(selectedIndex) && selectedIndex >= 0 && selectedIndex < routes.length) {
     const selectedRoute = routes[selectedIndex];
     console.log('📋 Selected cloud route:', selectedRoute.id, selectedRoute.routeName);
@@ -1446,14 +1456,15 @@ async updateUserStats() {
     
     console.log('📋 Modal returned choice:', choice, 'type:', typeof choice);
     
-    if (choice === null || choice === 'cancel') {
-      console.log('📋 User cancelled selection');
+    // Handle close/cancel - 'close' is returned when X button or backdrop is clicked
+    if (choice === null || choice === 'cancel' || choice === 'close' || choice === false) {
+      console.log('📋 User cancelled/closed selection');
       return;
     }
-    
+
     // Convert to number if it's a string number
     const selectedIndex = typeof choice === 'string' ? parseInt(choice, 10) : choice;
-    
+
     if (typeof selectedIndex === 'number' && !isNaN(selectedIndex) && selectedIndex >= 0 && selectedIndex < routes.length) {
       const selectedRoute = routes[selectedIndex];
       console.log('📋 Selected route:', selectedRoute.id, selectedRoute.routeName);
@@ -2263,17 +2274,17 @@ async displayMyGuides(guides) {
   
   console.log('📋 Modal returned choice:', choice, 'type:', typeof choice);
   
-  // Handle the selection
-  if (choice === null || choice === 'cancel') {
-    console.log('📋 User cancelled selection');
+  // Handle close/cancel - 'close' is returned when X button or backdrop is clicked
+  if (choice === null || choice === 'cancel' || choice === 'close' || choice === false) {
+    console.log('📋 User cancelled/closed selection');
     return;
   }
-  
+
   // Convert to number if it's a string number
   const selectedIndex = typeof choice === 'string' ? parseInt(choice, 10) : choice;
-  
+
   console.log('📋 Selected index:', selectedIndex, 'guides available:', guides.length);
-  
+
   if (typeof selectedIndex === 'number' && !isNaN(selectedIndex) && selectedIndex >= 0 && selectedIndex < guides.length) {
     const selectedGuide = guides[selectedIndex];
     console.log('📋 Selected guide:', selectedGuide.id, selectedGuide.routeName);
