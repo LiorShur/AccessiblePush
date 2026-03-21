@@ -285,6 +285,7 @@ class ModalManager {
         /* Paginated choice list */
         .modal-footer.paginated-choices {
           flex-direction: column;
+          flex-wrap: nowrap;
           gap: 8px;
           max-height: 60vh;
           padding-bottom: 16px;
