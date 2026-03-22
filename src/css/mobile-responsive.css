@@ -52,7 +52,7 @@ html {
 @media (max-width: 359px) {
   /* Typography scaling */
   html {
-    font-size: 14px;
+    font-size: 13px;
   }
   
   h1 {
@@ -156,7 +156,7 @@ html {
    ============================================ */
 @media (min-width: 360px) and (max-width: 389px) {
   html {
-    font-size: 15px;
+    font-size: 13px;
   }
   
   .nav-brand {
@@ -175,7 +175,7 @@ html {
    ============================================ */
 @media (min-width: 390px) and (max-width: 427px) {
   html {
-    font-size: 15.5px;
+    font-size: 13px;
   }
   
   .modal-content,
@@ -190,7 +190,7 @@ html {
    ============================================ */
 @media (min-width: 428px) and (max-width: 767px) {
   html {
-    font-size: 16px;
+    font-size: 13px;
   }
   
   .modal-content,
