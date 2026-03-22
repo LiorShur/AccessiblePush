@@ -248,11 +248,11 @@ body.has-bottom-nav .poi-fab {
 }
 
 .poi-element-label {
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 600;
   color: white;
   text-align: center;
-  line-height: 1;
+  line-height: 1.2;
   word-break: break-word;
   hyphens: auto;
   max-width: 100%;
@@ -740,7 +740,7 @@ body.has-bottom-nav .poi-fab {
   }
 
   .poi-element-label {
-    font-size: 6px;
+    font-size: 8px;
   }
 
   .poi-overlay-header {
@@ -781,7 +781,7 @@ body.has-bottom-nav .poi-fab {
   }
 
   .poi-element-label {
-    font-size: 7px;
+    font-size: 9px;
   }
 }
 
@@ -806,7 +806,7 @@ body.has-bottom-nav .poi-fab {
   }
 
   .poi-element-label {
-    font-size: 8px;
+    font-size: 10px;
   }
 }
 
@@ -831,7 +831,7 @@ body.has-bottom-nav .poi-fab {
   }
 
   .poi-element-label {
-    font-size: 9px;
+    font-size: 11px;
   }
 }
 
@@ -864,7 +864,7 @@ body.has-bottom-nav .poi-fab {
   }
 
   .poi-element-label {
-    font-size: 11px;
+    font-size: 13px;
   }
 
   .poi-bottom-sheet {
