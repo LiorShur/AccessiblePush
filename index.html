@@ -626,6 +626,12 @@
           </div>
           <div class="trails-map-info">
             <span id="visibleTrailsCount">0 trails in view</span>
+            <button class="fullscreen-toggle-btn" id="footerFullscreenBtn" onclick="window.closeTrailsMapFullscreen ? window.landingController?.toggleTrailsMapFullscreen() : null" title="View fullscreen" aria-label="Toggle fullscreen map view">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+              </svg>
+              <span data-i18n="index.fullscreen">Fullscreen</span>
+            </button>
           </div>
         </div>
       </div>
