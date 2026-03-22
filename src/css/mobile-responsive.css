@@ -50,9 +50,9 @@ html {
    EXTRA SMALL SCREENS (320px - iPhone SE)
    ============================================ */
 @media (max-width: 359px) {
-  /* Typography scaling */
+  /* Typography scaling - keep 16px base for accessibility */
   html {
-    font-size: 13px;
+    font-size: 16px;
   }
   
   h1 {
@@ -156,7 +156,7 @@ html {
    ============================================ */
 @media (min-width: 360px) and (max-width: 389px) {
   html {
-    font-size: 13px;
+    font-size: 16px;
   }
   
   .nav-brand {
@@ -175,7 +175,7 @@ html {
    ============================================ */
 @media (min-width: 390px) and (max-width: 427px) {
   html {
-    font-size: 13px;
+    font-size: 16px;
   }
   
   .modal-content,
@@ -190,7 +190,7 @@ html {
    ============================================ */
 @media (min-width: 428px) and (max-width: 767px) {
   html {
-    font-size: 13px;
+    font-size: 16px;
   }
   
   .modal-content,
