@@ -1,0 +1,161 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function: Check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Helper function: Check if user is an admin
+    function isAdmin() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // ============================================
+    // USER DATA
+    // ============================================
+
+    // User profiles - users can only read/write their own profile
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+
+      // User's saved routes
+      match /routes/{routeId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // User's trail guides
+      match /guides/{guideId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // User's preferences/settings
+      match /settings/{settingId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // ============================================
+    // TRAIL GUIDES (PUBLIC SHARED)
+    // ============================================
+
+    // Public trail guides - anyone can read, only owner can modify
+    match /trail_guides/{guideId} {
+      // Anyone can read published guides
+      allow read: if resource.data.isPublic == true || isOwner(resource.data.userId);
+
+      // Only authenticated users can create
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+
+      // Only owner can update/delete
+      allow update: if isOwner(resource.data.userId);
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // ============================================
+    // BARRIER REPORTS
+    // ============================================
+
+    // Barrier reports - public read, authenticated create, owner or admin modify
+    match /barrier_reports/{reportId} {
+      // Anyone can read reports
+      allow read: if true;
+
+      // Authenticated users can create reports
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+
+      // Owner can update their own reports
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+
+      // Only admin can delete
+      allow delete: if isAdmin();
+
+      // Verifications on reports
+      match /verifications/{verificationId} {
+        allow read: if true;
+        allow create: if isAuthenticated();
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // ============================================
+    // BETA FEEDBACK
+    // ============================================
+
+    // Beta feedback - anyone can create, only admin can read
+    match /beta_feedback/{feedbackId} {
+      // Anyone can submit feedback (even anonymous)
+      allow create: if true;
+
+      // Only admins can read feedback
+      allow read: if isAdmin();
+
+      // Only admins can update/delete
+      allow update, delete: if isAdmin();
+    }
+
+    // ============================================
+    // ANNOUNCEMENTS
+    // ============================================
+
+    // Announcements - public read, admin write
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // ADMIN COLLECTION
+    // ============================================
+
+    // Admin list - only existing admins can read/modify
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // COMMUNITY CHALLENGES (if implemented)
+    // ============================================
+
+    match /challenges/{challengeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      match /participants/{participantId} {
+        allow read: if true;
+        allow create: if isOwner(participantId);
+        allow update: if isOwner(participantId);
+        allow delete: if isOwner(participantId) || isAdmin();
+      }
+    }
+
+    // ============================================
+    // CATCH-ALL: Deny everything else
+    // ============================================
+
+    // Default deny for any unmatched paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

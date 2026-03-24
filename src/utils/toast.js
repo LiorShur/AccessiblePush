@@ -604,7 +604,9 @@ class ToastManager {
       };
       try {
         navigator.vibrate(patterns[type] || patterns.info);
-      } catch (e) {}
+      } catch (e) {
+        // Vibration API not supported on this device - silently ignore
+      }
     }
   }
 

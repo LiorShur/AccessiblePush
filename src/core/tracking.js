@@ -782,7 +782,10 @@ async saveRoute(skipSurveyPrompt = false) {
     try {
       const rechecked = localStorage.getItem('accessibilityData');
       accessibilityData = rechecked ? JSON.parse(rechecked) : null;
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to parse accessibilityData from localStorage:', e.message);
+      accessibilityData = null;
+    }
 
     const defaultName = `Route ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
     

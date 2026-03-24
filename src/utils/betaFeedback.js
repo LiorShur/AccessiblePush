@@ -624,7 +624,10 @@ class BetaFeedback {
       if (userEmail) {
         document.getElementById('feedbackEmail').value = userEmail;
       }
-    } catch (e) {}
+    } catch (e) {
+      // Non-critical: email field remains empty
+      console.debug('Could not pre-fill feedback email:', e.message);
+    }
     
     // Capture context
     this.captureContext();
@@ -715,7 +718,10 @@ class BetaFeedback {
         context.isTracking = trackingController.isTracking || false;
         context.isPaused = trackingController.isPaused || false;
       }
-    } catch (e) {}
+    } catch (e) {
+      // Non-critical: tracking state will be undefined in context
+      console.debug('Could not get tracking state for feedback context:', e.message);
+    }
     
     this.contextData = context;
     
