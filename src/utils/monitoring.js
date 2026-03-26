@@ -21,11 +21,11 @@
   const CONFIG = {
     // Google Analytics 4 Measurement ID
     // Get this from: Google Analytics > Admin > Data Streams > your stream > Measurement ID
-    GA4_MEASUREMENT_ID: 'G-R6BHMF7B1Z', // TODO: Replace with actual ID
+    GA4_MEASUREMENT_ID: 'G-R6BHMF7B1Z',
     
     // Sentry DSN (Data Source Name)
     // Get this from: Sentry > Settings > Projects > your project > Client Keys (DSN)
-    SENTRY_DSN: 'https://4198ba355b470166ba6141f8efd0fac8@o4510533191270400.ingest.us.sentry.io/4510533199790080', // TODO: Replace with actual DSN like 'https://xxx@xxx.ingest.sentry.io/xxx'
+    SENTRY_DSN: 'https://4198ba355b470166ba6141f8efd0fac8@o4510533191270400.ingest.us.sentry.io/4510533199790080',
     
     // Environment
     ENVIRONMENT: window.location.hostname === 'localhost' ? 'development' : 'production',
