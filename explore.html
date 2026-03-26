@@ -1,0 +1,2669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Accessible - Explore</title>
+  <meta name="description" content="Explore accessible trails and report urban accessibility issues">
+  <meta name="theme-color" content="#1a1a1a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="src/css/global-nav.css">
+  <script>
+    (function() {
+      try {
+        var prefs = JSON.parse(localStorage.getItem('accessNature_displayPrefs') || '{}');
+        if (prefs.highContrast) document.documentElement.classList.add('high-contrast');
+      } catch(e) {}
+    })();
+  </script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg-primary:#1a1a1a;--bg-secondary:#242424;--bg-tertiary:#2d2d2d;--text-primary:#fff;--text-secondary:rgba(255,255,255,.7);--text-muted:rgba(255,255,255,.5);--border-color:rgba(255,255,255,.1);--accent-trails:#4CAF50;--accent-urban:#FF9800;--accent-blue:#2196F3;--error:#f44336;--success:#4CAF50}
+    body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;height:100vh;height:100dvh}
+    .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+    button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--accent-trails);outline-offset:2px}
+    
+    /* Top bar */
+    .top-bar{position:fixed;top:0;left:0;right:0;height:56px;background:rgba(26,26,26,.95);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:1000;border-bottom:1px solid var(--border-color)}
+    .top-bar-brand{font-size:1.125rem;font-weight:600;display:flex;align-items:center;gap:8px}
+    .top-bar-user{display:flex;align-items:center;gap:8px;font-size:.875rem}
+    .user-avatar{width:32px;height:32px;background:var(--accent-trails);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.875rem;cursor:pointer}
+    .user-avatar.anonymous{background:var(--bg-tertiary);color:var(--text-muted)}
+    .user-name{color:var(--text-secondary);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    
+    /* Map */
+    #map{position:fixed;top:56px;left:0;right:0;bottom:64px;z-index:1}
+    
+    /* Mode toggle */
+    .map-mode-toggle{position:fixed;top:70px;left:50%;transform:translateX(-50%);display:flex;background:rgba(255,255,255,.95);border-radius:25px;padding:4px;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:1000;backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,.1)}
+    .mode-btn{display:flex;align-items:center;gap:6px;padding:10px 20px;border:none;background:transparent;color:rgba(0,0,0,.5);font-size:14px;font-weight:600;cursor:pointer;border-radius:21px;transition:all .25s}
+    .mode-btn:hover{color:rgba(0,0,0,.8)}.mode-btn.active{color:#fff}.mode-btn.active.trails{background:var(--accent-trails)}.mode-btn.active.urban{background:var(--accent-urban)}.mode-btn svg{width:18px;height:18px;fill:currentColor}
+    
+    /* Second row - Compass + Survey */
+    .second-row-controls{position:fixed;top:120px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;z-index:750}
+    .heading-display{background:rgba(26,26,26,.95);padding:4px 8px 4px 4px;border-radius:20px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+    .compass{width:36px;height:36px;background:#1a1a1a;border:2px solid #333;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;flex-shrink:0}
+    .compass-needle{width:100%;height:100%;position:absolute;transition:transform .15s ease-out}
+    .compass-north{position:absolute;top:5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:12px solid #f44336}
+    .compass-south{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:12px solid #fff}
+    .compass-center{width:4px;height:4px;background:#666;border-radius:50%;z-index:2}
+    .heading-value{font-size:16px;font-weight:700;color:#fff;min-width:42px;text-align:right}
+    .survey-btn{width:36px;height:36px;background:var(--accent-blue);border:none;border-radius:50%;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(33,150,243,.4)}
+    .survey-btn:hover{transform:scale(1.1)}
+    
+    /* Left controls */
+    .left-controls{position:fixed;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:700}
+    .map-control-btn{width:44px;height:44px;background:rgba(255,255,255,.95);border:1px solid rgba(0,0,0,.1);border-radius:50%;color:#333;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+    .map-control-btn:hover{background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+    .map-control-btn:active{transform:scale(.95)}
+    .map-control-btn.active{background:var(--accent-trails);color:#fff;border-color:var(--accent-trails)}
+    
+    /* Right controls */
+    .right-controls{position:fixed;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:700}
+    
+    /* Bottom controls - tracking */
+    .tracking-fab{position:fixed;bottom:calc(64px + 20px + env(safe-area-inset-bottom,0));left:50%;transform:translateX(-50%);height:56px;padding:0 24px;border:none;border-radius:28px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;z-index:1010;box-shadow:0 4px 16px rgba(0,0,0,.3);transition:all .3s}
+    .tracking-fab:hover{transform:translateX(-50%) scale(1.05)}
+    .tracking-fab.trails{background:var(--accent-trails)}
+    .tracking-fab.urban{background:var(--accent-urban)}
+    .tracking-fab.hidden{transform:translateX(-50%) translateY(100px);opacity:0;pointer-events:none}
+    .tracking-fab.recording{background:var(--error);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(244,67,54,.4)}50%{box-shadow:0 0 0 15px rgba(244,67,54,0)}}
+    
+    /* Status bar */
+    .status-bar{position:fixed;bottom:calc(64px + 90px + env(safe-area-inset-bottom,0));left:16px;right:16px;background:rgba(255,255,255,.95);border-radius:16px;padding:16px;display:flex;justify-content:space-around;z-index:900;backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,.1);box-shadow:0 4px 20px rgba(0,0,0,.1)}
+    .status-bar.hidden{display:none}
+    .status-item{text-align:center}
+    .status-value{font-size:1.5rem;font-weight:700;color:var(--accent-trails)}
+    .status-label{font-size:.75rem;color:#666;text-transform:uppercase}
+    
+    /* Tracking controls */
+    .tracking-controls{position:fixed;bottom:calc(64px + 20px + env(safe-area-inset-bottom,0));left:50%;transform:translateX(-50%);display:flex;gap:16px;z-index:1010}
+    .tracking-controls.hidden{display:none}
+    .tracking-btn{width:64px;height:64px;border-radius:50%;border:none;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+    .tracking-btn.stop{background:var(--error);color:#fff}
+    .tracking-btn.pause{background:var(--accent-urban);color:#fff}
+    .tracking-btn:hover{transform:scale(1.1)}
+    
+    /* Layer containers */
+    .layer-container{transition:opacity .3s}
+    .layer-container.hidden{opacity:0;pointer-events:none;display:none!important}
+    
+    /* Filter pills */
+    .filter-pills{position:fixed;top:120px;left:16px;right:16px;display:flex;gap:8px;overflow-x:auto;padding:8px 0;z-index:800;scrollbar-width:none}
+    .filter-pills::-webkit-scrollbar{display:none}
+    .filter-pill{padding:8px 16px;background:rgba(255,255,255,.95);border:1px solid rgba(0,0,0,.1);border-radius:20px;color:#666;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .filter-pill:hover{background:#fff}
+    .filter-pill.active{background:var(--accent-urban);border-color:var(--accent-urban);color:#fff}
+    
+    /* Search bar for urban */
+    .search-bar{position:fixed;top:160px;left:16px;right:16px;z-index:800}
+    .search-bar input{width:100%;padding:12px 16px;background:rgba(255,255,255,.95);border:1px solid rgba(0,0,0,.1);border-radius:12px;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .search-bar input:focus{outline:none;border-color:var(--accent-urban)}
+    
+    /* Locate button */
+    .locate-btn{position:fixed;left:16px;bottom:calc(64px + 20px + env(safe-area-inset-bottom,0));width:48px;height:48px;background:rgba(255,255,255,.95);border:1px solid rgba(0,0,0,.1);border-radius:50%;color:#333;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:900;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+    .locate-btn:hover{background:#fff}
+    .locate-btn.active{color:var(--accent-trails);border-color:var(--accent-trails)}
+    
+    /* Toast */
+    .toast{position:fixed;bottom:calc(64px + 90px);left:50%;transform:translateX(-50%) translateY(100px);background:rgba(26,26,26,.95);color:#fff;padding:12px 24px;border-radius:25px;font-size:14px;font-weight:500;z-index:2000;opacity:0;transition:all .3s}
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    .toast.success{background:rgba(76,175,80,.95)}
+    .toast.error{background:rgba(244,67,54,.95)}
+    
+    /* Leaflet overrides */
+    .leaflet-control-zoom{display:none!important}
+    .leaflet-control-attribution{font-size:10px!important;background:rgba(255,255,255,.8)!important;color:#666!important}
+    
+    /* Markers */
+    .user-marker{width:20px!important;height:20px!important;background:var(--accent-blue);border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 8px rgba(33,150,243,.3)}
+    .trail-marker{background:var(--accent-trails);border:3px solid #fff;border-radius:50%;width:16px!important;height:16px!important;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+    .report-marker-icon{width:36px!important;height:36px!important;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+    .report-marker-icon.temporary{border:3px dashed var(--accent-blue)!important;animation:tempPulse 2s infinite}
+    @keyframes tempPulse{0%,100%{opacity:1}50%{opacity:.7}}
+    
+    /* Popups and tooltips */
+    .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+    .leaflet-popup-content{margin:12px 16px;min-width:220px}
+    .report-tooltip{background:rgba(255,255,255,.98)!important;border:none!important;box-shadow:0 4px 20px rgba(0,0,0,.15)!important;padding:12px!important;border-radius:10px!important}
+    
+    /* Modal styles */
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;z-index:10000;padding:0;opacity:0;pointer-events:none;transition:opacity .3s}
+    .modal-overlay.open{opacity:1;pointer-events:auto}
+    .modal-container{background:var(--bg-primary);border-radius:24px 24px 0 0;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s}
+    .modal-overlay.open .modal-container{transform:translateY(0)}
+    @media(min-width:600px){.modal-overlay{align-items:center;padding:20px}.modal-container{border-radius:24px;max-height:85vh}}
+    .modal-header{position:sticky;top:0;background:var(--bg-primary);padding:20px 20px 16px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;z-index:10}
+    .modal-header h2{font-size:1.25rem;font-weight:600;margin:0;display:flex;align-items:center;gap:10px}
+    .modal-close{width:40px;height:40px;border:none;background:var(--bg-tertiary);border-radius:50%;font-size:1.5rem;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .modal-close:hover{background:var(--bg-secondary);color:var(--text-primary)}
+    .modal-body{padding:20px}
+    .modal-footer{position:sticky;bottom:0;background:var(--bg-primary);padding:16px 20px;border-top:1px solid var(--border-color);display:flex;gap:12px}
+    
+    /* Form elements */
+    .form-group{margin-bottom:20px}
+    .form-label{display:block;margin-bottom:8px;font-weight:600;font-size:.95rem;color:var(--text-primary)}
+    .form-hint{font-size:.85rem;color:var(--text-muted);margin-bottom:10px}
+    .form-input,.form-select,.form-textarea{width:100%;padding:14px 16px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;color:var(--text-primary);font-size:1rem;font-family:inherit;transition:all .2s}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent-trails);outline:none}
+    .form-input::placeholder,.form-textarea::placeholder{color:var(--text-muted)}
+    .form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:40px}
+    .form-textarea{min-height:100px;resize:vertical}
+    
+    /* Buttons */
+    .btn{padding:14px 24px;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;flex:1}
+    .btn-primary{background:var(--accent-trails);color:#fff}
+    .btn-primary:hover{background:#43a047}
+    .btn-primary.orange{background:var(--accent-urban)}
+    .btn-primary.orange:hover{background:#f57c00}
+    .btn-secondary{background:var(--bg-tertiary);color:var(--text-primary)}
+    .btn-secondary:hover{background:var(--bg-secondary)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    
+    /* Severity scale */
+    .severity-scale{display:flex;gap:8px}
+    .severity-option{flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 8px;background:var(--bg-secondary);border:2px solid var(--border-color);border-radius:12px;cursor:pointer;transition:all .2s}
+    .severity-option:hover{border-color:var(--text-muted)}
+    .severity-option.selected{border-color:var(--accent-urban);background:rgba(255,152,0,.1)}
+    .severity-option input{display:none}
+    .severity-option .severity-num{font-size:1.25rem;font-weight:700;margin-bottom:4px}
+    .severity-option .severity-label{font-size:.7rem;font-weight:600;text-transform:uppercase}
+    .severity-option[data-value="1"] .severity-num{color:#22c55e}
+    .severity-option[data-value="2"] .severity-num{color:#84cc16}
+    .severity-option[data-value="3"] .severity-num{color:#f59e0b}
+    .severity-option[data-value="4"] .severity-num{color:#ea580c}
+    .severity-option[data-value="5"] .severity-num{color:#dc2626}
+    
+    /* Toggle options */
+    .toggle-options{display:flex;gap:12px}
+    .toggle-option{flex:1;display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg-secondary);border:2px solid var(--border-color);border-radius:12px;cursor:pointer;transition:all .2s}
+    .toggle-option:hover{border-color:var(--text-muted)}
+    .toggle-option.selected{border-color:var(--accent-blue);background:rgba(33,150,243,.1)}
+    .toggle-option input{display:none}
+    .toggle-option-icon{font-size:1.5rem}
+    .toggle-option-text{font-weight:600;font-size:.9rem}
+    .toggle-option-desc{font-size:.75rem;color:var(--text-muted)}
+    
+    /* Rating buttons */
+    .rating-buttons{display:flex;gap:8px}
+    .rating-btn{flex:1;padding:16px 12px;background:var(--bg-secondary);border:2px solid var(--border-color);border-radius:12px;cursor:pointer;text-align:center;transition:all .2s}
+    .rating-btn:hover{border-color:var(--text-muted)}
+    .rating-btn.selected{border-color:var(--accent-trails);background:rgba(76,175,80,.1)}
+    .rating-btn-icon{font-size:2rem;margin-bottom:8px}
+    .rating-btn-label{font-size:.85rem;font-weight:600}
+    
+    /* Photo capture options */
+    .photo-capture-options{display:flex;gap:12px;margin-bottom:16px}
+    .photo-option-btn{flex:1;padding:20px;background:var(--bg-secondary);border:2px solid var(--border-color);border-radius:12px;cursor:pointer;text-align:center;transition:all .2s}
+    .photo-option-btn:hover{border-color:var(--text-muted);background:var(--bg-tertiary)}
+    .photo-option-btn .icon{font-size:2rem;margin-bottom:8px}
+    .photo-option-btn .label{font-size:.9rem;font-weight:600}
+    
+    /* Photo grid */
+    .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:12px}
+    .photo-preview{aspect-ratio:1;border-radius:8px;overflow:hidden;position:relative}
+    .photo-preview img{width:100%;height:100%;object-fit:cover}
+    .photo-preview .remove-photo{position:absolute;top:4px;right:4px;width:24px;height:24px;background:rgba(0,0,0,.7);border:none;border-radius:50%;color:#fff;font-size:14px;cursor:pointer}
+    
+    /* Map picker */
+    .map-picker{height:180px;border-radius:12px;overflow:hidden;margin-bottom:8px;border:1px solid var(--border-color)}
+    
+    /* Bottom popup panels */
+    .bottom-popup{position:fixed;bottom:64px;left:0;right:0;background:var(--bg-primary);border-radius:24px 24px 0 0;padding:20px;max-height:60vh;overflow-y:auto;z-index:1100;transform:translateY(100%);transition:transform .3s;box-shadow:0 -4px 30px rgba(0,0,0,.3)}
+    .bottom-popup.open{transform:translateY(0)}
+    .bottom-popup.hidden{display:none}
+    .bottom-popup h3{margin:0 0 16px;font-size:1.1rem;display:flex;align-items:center;justify-content:space-between}
+    .bottom-popup button{width:100%;padding:14px;margin-bottom:8px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-size:.95rem;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px}
+    .bottom-popup button:hover{background:var(--bg-tertiary)}
+    
+    /* Safety panel */
+    .safety-panel .sos-btn{background:var(--error);color:#fff;border-color:var(--error);font-weight:700}
+    .safety-panel .sos-btn:hover{background:#d32f2f}
+    
+    /* Loading */
+    .loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50000;transition:opacity .3s}
+    .loading-overlay.hidden{opacity:0;pointer-events:none}
+    .loading-spinner{width:48px;height:48px;border:4px solid var(--border-color);border-top-color:var(--accent-trails);border-radius:50%;animation:spin 1s linear infinite}
+    .spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{margin-top:16px;color:var(--text-secondary)}
+    
+    /* Report detail modal specific */
+    .report-detail-content{padding:16px}
+    .report-status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600}
+    .report-severity-badge{display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600;color:#fff}
+    .report-info-box{background:var(--bg-secondary);padding:12px;border-radius:8px;margin:16px 0}
+    .report-info-box p{margin:0 0 8px;font-size:14px}
+    .report-info-box p:last-child{margin:0}
+    .report-action-btns{display:flex;gap:8px;margin-top:16px}
+    .report-action-btns .btn{padding:10px 16px;font-size:.9rem}
+    
+    /* SOS Button (dynamic) */
+    .sos-fab{position:fixed;bottom:calc(64px + 80px + env(safe-area-inset-bottom,0));right:16px;width:56px;height:56px;background:var(--error);border:none;border-radius:50%;color:#fff;font-size:20px;font-weight:700;cursor:pointer;z-index:1005;box-shadow:0 4px 16px rgba(244,67,54,.4);display:none}
+    .sos-fab.visible{display:flex;align-items:center;justify-content:center}
+    
+    /* Beta feedback button (dynamic) */
+    .beta-fab{position:fixed;bottom:calc(64px + 150px + env(safe-area-inset-bottom,0));right:16px;width:48px;height:48px;background:var(--accent-blue);border:none;border-radius:50%;color:#fff;font-size:18px;cursor:pointer;z-index:1005;box-shadow:0 4px 16px rgba(33,150,243,.4);display:none}
+    .beta-fab.visible{display:flex;align-items:center;justify-content:center}
+  </style>
+</head>
+<body class="explore-page">
+  <h1 class="visually-hidden">Accessible Explore - Trails & Urban Reports</h1>
+  
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Loading map...</p>
+  </div>
+  
+  <!-- Top bar -->
+  <header class="top-bar">
+    <div class="top-bar-brand"><span>♿</span><span>Accessible</span></div>
+    <div class="top-bar-user" id="topBarUser">
+      <span class="user-name" id="userName"></span>
+      <div class="user-avatar anonymous" id="userAvatar" onclick="handleUserClick()">?</div>
+    </div>
+  </header>
+  
+  <!-- Mode Toggle -->
+  <div class="map-mode-toggle" id="modeToggle">
+    <button class="mode-btn trails active" id="trailsModeBtn" onclick="setMode('trails')">
+      <svg viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+      Trails
+    </button>
+    <button class="mode-btn urban" id="urbanModeBtn" onclick="setMode('urban')">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm1 11h-2v-2h2v2zm0-4h-2V5h2v4z"/></svg>
+      Urban
+    </button>
+  </div>
+  
+  <!-- Map -->
+  <div id="map"></div>
+  
+  <!-- ============================================
+       TRAILS MODE CONTROLS
+       ============================================ -->
+  <div id="trailsLayer" class="layer-container">
+    <!-- Second row: Compass + Survey -->
+    <div class="second-row-controls" id="trailsSecondRow">
+      <div class="heading-display" id="headingDisplay">
+        <div class="compass" id="compass" title="Tap 3x for debug">
+          <div class="compass-needle" id="compassNeedle">
+            <div class="compass-north"></div>
+            <div class="compass-south"></div>
+          </div>
+          <div class="compass-center"></div>
+        </div>
+        <span class="heading-value" id="headingValue">---°</span>
+      </div>
+      <button class="survey-btn" id="accessibilitySurveyBtn" onclick="openAccessibilityForm()" title="Accessibility Survey">♿</button>
+    </div>
+    
+    <!-- Left controls: Zoom + Center + Rotation -->
+    <div class="left-controls" id="trailsLeftControls">
+      <button class="map-control-btn" onclick="zoomIn()">+</button>
+      <button class="map-control-btn" onclick="zoomOut()">−</button>
+      <div style="height:8px"></div>
+      <button class="map-control-btn" id="centerBtn" onclick="locateUser()" title="Center on my location">📍</button>
+      <button class="map-control-btn" id="rotationToggleBtn" onclick="toggleRotation()" title="Toggle map rotation">🧭</button>
+    </div>
+    
+    <!-- Right controls: Photo + Note + Safety + More -->
+    <div class="right-controls" id="trailsRightControls">
+      <button class="map-control-btn" id="takePhotoBtn" onclick="capturePhoto()" title="Take photo">📷</button>
+      <button class="map-control-btn" id="addNoteBtn" onclick="addTextNote()" title="Add note">📝</button>
+      <div style="height:8px"></div>
+      <button class="map-control-btn" id="safetyPanelBtn" onclick="togglePanel('safetyPanel')" title="Safety">🛡️</button>
+      <button class="map-control-btn" id="moreOptionsBtn" onclick="togglePanel('moreOptionsPanel')" title="More">⋯</button>
+    </div>
+    
+    <!-- Status bar (when tracking) -->
+    <div class="status-bar hidden" id="trackingStatus">
+      <div class="status-item">
+        <div class="status-value" id="distanceValue">0.00</div>
+        <div class="status-label">km</div>
+      </div>
+      <div class="status-item">
+        <div class="status-value" id="durationValue">00:00</div>
+        <div class="status-label">time</div>
+      </div>
+      <div class="status-item">
+        <div class="status-value" id="speedValue">0.0</div>
+        <div class="status-label">km/h</div>
+      </div>
+    </div>
+    
+    <!-- Tracking controls (when tracking) -->
+    <div class="tracking-controls hidden" id="trackingControls">
+      <button class="tracking-btn pause" id="pauseBtn" onclick="pauseTracking()">⏸️</button>
+      <button class="tracking-btn stop" onclick="stopTracking()">⏹️</button>
+    </div>
+    
+    <!-- Main FAB -->
+    <button class="tracking-fab trails" id="trailsFab" onclick="startTracking()">
+      <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4"/></svg>
+      Record Trail
+    </button>
+  </div>
+  
+  <!-- ============================================
+       URBAN MODE CONTROLS
+       ============================================ -->
+  <div id="urbanLayer" class="layer-container hidden">
+    <!-- Filter pills -->
+    <div class="filter-pills" id="filterPills">
+      <button class="filter-pill active" data-filter="all">All</button>
+      <button class="filter-pill" data-filter="sidewalk">🚧 Sidewalks</button>
+      <button class="filter-pill" data-filter="building">🏢 Buildings</button>
+      <button class="filter-pill" data-filter="parking">🅿️ Parking</button>
+      <button class="filter-pill" data-filter="transit">🚌 Transit</button>
+    </div>
+    
+    <!-- Search bar -->
+    <div class="search-bar" id="urbanSearchBar">
+      <input type="text" id="urbanSearchInput" placeholder="🔍 Search reports by location or title..." onkeyup="searchReports(this.value)">
+    </div>
+    
+    <!-- Report FAB -->
+    <button class="tracking-fab urban" id="urbanFab" onclick="openReportModal()">
+      <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      Report Issue
+    </button>
+  </div>
+  
+  <!-- Locate button (shared) -->
+  <button class="locate-btn" id="locateBtn" onclick="locateUser()">📍</button>
+  
+  <!-- SOS Button (dynamic - shows when tracking) -->
+  <button class="sos-fab" id="sosFab" onclick="openEmergencyModal()">SOS</button>
+  
+  <!-- Beta Feedback Button -->
+  <button class="beta-fab visible" id="betaFab" onclick="openBetaFeedback()" title="Beta Feedback">💬</button>
+  
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+  
+  <!-- ============================================
+       SAFETY PANEL
+       ============================================ -->
+  <div id="safetyPanel" class="bottom-popup safety-panel hidden">
+    <h3>🛡️ Safety Options <button onclick="togglePanel('safetyPanel')" style="background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:0;width:auto;margin:0">✕</button></h3>
+    <button class="sos-btn" onclick="openEmergencyModal()">🆘 Emergency SOS</button>
+    <button onclick="startLifeline()">📡 Start Lifeline Check-in</button>
+    <button onclick="manageEmergencyContacts()">👥 Emergency Contacts</button>
+    <button onclick="showWeather()">🌤️ Check Weather</button>
+    <button onclick="shareLocation()">📍 Share My Location</button>
+  </div>
+  
+  <!-- ============================================
+       MORE OPTIONS PANEL
+       ============================================ -->
+  <div id="moreOptionsPanel" class="bottom-popup hidden">
+    <h3>⋯ More Options <button onclick="togglePanel('moreOptionsPanel')" style="background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:0;width:auto;margin:0">✕</button></h3>
+    <button onclick="toggleMapStyle()">🗺️ Toggle Map Style</button>
+    <button onclick="saveToCloud()">☁️ Save to Cloud</button>
+    <button onclick="loadCloudRoutes()">📂 Load My Routes</button>
+    <button onclick="loadMyGuides()">🌐 Load My Guides</button>
+    <button onclick="showLocalStorage()">📦 Local Storage</button>
+    <button onclick="exportCurrentRoute()">📤 Export Route</button>
+    <button onclick="toggleHighContrast()">🔲 High Contrast</button>
+  </div>
+  
+  <!-- ============================================
+       SEARCH RESULTS PANEL
+       ============================================ -->
+  <div id="searchResultsPanel" class="bottom-popup hidden">
+    <h3>🔍 Search Results <button onclick="togglePanel('searchResultsPanel')" style="background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:0;width:auto;margin:0">✕</button></h3>
+    <div id="searchResultsList"></div>
+  </div>
+  
+  <!-- ============================================
+       REPORT MODAL (Enhanced with photo options)
+       ============================================ -->
+  <div class="modal-overlay" id="reportModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2>⚠️ Report Issue</h2>
+        <button class="modal-close" onclick="closeReportModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- Location picker -->
+          <div class="form-group">
+            <label class="form-label">📍 Location</label>
+            <div class="map-picker" id="reportMapPicker"></div>
+            <p class="form-hint" id="reportLocationText">Tap map to select location</p>
+            <input type="hidden" id="reportLat">
+            <input type="hidden" id="reportLng">
+          </div>
+          
+          <!-- Issue type -->
+          <div class="form-group">
+            <label class="form-label" for="reportType">🏷️ Issue Type *</label>
+            <select class="form-select" id="reportType" required>
+              <option value="">Select issue type...</option>
+              <optgroup label="Sidewalk Issues">
+                <option value="curb_ramp">Missing/Damaged Curb Ramp</option>
+                <option value="sidewalk_blocked">Blocked Sidewalk</option>
+                <option value="damaged_sidewalk">Damaged Sidewalk</option>
+                <option value="tactile_paving">Missing Tactile Paving</option>
+              </optgroup>
+              <optgroup label="Building Access">
+                <option value="inaccessible_entrance">Inaccessible Entrance</option>
+                <option value="broken_elevator">Broken Elevator/Lift</option>
+                <option value="heavy_doors">Heavy/Manual Doors Only</option>
+                <option value="stairs_only">Stairs Only Access</option>
+              </optgroup>
+              <optgroup label="Parking">
+                <option value="parking_blocked">Blocked Accessible Parking</option>
+                <option value="no_parking">No Accessible Parking</option>
+              </optgroup>
+              <optgroup label="Transit">
+                <option value="bus_stop">Inaccessible Bus Stop</option>
+                <option value="transit_station">Inaccessible Station</option>
+              </optgroup>
+              <optgroup label="Other">
+                <option value="trail_obstacle">Trail Obstacle</option>
+                <option value="other">Other Issue</option>
+              </optgroup>
+            </select>
+          </div>
+          
+          <!-- Severity -->
+          <div class="form-group">
+            <label class="form-label">⚠️ Severity Level *</label>
+            <p class="form-hint">How much does this impact accessibility?</p>
+            <div class="severity-scale" id="severityScale">
+              <label class="severity-option" data-value="1"><input type="radio" name="severity" value="1"><span class="severity-num">1</span><span class="severity-label">Minor</span></label>
+              <label class="severity-option" data-value="2"><input type="radio" name="severity" value="2"><span class="severity-num">2</span><span class="severity-label">Low</span></label>
+              <label class="severity-option selected" data-value="3"><input type="radio" name="severity" value="3" checked><span class="severity-num">3</span><span class="severity-label">Medium</span></label>
+              <label class="severity-option" data-value="4"><input type="radio" name="severity" value="4"><span class="severity-num">4</span><span class="severity-label">High</span></label>
+              <label class="severity-option" data-value="5"><input type="radio" name="severity" value="5"><span class="severity-num">5</span><span class="severity-label">Critical</span></label>
+            </div>
+          </div>
+          
+          <!-- Duration -->
+          <div class="form-group">
+            <label class="form-label">🕐 Duration</label>
+            <div class="toggle-options">
+              <label class="toggle-option selected">
+                <input type="radio" name="duration" value="permanent" checked>
+                <span class="toggle-option-icon">🏗️</span>
+                <div>
+                  <div class="toggle-option-text">Permanent</div>
+                  <div class="toggle-option-desc">Ongoing issue</div>
+                </div>
+              </label>
+              <label class="toggle-option">
+                <input type="radio" name="duration" value="temporary">
+                <span class="toggle-option-icon">⏳</span>
+                <div>
+                  <div class="toggle-option-text">Temporary</div>
+                  <div class="toggle-option-desc">Construction, etc.</div>
+                </div>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Title -->
+          <div class="form-group">
+            <label class="form-label" for="reportTitle">📝 Title *</label>
+            <input type="text" class="form-input" id="reportTitle" placeholder="Brief description of the issue" required>
+          </div>
+          
+          <!-- Description -->
+          <div class="form-group">
+            <label class="form-label" for="reportDescription">📄 Description</label>
+            <textarea class="form-textarea" id="reportDescription" placeholder="Provide more details about the accessibility barrier..."></textarea>
+          </div>
+          
+          <!-- Photos with camera/gallery choice -->
+          <div class="form-group">
+            <label class="form-label">📷 Photos</label>
+            <div class="photo-capture-options">
+              <button type="button" class="photo-option-btn" onclick="captureReportPhoto('camera')">
+                <div class="icon">📸</div>
+                <div class="label">Camera</div>
+              </button>
+              <button type="button" class="photo-option-btn" onclick="captureReportPhoto('gallery')">
+                <div class="icon">🖼️</div>
+                <div class="label">Gallery</div>
+              </button>
+            </div>
+            <input type="file" id="reportPhotosCamera" accept="image/*" capture="environment" hidden>
+            <input type="file" id="reportPhotosGallery" accept="image/*" multiple hidden>
+            <div class="photo-grid" id="reportPhotoGrid"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeReportModal()">Cancel</button>
+        <button type="button" class="btn btn-primary orange" id="submitReportBtn" onclick="submitReport()">📤 Submit Report</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ============================================
+       REPORT DETAIL MODAL
+       ============================================ -->
+  <div class="modal-overlay" id="reportDetailModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 id="reportDetailTitle">Report Details</h2>
+        <button class="modal-close" onclick="closeReportDetailModal()">×</button>
+      </div>
+      <div class="modal-body" id="reportDetailBody">
+        <!-- Content loaded dynamically -->
+      </div>
+      <div class="modal-footer" id="reportDetailFooter">
+        <button type="button" class="btn btn-secondary" onclick="closeReportDetailModal()">Close</button>
+        <button type="button" class="btn btn-primary" onclick="navigateToReport()">🧭 Navigate</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ============================================
+       TRAIL SAVE MODAL (Enhanced with route + guide save)
+       ============================================ -->
+  <div class="modal-overlay" id="trailSaveModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2>🥾 Save Trail</h2>
+        <button class="modal-close" onclick="closeTrailSaveModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Stats summary -->
+        <div style="background:var(--bg-secondary);border-radius:12px;padding:16px;margin-bottom:20px;display:flex;justify-content:space-around;text-align:center">
+          <div>
+            <div style="font-size:1.5rem;font-weight:700;color:var(--accent-trails)" id="trailDistance">0.00</div>
+            <div style="font-size:.75rem;color:var(--text-muted)">km</div>
+          </div>
+          <div>
+            <div style="font-size:1.5rem;font-weight:700;color:var(--accent-trails)" id="trailDuration">00:00</div>
+            <div style="font-size:.75rem;color:var(--text-muted)">time</div>
+          </div>
+          <div>
+            <div style="font-size:1.5rem;font-weight:700;color:var(--accent-trails)" id="trailPoints">0</div>
+            <div style="font-size:.75rem;color:var(--text-muted)">points</div>
+          </div>
+        </div>
+        
+        <!-- Save options -->
+        <div class="form-group">
+          <label class="form-label">💾 What to Save</label>
+          <div class="toggle-options" style="flex-direction:column">
+            <label class="toggle-option selected" style="flex:none">
+              <input type="checkbox" id="saveRoute" checked>
+              <span class="toggle-option-icon">📍</span>
+              <div>
+                <div class="toggle-option-text">GPS Route</div>
+                <div class="toggle-option-desc">Save trackpoints for future reference</div>
+              </div>
+            </label>
+            <label class="toggle-option selected" style="flex:none">
+              <input type="checkbox" id="saveGuide" checked>
+              <span class="toggle-option-icon">📖</span>
+              <div>
+                <div class="toggle-option-text">Trail Guide</div>
+                <div class="toggle-option-desc">Generate shareable accessibility guide</div>
+              </div>
+            </label>
+          </div>
+        </div>
+        
+        <form id="trailForm">
+          <!-- Trail name -->
+          <div class="form-group">
+            <label class="form-label" for="trailName">📝 Trail Name *</label>
+            <input type="text" class="form-input" id="trailName" placeholder="e.g., Yarkon Park Loop" required>
+          </div>
+          
+          <!-- Description -->
+          <div class="form-group">
+            <label class="form-label" for="trailDescription">📄 Description</label>
+            <textarea class="form-textarea" id="trailDescription" placeholder="Describe the trail, notable features, warnings..."></textarea>
+          </div>
+          
+          <!-- Accessibility rating -->
+          <div class="form-group">
+            <label class="form-label">♿ Overall Accessibility</label>
+            <p class="form-hint">How accessible is this trail for wheelchair users?</p>
+            <div class="rating-buttons" id="accessibilityRating">
+              <div class="rating-btn" data-value="excellent" onclick="selectRating(this)">
+                <div class="rating-btn-icon">✅</div>
+                <div class="rating-btn-label">Excellent</div>
+              </div>
+              <div class="rating-btn selected" data-value="good" onclick="selectRating(this)">
+                <div class="rating-btn-icon">👍</div>
+                <div class="rating-btn-label">Good</div>
+              </div>
+              <div class="rating-btn" data-value="moderate" onclick="selectRating(this)">
+                <div class="rating-btn-icon">⚠️</div>
+                <div class="rating-btn-label">Moderate</div>
+              </div>
+              <div class="rating-btn" data-value="challenging" onclick="selectRating(this)">
+                <div class="rating-btn-icon">🔴</div>
+                <div class="rating-btn-label">Challenging</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Surface type -->
+          <div class="form-group">
+            <label class="form-label" for="surfaceType">🛤️ Primary Surface</label>
+            <select class="form-select" id="surfaceType">
+              <option value="paved">Paved / Concrete</option>
+              <option value="asphalt">Asphalt</option>
+              <option value="boardwalk">Boardwalk</option>
+              <option value="compacted_gravel">Compacted Gravel</option>
+              <option value="dirt">Dirt / Natural</option>
+              <option value="mixed">Mixed Surfaces</option>
+            </select>
+          </div>
+          
+          <!-- Trail width -->
+          <div class="form-group">
+            <label class="form-label" for="trailWidth">📏 Trail Width</label>
+            <select class="form-select" id="trailWidth">
+              <option value="wide">Wide (2+ meters)</option>
+              <option value="standard">Standard (1.5-2m)</option>
+              <option value="narrow">Narrow (1-1.5m)</option>
+              <option value="very_narrow">Very Narrow (&lt;1m)</option>
+            </select>
+          </div>
+          
+          <!-- Fill accessibility survey prompt -->
+          <div class="form-group" style="background:rgba(33,150,243,.1);border:1px solid rgba(33,150,243,.3);border-radius:12px;padding:16px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+              <span style="font-size:1.5rem">♿</span>
+              <div>
+                <div style="font-weight:600">Detailed Accessibility Survey</div>
+                <div style="font-size:.85rem;color:var(--text-muted)">Add comprehensive accessibility data</div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="openAccessibilityForm()" style="width:100%">📋 Fill Survey</button>
+          </div>
+          
+          <!-- Make public -->
+          <div class="form-group">
+            <label class="toggle-option" style="max-width:100%">
+              <input type="checkbox" id="makePublic" checked>
+              <span class="toggle-option-icon">🌍</span>
+              <div>
+                <div class="toggle-option-text">Share with Community</div>
+                <div class="toggle-option-desc">Make this trail visible to others</div>
+              </div>
+            </label>
+          </div>
+          
+          <!-- Photos -->
+          <div class="form-group">
+            <label class="form-label">📷 Trail Photos</label>
+            <div class="photo-capture-options">
+              <button type="button" class="photo-option-btn" onclick="captureTrailPhoto('camera')">
+                <div class="icon">📸</div>
+                <div class="label">Camera</div>
+              </button>
+              <button type="button" class="photo-option-btn" onclick="captureTrailPhoto('gallery')">
+                <div class="icon">🖼️</div>
+                <div class="label">Gallery</div>
+              </button>
+            </div>
+            <input type="file" id="trailPhotosCamera" accept="image/*" capture="environment" hidden>
+            <input type="file" id="trailPhotosGallery" accept="image/*" multiple hidden>
+            <div class="photo-grid" id="trailPhotoGrid"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="discardTrail()">Discard</button>
+        <button type="button" class="btn btn-primary" id="saveTrailBtn" onclick="saveTrail()">💾 Save Trail</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ============================================
+       ACCESSIBILITY SURVEY MODAL
+       ============================================ -->
+  <div class="modal-overlay" id="accessibilityModal">
+    <div class="modal-container" style="max-height:95vh">
+      <div class="modal-header">
+        <h2>♿ Accessibility Survey</h2>
+        <button class="modal-close" onclick="closeAccessibilityForm()">×</button>
+      </div>
+      <div class="modal-body" id="accessibilityFormContainer">
+        <!-- Form will be loaded dynamically -->
+        <div style="text-align:center;padding:40px">
+          <div class="loading-spinner"></div>
+          <p style="margin-top:16px;color:var(--text-muted)">Loading survey...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAccessibilityForm()">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveAccessibilityBtn" onclick="saveAccessibilityData()">💾 Save Survey</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ============================================
+       AUTH MODAL
+       ============================================ -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-container" style="max-width:400px">
+      <div class="modal-header">
+        <h2>Welcome</h2>
+        <button class="modal-close" onclick="closeAuthModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="loginView">
+          <p style="text-align:center;margin-bottom:24px;color:var(--text-secondary)">Sign in to save trails and reports</p>
+          <form id="loginFormElement" onsubmit="handleLogin(event)">
+            <div class="form-group"><input type="email" class="form-input" id="loginEmail" placeholder="Email address" required></div>
+            <div class="form-group"><input type="password" class="form-input" id="loginPassword" placeholder="Password" required></div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Sign In</button>
+          </form>
+          <p style="text-align:center;margin-top:20px;color:var(--text-muted)">No account? <button type="button" onclick="showSignup()" style="background:none;border:none;color:var(--accent-trails);cursor:pointer;font-weight:600">Sign up</button></p>
+        </div>
+        <div id="signupView" style="display:none">
+          <p style="text-align:center;margin-bottom:24px;color:var(--text-secondary)">Create your account</p>
+          <form id="signupFormElement" onsubmit="handleSignup(event)">
+            <div class="form-group"><input type="text" class="form-input" id="signupName" placeholder="Your name" required></div>
+            <div class="form-group"><input type="email" class="form-input" id="signupEmail" placeholder="Email address" required></div>
+            <div class="form-group"><input type="password" class="form-input" id="signupPassword" placeholder="Create password" required></div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Create Account</button>
+          </form>
+          <p style="text-align:center;margin-top:20px;color:var(--text-muted)">Have account? <button type="button" onclick="showLogin()" style="background:none;border:none;color:var(--accent-trails);cursor:pointer;font-weight:600">Sign in</button></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ============================================
+       BETA FEEDBACK MODAL
+       ============================================ -->
+  <div class="modal-overlay" id="betaFeedbackModal">
+    <div class="modal-container" style="max-width:500px">
+      <div class="modal-header">
+        <h2>💬 Beta Feedback</h2>
+        <button class="modal-close" onclick="closeBetaFeedback()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:16px;color:var(--text-secondary)">Help us improve! Share your thoughts, report bugs, or suggest features.</p>
+        <form id="betaFeedbackForm">
+          <div class="form-group">
+            <label class="form-label">Feedback Type</label>
+            <select class="form-select" id="feedbackType">
+              <option value="bug">🐛 Bug Report</option>
+              <option value="feature">💡 Feature Request</option>
+              <option value="usability">🎯 Usability Issue</option>
+              <option value="other">💬 General Feedback</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Your Feedback *</label>
+            <textarea class="form-textarea" id="feedbackText" placeholder="Describe your feedback in detail..." required style="min-height:150px"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="toggle-option">
+              <input type="checkbox" id="includeScreenshot">
+              <span class="toggle-option-icon">📸</span>
+              <div>
+                <div class="toggle-option-text">Include Screenshot</div>
+                <div class="toggle-option-desc">Automatically capture current screen</div>
+              </div>
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeBetaFeedback()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitBetaFeedback()">📤 Submit Feedback</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ============================================
+       EMERGENCY SOS MODAL
+       ============================================ -->
+  <div class="modal-overlay" id="emergencyModal">
+    <div class="modal-container" style="max-width:400px">
+      <div class="modal-header" style="background:var(--error)">
+        <h2 style="color:#fff">🆘 Emergency SOS</h2>
+        <button class="modal-close" onclick="closeEmergencyModal()" style="background:rgba(255,255,255,.2);color:#fff">×</button>
+      </div>
+      <div class="modal-body" style="text-align:center">
+        <p style="font-size:1.1rem;margin-bottom:20px">Send your location to emergency contacts?</p>
+        <div style="background:var(--bg-secondary);padding:16px;border-radius:12px;margin-bottom:20px">
+          <p style="font-size:.9rem;color:var(--text-muted);margin-bottom:8px">Your current location:</p>
+          <p id="sosLocation" style="font-weight:600">Locating...</p>
+        </div>
+        <button class="btn btn-primary" style="width:100%;background:var(--error);padding:20px;font-size:1.1rem" onclick="sendSOS()">
+          🆘 SEND SOS NOW
+        </button>
+        <p style="font-size:.8rem;color:var(--text-muted);margin-top:16px">This will send your location via SMS/email to your emergency contacts</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ============================================
+       NOTE INPUT MODAL
+       ============================================ -->
+  <div class="modal-overlay" id="noteModal">
+    <div class="modal-container" style="max-width:400px">
+      <div class="modal-header">
+        <h2>📝 Add Note</h2>
+        <button class="modal-close" onclick="closeNoteModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Note at current location</label>
+          <textarea class="form-textarea" id="noteText" placeholder="Enter your note..." style="min-height:120px"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeNoteModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveNote()">💾 Save Note</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Hidden file inputs -->
+  <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+  <input type="file" id="importFile" accept=".json,.gpx" hidden>
+  
+  <!-- External Libraries -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, updateProfile } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, addDoc, doc, getDoc, updateDoc, orderBy, limit, serverTimestamp, GeoPoint } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyAmsm916Lzp0MUXANq3SECO4ec7q1H0Vu4",
+      authDomain: "accessnaturebeta-821a2.firebaseapp.com",
+      projectId: "accessnaturebeta-821a2",
+      storageBucket: "accessnaturebeta-821a2.appspot.com",
+      messagingSenderId: "670888101781",
+      appId: "1:670888101781:web:b4cf57f58e86182466589c"
+    };
+    
+    let app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    
+    // Expose to window
+    window.auth = auth;
+    window.db = db;
+    window.storage = storage;
+    window.firebaseModules = { collection, query, where, getDocs, addDoc, doc, getDoc, updateDoc, orderBy, limit, serverTimestamp, GeoPoint, ref, uploadBytes, getDownloadURL };
+    
+    // Auth state
+    onAuthStateChanged(auth, (user) => {
+      window.currentUser = user;
+      updateUserUI(user);
+      
+      if (user) {
+        console.log('✅ User signed in:', user.email || 'Anonymous');
+        window.dispatchEvent(new CustomEvent('authStateChanged', { detail: { user } }));
+        // Load data for current mode
+        if (window.currentMode === 'trails') {
+          loadTrailsFromFirebase();
+        } else {
+          loadReportsFromFirebase();
+        }
+      } else {
+        console.log('👤 No user signed in, signing in anonymously...');
+        signInAnonymously(auth).catch(console.error);
+      }
+    });
+    
+    function updateUserUI(user) {
+      const avatar = document.getElementById('userAvatar');
+      const name = document.getElementById('userName');
+      const sosFab = document.getElementById('sosFab');
+      
+      if (user && !user.isAnonymous) {
+        const displayName = user.displayName || user.email?.split('@')[0] || 'User';
+        avatar.textContent = displayName.charAt(0).toUpperCase();
+        avatar.classList.remove('anonymous');
+        name.textContent = displayName;
+      } else {
+        avatar.textContent = '?';
+        avatar.classList.add('anonymous');
+        name.textContent = '';
+      }
+    }
+    window.updateUserUI = updateUserUI;
+    
+    window.handleUserClick = function() {
+      if (window.currentUser && !window.currentUser.isAnonymous) {
+        window.location.href = 'profile.html';
+      } else {
+        openAuthModal();
+      }
+    };
+    
+    // Auth handlers
+    window.handleLogin = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        closeAuthModal();
+        showToast('Signed in successfully', 'success');
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    };
+    
+    window.handleSignup = async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('signupName').value;
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      try {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(result.user, { displayName: name });
+        closeAuthModal();
+        showToast('Account created!', 'success');
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    };
+    
+    window.showLogin = () => {
+      document.getElementById('loginView').style.display = 'block';
+      document.getElementById('signupView').style.display = 'none';
+    };
+    
+    window.showSignup = () => {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('signupView').style.display = 'block';
+    };
+    
+    // Initialize after short delay
+    setTimeout(() => {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }, 1500);
+  </script>
+  
+  <!-- Main Application JavaScript -->
+  <script>
+    // ============================================
+    // STATE VARIABLES
+    // ============================================
+    let map, userMarker, markerClusterGroup;
+    let currentMode = 'trails';
+    window.currentMode = currentMode;
+    
+    // Tracking state
+    let isTracking = false;
+    let isPaused = false;
+    let trackingPath = [];
+    let trackingPolyline;
+    let watchId = null;
+    let startTime = null;
+    let pausedTime = 0;
+    let timerInterval = null;
+    let currentHeading = 0;
+    let isRotationEnabled = false;
+    
+    // Data state
+    let reportMarkers = [];
+    let trailMarkers = [];
+    let allReports = [];
+    let allTrails = [];
+    let filteredReports = [];
+    
+    // Media state
+    let pendingPhotos = { report: [], trail: [] };
+    let trailNotes = [];
+    let accessibilityData = null;
+    
+    // Map state
+    let isDarkMap = false;
+    let reportPickerMap = null;
+    let reportPickerMarker = null;
+    let currentReportId = null;
+    
+    // Constants
+    const TILES = {
+      dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      light: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    };
+    
+    const severityColors = {
+      1: '#22c55e', 2: '#84cc16', 3: '#f59e0b', 4: '#ea580c', 5: '#dc2626'
+    };
+    
+    const severityLabels = {
+      1: 'Minor', 2: 'Low', 3: 'Medium', 4: 'High', 5: 'Critical'
+    };
+    
+    const issueIcons = {
+      curb_ramp: '🚧', sidewalk_blocked: '⛔', damaged_sidewalk: '💔', tactile_paving: '🔶',
+      inaccessible_entrance: '🚪', broken_elevator: '🛗', heavy_doors: '🚪', stairs_only: '🪜',
+      parking_blocked: '🅿️', no_parking: '🅿️',
+      bus_stop: '🚌', transit_station: '🚉',
+      trail_obstacle: '🌲', other: '📍'
+    };
+    
+    const typeCategories = {
+      curb_ramp: 'sidewalk', sidewalk_blocked: 'sidewalk', damaged_sidewalk: 'sidewalk', tactile_paving: 'sidewalk',
+      inaccessible_entrance: 'building', broken_elevator: 'building', heavy_doors: 'building', stairs_only: 'building',
+      parking_blocked: 'parking', no_parking: 'parking',
+      bus_stop: 'transit', transit_station: 'transit'
+    };
+    
+    let currentTileLayer;
+    
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      locateUser();
+      setupEventListeners();
+      setupDeviceOrientation();
+      
+      // Check URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('mode') === 'urban') {
+        setMode('urban');
+      }
+    });
+    
+    function initMap() {
+      map = L.map('map', { 
+        zoomControl: false,
+        rotate: true,
+        rotateControl: false
+      }).setView([32.0853, 34.7818], 15);
+      
+      currentTileLayer = L.tileLayer(TILES.light, {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19
+      }).addTo(map);
+      
+      // Initialize marker cluster group for reports
+      if (typeof L.markerClusterGroup === 'function') {
+        markerClusterGroup = L.markerClusterGroup({
+          maxClusterRadius: 50,
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false
+        });
+        map.addLayer(markerClusterGroup);
+      }
+      
+      console.log('[Map] Initialized with light theme');
+    }
+    
+    function setupEventListeners() {
+      // Severity options
+      document.querySelectorAll('.severity-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          document.querySelectorAll('.severity-option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          opt.querySelector('input').checked = true;
+        });
+      });
+      
+      // Toggle options
+      document.querySelectorAll('.toggle-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          const group = opt.closest('.toggle-options');
+          if (group && !opt.querySelector('input[type="checkbox"]')) {
+            group.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
+          }
+          opt.classList.toggle('selected');
+          const input = opt.querySelector('input');
+          if (input.type === 'checkbox') {
+            input.checked = opt.classList.contains('selected');
+          } else {
+            input.checked = true;
+          }
+        });
+      });
+      
+      // Filter pills
+      document.querySelectorAll('.filter-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          filterReports(pill.dataset.filter);
+        });
+      });
+      
+      // Photo inputs
+      document.getElementById('reportPhotosCamera')?.addEventListener('change', (e) => handlePhotos(e, 'report'));
+      document.getElementById('reportPhotosGallery')?.addEventListener('change', (e) => handlePhotos(e, 'report'));
+      document.getElementById('trailPhotosCamera')?.addEventListener('change', (e) => handlePhotos(e, 'trail'));
+      document.getElementById('trailPhotosGallery')?.addEventListener('change', (e) => handlePhotos(e, 'trail'));
+      document.getElementById('photoInput')?.addEventListener('change', handleTrackingPhoto);
+    }
+    
+    // ============================================
+    // MODE SWITCHING
+    // ============================================
+    function setMode(mode) {
+      currentMode = mode;
+      window.currentMode = mode;
+      
+      document.getElementById('trailsModeBtn').classList.toggle('active', mode === 'trails');
+      document.getElementById('urbanModeBtn').classList.toggle('active', mode === 'urban');
+      document.getElementById('trailsLayer').classList.toggle('hidden', mode !== 'trails');
+      document.getElementById('urbanLayer').classList.toggle('hidden', mode !== 'urban');
+      
+      // Show/hide SOS based on mode and tracking state
+      const sosFab = document.getElementById('sosFab');
+      sosFab.classList.toggle('visible', mode === 'trails' && isTracking);
+      
+      if (mode === 'trails') {
+        loadTrailsFromFirebase();
+        if (markerClusterGroup) markerClusterGroup.clearLayers();
+      } else {
+        loadReportsFromFirebase();
+        clearTrailMarkers();
+      }
+      
+      // Update URL
+      const url = new URL(window.location);
+      url.searchParams.set('mode', mode);
+      window.history.replaceState({}, '', url);
+      
+      showToast(`${mode === 'trails' ? 'Trails' : 'Urban'} mode`);
+    }
+    window.setMode = setMode;
+    
+    // ============================================
+    // MAP CONTROLS
+    // ============================================
+    function zoomIn() { map.zoomIn(); }
+    function zoomOut() { map.zoomOut(); }
+    window.zoomIn = zoomIn;
+    window.zoomOut = zoomOut;
+    
+    function toggleMapStyle() {
+      isDarkMap = !isDarkMap;
+      map.removeLayer(currentTileLayer);
+      currentTileLayer = L.tileLayer(isDarkMap ? TILES.dark : TILES.light, {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19
+      }).addTo(map);
+      showToast(isDarkMap ? 'Dark map' : 'Light map');
+    }
+    window.toggleMapStyle = toggleMapStyle;
+    
+    function locateUser() {
+      const btn = document.getElementById('locateBtn');
+      btn?.classList.add('active');
+      
+      navigator.geolocation?.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          map.setView([latitude, longitude], 16);
+          
+          if (userMarker) {
+            userMarker.setLatLng([latitude, longitude]);
+          } else {
+            userMarker = L.marker([latitude, longitude], {
+              icon: L.divIcon({
+                className: 'user-marker',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+              })
+            }).addTo(map);
+          }
+          
+          btn?.classList.remove('active');
+        },
+        () => {
+          showToast('Location error', 'error');
+          btn?.classList.remove('active');
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+    window.locateUser = locateUser;
+    
+    function toggleRotation() {
+      isRotationEnabled = !isRotationEnabled;
+      const btn = document.getElementById('rotationToggleBtn');
+      btn?.classList.toggle('active', isRotationEnabled);
+      
+      if (!isRotationEnabled) {
+        // Reset map rotation
+        if (map.setBearing) {
+          map.setBearing(0);
+        }
+      }
+      
+      showToast(isRotationEnabled ? 'Rotation enabled' : 'Rotation disabled');
+    }
+    window.toggleRotation = toggleRotation;
+    
+    // ============================================
+    // COMPASS & HEADING
+    // ============================================
+    function setupDeviceOrientation() {
+      if (window.DeviceOrientationEvent) {
+        // iOS 13+ requires permission
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+          // Will request on first user interaction
+          document.body.addEventListener('click', requestOrientationPermission, { once: true });
+        } else {
+          window.addEventListener('deviceorientation', handleOrientation);
+        }
+      }
+    }
+    
+    function requestOrientationPermission() {
+      DeviceOrientationEvent.requestPermission()
+        .then(permission => {
+          if (permission === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+          }
+        })
+        .catch(console.error);
+    }
+    
+    function handleOrientation(event) {
+      let heading = event.webkitCompassHeading || (360 - event.alpha);
+      if (heading !== null && !isNaN(heading)) {
+        currentHeading = Math.round(heading);
+        updateCompass(currentHeading);
+        
+        // Rotate map if enabled
+        if (isRotationEnabled && isTracking && map.setBearing) {
+          map.setBearing(-currentHeading);
+        }
+      }
+    }
+    
+    function updateCompass(heading) {
+      const needle = document.getElementById('compassNeedle');
+      const value = document.getElementById('headingValue');
+      
+      if (needle) {
+        needle.style.transform = `rotate(${heading}deg)`;
+      }
+      if (value) {
+        value.textContent = `${heading}°`;
+      }
+    }
+    
+    // ============================================
+    // TRAIL TRACKING
+    // ============================================
+    function startTracking() {
+      if (isTracking) return;
+      
+      // Prompt for initial accessibility survey
+      if (confirm('Would you like to fill in the accessibility survey before starting? (Recommended)')) {
+        openAccessibilityForm();
+      }
+      
+      isTracking = true;
+      trackingPath = [];
+      trailNotes = [];
+      startTime = Date.now();
+      pausedTime = 0;
+      
+      // Update UI
+      document.getElementById('trailsFab').classList.add('hidden');
+      document.getElementById('trackingStatus').classList.remove('hidden');
+      document.getElementById('trackingControls').classList.remove('hidden');
+      document.getElementById('sosFab').classList.add('visible');
+      
+      // Start GPS tracking
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          if (isPaused) return;
+          
+          const point = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            timestamp: Date.now(),
+            accuracy: pos.coords.accuracy,
+            altitude: pos.coords.altitude,
+            speed: pos.coords.speed
+          };
+          
+          trackingPath.push(point);
+          
+          // Update user marker
+          if (userMarker) {
+            userMarker.setLatLng([point.lat, point.lng]);
+          }
+          map.panTo([point.lat, point.lng]);
+          
+          // Update polyline
+          if (trackingPolyline) {
+            trackingPolyline.setLatLngs(trackingPath.map(p => [p.lat, p.lng]));
+          } else {
+            trackingPolyline = L.polyline(trackingPath.map(p => [p.lat, p.lng]), {
+              color: '#4CAF50',
+              weight: 4,
+              opacity: 0.9
+            }).addTo(map);
+          }
+          
+          updateStats(pos.coords.speed);
+        },
+        (err) => showToast('GPS error: ' + err.message, 'error'),
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      );
+      
+      // Start timer
+      timerInterval = setInterval(updateTimer, 1000);
+      
+      showToast('Recording started', 'success');
+    }
+    window.startTracking = startTracking;
+    
+    function pauseTracking() {
+      isPaused = !isPaused;
+      const btn = document.getElementById('pauseBtn');
+      btn.innerHTML = isPaused ? '▶️' : '⏸️';
+      
+      if (isPaused) {
+        pausedTime += Date.now() - startTime;
+        showToast('Paused');
+      } else {
+        startTime = Date.now();
+        showToast('Resumed');
+      }
+    }
+    window.pauseTracking = pauseTracking;
+    
+    function stopTracking() {
+      isTracking = false;
+      
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+      if (timerInterval) clearInterval(timerInterval);
+      
+      document.getElementById('trackingStatus').classList.add('hidden');
+      document.getElementById('trackingControls').classList.add('hidden');
+      document.getElementById('sosFab').classList.remove('visible');
+      
+      // Open save modal
+      openTrailSaveModal();
+    }
+    window.stopTracking = stopTracking;
+    
+    function updateStats(speed) {
+      document.getElementById('distanceValue').textContent = calculateDistance().toFixed(2);
+      document.getElementById('speedValue').textContent = speed ? (speed * 3.6).toFixed(1) : '0.0';
+    }
+    
+    function updateTimer() {
+      if (!startTime || isPaused) return;
+      const elapsed = pausedTime + (Date.now() - startTime);
+      document.getElementById('durationValue').textContent = formatDuration(elapsed);
+    }
+    
+    function calculateDistance() {
+      let dist = 0;
+      for (let i = 1; i < trackingPath.length; i++) {
+        dist += map.distance(
+          [trackingPath[i - 1].lat, trackingPath[i - 1].lng],
+          [trackingPath[i].lat, trackingPath[i].lng]
+        );
+      }
+      return dist / 1000;
+    }
+    
+    function formatDuration(ms) {
+      const mins = Math.floor(ms / 60000);
+      const secs = Math.floor((ms % 60000) / 1000);
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    // ============================================
+    // TRAIL SAVE
+    // ============================================
+    function openTrailSaveModal() {
+      const dist = calculateDistance();
+      const duration = pausedTime + (startTime ? Date.now() - startTime : 0);
+      
+      document.getElementById('trailDistance').textContent = dist.toFixed(2);
+      document.getElementById('trailDuration').textContent = formatDuration(duration);
+      document.getElementById('trailPoints').textContent = trackingPath.length;
+      
+      document.getElementById('trailSaveModal').classList.add('open');
+    }
+    window.openTrailSaveModal = openTrailSaveModal;
+    
+    function closeTrailSaveModal() {
+      document.getElementById('trailSaveModal').classList.remove('open');
+    }
+    window.closeTrailSaveModal = closeTrailSaveModal;
+    
+    function discardTrail() {
+      if (confirm('Discard this trail? This cannot be undone.')) {
+        closeTrailSaveModal();
+        resetTracking();
+      }
+    }
+    window.discardTrail = discardTrail;
+    
+    function resetTracking() {
+      if (trackingPolyline) {
+        map.removeLayer(trackingPolyline);
+        trackingPolyline = null;
+      }
+      trackingPath = [];
+      trailNotes = [];
+      accessibilityData = null;
+      pendingPhotos.trail = [];
+      document.getElementById('trailPhotoGrid').innerHTML = '';
+      document.getElementById('trailsFab').classList.remove('hidden');
+      document.getElementById('trailForm').reset();
+    }
+    
+    function selectRating(el) {
+      document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+    window.selectRating = selectRating;
+    
+    async function saveTrail() {
+      const btn = document.getElementById('saveTrailBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Saving...';
+      
+      try {
+        const name = document.getElementById('trailName').value;
+        if (!name) throw new Error('Please enter a trail name');
+        
+        const saveRoute = document.getElementById('saveRoute').checked;
+        const saveGuide = document.getElementById('saveGuide').checked;
+        
+        if (!saveRoute && !saveGuide) {
+          throw new Error('Please select at least one option to save');
+        }
+        
+        const description = document.getElementById('trailDescription').value;
+        const rating = document.querySelector('.rating-btn.selected')?.dataset.value || 'good';
+        const surface = document.getElementById('surfaceType').value;
+        const width = document.getElementById('trailWidth').value;
+        const isPublic = document.getElementById('makePublic').checked;
+        const distance = calculateDistance();
+        const duration = pausedTime + (startTime ? Date.now() - startTime : 0);
+        
+        // Check if online
+        const isOnline = navigator.onLine;
+        
+        if (isOnline && window.db) {
+          const { collection, addDoc, serverTimestamp, GeoPoint } = window.firebaseModules;
+          
+          // Upload photos first
+          let photoUrls = [];
+          if (pendingPhotos.trail.length > 0) {
+            photoUrls = await uploadPhotos(pendingPhotos.trail, 'trails');
+          }
+          
+          const trailData = {
+            trailName: name,
+            description,
+            overallRating: rating,
+            surfaceType: surface,
+            pathWidth: width,
+            isPublic,
+            totalDistance: distance * 1000,
+            totalDuration: duration,
+            trackPoints: saveRoute ? trackingPath : [],
+            startPoint: trackingPath.length > 0 ? new GeoPoint(trackingPath[0].lat, trackingPath[0].lng) : null,
+            endPoint: trackingPath.length > 0 ? new GeoPoint(trackingPath[trackingPath.length - 1].lat, trackingPath[trackingPath.length - 1].lng) : null,
+            notes: trailNotes,
+            accessibilityData: accessibilityData,
+            photos: photoUrls,
+            createdAt: serverTimestamp(),
+            userId: window.currentUser?.uid || 'anonymous',
+            userEmail: window.currentUser?.email || null,
+            userName: window.currentUser?.displayName || null
+          };
+          
+          await addDoc(collection(window.db, 'trail_guides'), trailData);
+          showToast('Trail saved to cloud!', 'success');
+        } else {
+          // Save offline
+          await saveTrailOffline({
+            trailName: name,
+            description,
+            overallRating: rating,
+            surfaceType: surface,
+            pathWidth: width,
+            isPublic,
+            totalDistance: distance * 1000,
+            totalDuration: duration,
+            trackPoints: saveRoute ? trackingPath : [],
+            notes: trailNotes,
+            accessibilityData: accessibilityData,
+            createdAt: new Date().toISOString()
+          });
+          showToast('Trail saved offline. Will sync when connected.', 'success');
+        }
+        
+        closeTrailSaveModal();
+        resetTracking();
+        loadTrailsFromFirebase();
+        
+      } catch (error) {
+        showToast(error.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '💾 Save Trail';
+      }
+    }
+    window.saveTrail = saveTrail;
+    
+    async function saveTrailOffline(data) {
+      // Use IndexedDB
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('AccessNature', 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('pendingTrails', 'readwrite');
+          const store = tx.objectStore('pendingTrails');
+          store.add(data);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        };
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('pendingTrails')) {
+            db.createObjectStore('pendingTrails', { keyPath: 'id', autoIncrement: true });
+          }
+          if (!db.objectStoreNames.contains('pendingReports')) {
+            db.createObjectStore('pendingReports', { keyPath: 'id', autoIncrement: true });
+          }
+        };
+      });
+    }
+    
+    // ============================================
+    // LOAD DATA FROM FIREBASE
+    // ============================================
+    async function loadTrailsFromFirebase() {
+      if (!window.db) return;
+      
+      try {
+        const { collection, query, where, getDocs, limit } = window.firebaseModules;
+        const q = query(
+          collection(window.db, 'trail_guides'),
+          where('isPublic', '==', true),
+          limit(50)
+        );
+        
+        const snapshot = await getDocs(q);
+        clearTrailMarkers();
+        allTrails = [];
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          data.id = doc.id;
+          allTrails.push(data);
+          
+          if (data.startPoint) {
+            const lat = data.startPoint.latitude || data.startPoint.lat;
+            const lng = data.startPoint.longitude || data.startPoint.lng;
+            
+            if (lat && lng) {
+              const marker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                  className: 'trail-marker',
+                  iconSize: [16, 16],
+                  iconAnchor: [8, 8]
+                })
+              }).addTo(map);
+              
+              const distance = data.totalDistance ? (data.totalDistance / 1000).toFixed(1) : '?';
+              const rating = data.overallRating || 'N/A';
+              
+              marker.bindPopup(`
+                <div style="min-width:200px">
+                  <h3 style="margin:0 0 8px;font-size:1rem">${escapeHtml(data.trailName || 'Unnamed Trail')}</h3>
+                  <div style="display:flex;gap:12px;margin-bottom:8px;font-size:.85rem;color:#666">
+                    <span>📏 ${distance} km</span>
+                    <span>♿ ${rating}</span>
+                  </div>
+                  <button onclick="viewTrailDetails('${doc.id}')" style="width:100%;padding:8px;background:#4CAF50;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600">View Details</button>
+                </div>
+              `);
+              
+              trailMarkers.push(marker);
+            }
+          }
+        });
+        
+        console.log(`[Trails] Loaded ${trailMarkers.length} trails`);
+      } catch (error) {
+        console.error('[Trails] Load error:', error);
+      }
+    }
+    window.loadTrailsFromFirebase = loadTrailsFromFirebase;
+    
+    async function loadReportsFromFirebase() {
+      if (!window.db) return;
+      
+      try {
+        const { collection, query, getDocs, limit, orderBy } = window.firebaseModules;
+        
+        // Try with both collection names
+        let snapshot;
+        try {
+          const q = query(
+            collection(window.db, 'accessibility_reports'),
+            orderBy('createdAt', 'desc'),
+            limit(100)
+          );
+          snapshot = await getDocs(q);
+        } catch (e) {
+          // Try alternative collection name
+          const q = query(
+            collection(window.db, 'accessibilityReports'),
+            orderBy('createdAt', 'desc'),
+            limit(100)
+          );
+          snapshot = await getDocs(q);
+        }
+        
+        if (markerClusterGroup) markerClusterGroup.clearLayers();
+        allReports = [];
+        reportMarkers = [];
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          data.id = doc.id;
+          allReports.push(data);
+        });
+        
+        filteredReports = allReports;
+        displayReports();
+        
+        console.log(`[Reports] Loaded ${allReports.length} reports`);
+      } catch (error) {
+        console.error('[Reports] Load error:', error);
+        showToast('Error loading reports', 'error');
+      }
+    }
+    window.loadReportsFromFirebase = loadReportsFromFirebase;
+    
+    function displayReports() {
+      if (markerClusterGroup) markerClusterGroup.clearLayers();
+      reportMarkers = [];
+      
+      filteredReports.forEach(report => {
+        const lat = report.latitude || report.location?.latitude;
+        const lng = report.longitude || report.location?.longitude;
+        
+        if (!lat || !lng) return;
+        
+        const severity = report.severity || 3;
+        const color = severityColors[severity] || severityColors[3];
+        const label = severityLabels[severity] || 'Medium';
+        const icon = issueIcons[report.issueType] || '📍';
+        const isTemporary = report.isTemporary || report.durationType === 'temporary';
+        const date = report.createdAt?.toDate ? report.createdAt.toDate().toLocaleDateString() : '';
+        
+        const markerHtml = `
+          <div class="report-marker-icon ${isTemporary ? 'temporary' : ''}" 
+               style="background:${color}" 
+               role="img" 
+               aria-label="Report: ${escapeHtml(report.title || 'Untitled')}">
+            ${icon}
+          </div>
+        `;
+        
+        const marker = L.marker([lat, lng], {
+          icon: L.divIcon({
+            html: markerHtml,
+            className: '',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+          })
+        });
+        
+        // Tooltip for hover
+        const tempBadge = isTemporary ? '<span style="background:#3b82f6;color:#fff;padding:1px 4px;border-radius:3px;font-size:9px;margin-left:4px">⏳ TEMP</span>' : '';
+        marker.bindTooltip(`
+          <div style="min-width:180px;max-width:250px">
+            <div style="font-weight:600;font-size:13px;margin-bottom:4px">${escapeHtml(report.title || 'Report')}${tempBadge}</div>
+            <div style="font-size:11px;color:#6b7280;margin-bottom:4px">${escapeHtml((report.description || '').substring(0, 80))}${(report.description || '').length > 80 ? '...' : ''}</div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:#9ca3af">
+              <span style="background:${color};color:#fff;padding:2px 6px;border-radius:4px">${label}</span>
+              <span>${date}</span>
+            </div>
+          </div>
+        `, {
+          direction: 'top',
+          offset: [0, -20],
+          opacity: 0.95,
+          className: 'report-tooltip'
+        });
+        
+        // Popup for click
+        marker.bindPopup(`
+          <div style="min-width:220px">
+            <h3 style="margin:0 0 8px;font-size:14px;font-weight:600">${escapeHtml(report.title || 'Report')}</h3>
+            <p style="margin:0 0 8px;font-size:12px;color:#6b7280">${escapeHtml((report.description || '').substring(0, 100))}${(report.description || '').length > 100 ? '...' : ''}</p>
+            <div style="display:flex;gap:8px">
+              <button onclick="viewReportDetails('${report.id}')" style="flex:1;padding:8px;background:#667eea;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">View Details</button>
+              <button onclick="navigateToLocation(${lat},${lng})" style="padding:8px 12px;background:#10b981;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px" title="Navigate">🧭</button>
+            </div>
+          </div>
+        `);
+        
+        marker.reportType = report.issueType;
+        marker.category = typeCategories[report.issueType] || 'other';
+        marker.reportId = report.id;
+        
+        reportMarkers.push(marker);
+        
+        if (markerClusterGroup) {
+          markerClusterGroup.addLayer(marker);
+        } else {
+          marker.addTo(map);
+        }
+      });
+    }
+    
+    function filterReports(filter) {
+      if (filter === 'all') {
+        filteredReports = allReports;
+      } else {
+        filteredReports = allReports.filter(r => {
+          const category = typeCategories[r.issueType] || 'other';
+          return category === filter;
+        });
+      }
+      displayReports();
+      showToast(`Showing ${filteredReports.length} reports`);
+    }
+    window.filterReports = filterReports;
+    
+    function searchReports(query) {
+      if (!query || query.length < 2) {
+        filteredReports = allReports;
+        displayReports();
+        return;
+      }
+      
+      const q = query.toLowerCase();
+      filteredReports = allReports.filter(r => {
+        return (r.title || '').toLowerCase().includes(q) ||
+               (r.description || '').toLowerCase().includes(q) ||
+               (r.address || '').toLowerCase().includes(q);
+      });
+      displayReports();
+    }
+    window.searchReports = searchReports;
+    
+    function clearTrailMarkers() {
+      trailMarkers.forEach(m => map.removeLayer(m));
+      trailMarkers = [];
+    }
+    
+    // ============================================
+    // VIEW REPORT DETAILS
+    // ============================================
+    function viewReportDetails(reportId) {
+      const report = allReports.find(r => r.id === reportId);
+      if (!report) {
+        showToast('Report not found', 'error');
+        return;
+      }
+      
+      currentReportId = reportId;
+      
+      const date = report.createdAt?.toDate ? report.createdAt.toDate().toLocaleString() : 'Unknown date';
+      const lat = report.latitude || report.location?.latitude;
+      const lng = report.longitude || report.location?.longitude;
+      const location = report.address || (lat && lng ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : 'Unknown');
+      const severity = report.severity || 3;
+      const severityColor = severityColors[severity];
+      const severityLabel = severityLabels[severity];
+      const isTemporary = report.isTemporary || report.durationType === 'temporary';
+      
+      const statusConfig = {
+        new: { label: 'New', icon: '🆕', color: '#6b7280', bgColor: '#f3f4f6' },
+        acknowledged: { label: 'Acknowledged', icon: '👀', color: '#0369a1', bgColor: '#e0f2fe' },
+        in_progress: { label: 'In Progress', icon: '🔧', color: '#d97706', bgColor: '#fef3c7' },
+        resolved: { label: 'Resolved', icon: '✅', color: '#059669', bgColor: '#d1fae5' }
+      };
+      
+      const status = report.status || 'new';
+      const statusInfo = statusConfig[status] || statusConfig.new;
+      
+      document.getElementById('reportDetailTitle').textContent = report.title || 'Report Details';
+      document.getElementById('reportDetailBody').innerHTML = `
+        <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px">
+          <span class="report-status-badge" style="background:${statusInfo.bgColor};color:${statusInfo.color}">
+            ${statusInfo.icon} ${statusInfo.label}
+          </span>
+          <span class="report-severity-badge" style="background:${severityColor}">${severityLabel}</span>
+          ${isTemporary ? '<span class="report-severity-badge" style="background:#3b82f6">⏳ Temporary</span>' : ''}
+        </div>
+        
+        <p style="color:var(--text-secondary);margin-bottom:16px">${escapeHtml(report.description || 'No description provided')}</p>
+        
+        <div class="report-info-box">
+          <p><strong>📍 Location:</strong> ${escapeHtml(location)}</p>
+          <p><strong>📅 Reported:</strong> ${date}</p>
+          <p><strong>🏷️ Type:</strong> ${report.issueType || 'Other'}</p>
+          <p><strong>👤 Reporter:</strong> ${escapeHtml(report.userName || report.userEmail || 'Anonymous')}</p>
+          ${report.upvotes ? `<p><strong>👍 Upvotes:</strong> ${report.upvotes}</p>` : ''}
+        </div>
+        
+        ${report.photos && report.photos.length > 0 ? `
+          <div style="margin-top:16px">
+            <p style="font-weight:600;margin-bottom:8px">📷 Photos</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">
+              ${report.photos.map((photo, i) => `
+                <img src="${typeof photo === 'string' ? photo : photo.url}" 
+                     alt="Photo ${i + 1}" 
+                     style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer"
+                     onclick="openPhotoViewer('${typeof photo === 'string' ? photo : photo.url}')">
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+        
+        <div class="report-action-btns">
+          <button class="btn btn-secondary" onclick="upvoteReport('${reportId}')">👍 Upvote</button>
+          <button class="btn btn-secondary" onclick="verifyReport('${reportId}')">✓ Verify</button>
+        </div>
+      `;
+      
+      document.getElementById('reportDetailModal').classList.add('open');
+    }
+    window.viewReportDetails = viewReportDetails;
+    
+    function closeReportDetailModal() {
+      document.getElementById('reportDetailModal').classList.remove('open');
+      currentReportId = null;
+    }
+    window.closeReportDetailModal = closeReportDetailModal;
+    
+    function navigateToReport() {
+      const report = allReports.find(r => r.id === currentReportId);
+      if (report) {
+        const lat = report.latitude || report.location?.latitude;
+        const lng = report.longitude || report.location?.longitude;
+        if (lat && lng) {
+          navigateToLocation(lat, lng);
+        }
+      }
+      closeReportDetailModal();
+    }
+    window.navigateToReport = navigateToReport;
+    
+    function navigateToLocation(lat, lng) {
+      // Open in maps app
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`;
+      window.open(url, '_blank');
+    }
+    window.navigateToLocation = navigateToLocation;
+    
+    function viewTrailDetails(trailId) {
+      const trail = allTrails.find(t => t.id === trailId);
+      if (trail) {
+        // For now, show basic info
+        showToast(`${trail.trailName}: ${trail.overallRating} accessibility`);
+        // TODO: Full trail detail modal
+      }
+    }
+    window.viewTrailDetails = viewTrailDetails;
+    
+    // ============================================
+    // REPORT MODAL
+    // ============================================
+    function openReportModal() {
+      document.getElementById('reportModal').classList.add('open');
+      pendingPhotos.report = [];
+      document.getElementById('reportPhotoGrid').innerHTML = '';
+      
+      setTimeout(() => {
+        if (!reportPickerMap) {
+          reportPickerMap = L.map('reportMapPicker', { zoomControl: false })
+            .setView(map.getCenter(), 16);
+          L.tileLayer(TILES.light, { maxZoom: 19 }).addTo(reportPickerMap);
+          
+          reportPickerMap.on('click', (e) => {
+            setReportLocation(e.latlng.lat, e.latlng.lng);
+          });
+        } else {
+          reportPickerMap.setView(map.getCenter(), 16);
+        }
+        
+        // Set current location
+        if (userMarker) {
+          const pos = userMarker.getLatLng();
+          setReportLocation(pos.lat, pos.lng);
+        }
+        
+        reportPickerMap.invalidateSize();
+      }, 300);
+    }
+    window.openReportModal = openReportModal;
+    
+    function setReportLocation(lat, lng) {
+      document.getElementById('reportLat').value = lat;
+      document.getElementById('reportLng').value = lng;
+      document.getElementById('reportLocationText').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      
+      if (reportPickerMarker) {
+        reportPickerMarker.setLatLng([lat, lng]);
+      } else {
+        reportPickerMarker = L.marker([lat, lng]).addTo(reportPickerMap);
+      }
+    }
+    
+    function closeReportModal() {
+      document.getElementById('reportModal').classList.remove('open');
+    }
+    window.closeReportModal = closeReportModal;
+    
+    async function submitReport() {
+      const btn = document.getElementById('submitReportBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Submitting...';
+      
+      try {
+        const lat = parseFloat(document.getElementById('reportLat').value);
+        const lng = parseFloat(document.getElementById('reportLng').value);
+        const issueType = document.getElementById('reportType').value;
+        const title = document.getElementById('reportTitle').value;
+        const description = document.getElementById('reportDescription').value;
+        const severity = document.querySelector('input[name="severity"]:checked')?.value || 3;
+        const duration = document.querySelector('input[name="duration"]:checked')?.value || 'permanent';
+        
+        if (!lat || !lng) throw new Error('Please select a location on the map');
+        if (!issueType) throw new Error('Please select an issue type');
+        if (!title) throw new Error('Please enter a title');
+        
+        const isOnline = navigator.onLine;
+        
+        if (isOnline && window.db) {
+          const { collection, addDoc, serverTimestamp, GeoPoint } = window.firebaseModules;
+          
+          // Upload photos
+          let photoUrls = [];
+          if (pendingPhotos.report.length > 0) {
+            photoUrls = await uploadPhotos(pendingPhotos.report, 'reports');
+          }
+          
+          const report = {
+            location: new GeoPoint(lat, lng),
+            latitude: lat,
+            longitude: lng,
+            issueType,
+            title,
+            description,
+            severity: parseInt(severity),
+            durationType: duration,
+            isTemporary: duration === 'temporary',
+            status: 'new',
+            photos: photoUrls,
+            upvotes: 0,
+            verificationCount: 0,
+            createdAt: serverTimestamp(),
+            userId: window.currentUser?.uid || 'anonymous',
+            userEmail: window.currentUser?.email || null,
+            userName: window.currentUser?.displayName || null
+          };
+          
+          await addDoc(collection(window.db, 'accessibility_reports'), report);
+          showToast('Report submitted!', 'success');
+        } else {
+          // Save offline
+          await saveReportOffline({
+            latitude: lat,
+            longitude: lng,
+            issueType,
+            title,
+            description,
+            severity: parseInt(severity),
+            durationType: duration,
+            createdAt: new Date().toISOString()
+          });
+          showToast('Report saved offline. Will sync when connected.', 'success');
+        }
+        
+        closeReportModal();
+        document.getElementById('reportForm').reset();
+        pendingPhotos.report = [];
+        document.getElementById('reportPhotoGrid').innerHTML = '';
+        
+        loadReportsFromFirebase();
+        
+      } catch (error) {
+        showToast(error.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '📤 Submit Report';
+      }
+    }
+    window.submitReport = submitReport;
+    
+    async function saveReportOffline(data) {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('AccessNature', 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('pendingReports', 'readwrite');
+          const store = tx.objectStore('pendingReports');
+          store.add(data);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        };
+      });
+    }
+    
+    // ============================================
+    // PHOTO HANDLING
+    // ============================================
+    function captureReportPhoto(source) {
+      if (source === 'camera') {
+        document.getElementById('reportPhotosCamera').click();
+      } else {
+        document.getElementById('reportPhotosGallery').click();
+      }
+    }
+    window.captureReportPhoto = captureReportPhoto;
+    
+    function captureTrailPhoto(source) {
+      if (source === 'camera') {
+        document.getElementById('trailPhotosCamera').click();
+      } else {
+        document.getElementById('trailPhotosGallery').click();
+      }
+    }
+    window.captureTrailPhoto = captureTrailPhoto;
+    
+    function capturePhoto() {
+      // For tracking - general photo capture
+      document.getElementById('photoInput').click();
+    }
+    window.capturePhoto = capturePhoto;
+    
+    function handleTrackingPhoto(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      // Add to trail photos and create note
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        pendingPhotos.trail.push(file);
+        
+        // Add as a note with location
+        if (userMarker) {
+          const pos = userMarker.getLatLng();
+          trailNotes.push({
+            type: 'photo',
+            timestamp: Date.now(),
+            lat: pos.lat,
+            lng: pos.lng
+          });
+        }
+        
+        showToast('Photo captured!', 'success');
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+    
+    function handlePhotos(e, type) {
+      const files = Array.from(e.target.files);
+      const grid = document.getElementById(type === 'report' ? 'reportPhotoGrid' : 'trailPhotoGrid');
+      
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          pendingPhotos[type].push(file);
+          const idx = pendingPhotos[type].length - 1;
+          
+          const div = document.createElement('div');
+          div.className = 'photo-preview';
+          div.innerHTML = `
+            <img src="${ev.target.result}" alt="Photo ${idx + 1}">
+            <button class="remove-photo" onclick="removePhoto('${type}', ${idx}, this)">×</button>
+          `;
+          grid.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+      });
+      
+      e.target.value = '';
+    }
+    
+    function removePhoto(type, idx, btn) {
+      pendingPhotos[type].splice(idx, 1);
+      btn.parentElement.remove();
+    }
+    window.removePhoto = removePhoto;
+    
+    async function uploadPhotos(files, folder) {
+      const urls = [];
+      const { ref, uploadBytes, getDownloadURL } = window.firebaseModules;
+      
+      for (const file of files) {
+        try {
+          const filename = `${folder}/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`;
+          const storageRef = ref(window.storage, filename);
+          await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(storageRef);
+          urls.push(url);
+        } catch (error) {
+          console.error('Photo upload error:', error);
+        }
+      }
+      
+      return urls;
+    }
+    
+    function openPhotoViewer(url) {
+      window.open(url, '_blank');
+    }
+    window.openPhotoViewer = openPhotoViewer;
+    
+    // ============================================
+    // ACCESSIBILITY SURVEY
+    // ============================================
+    function openAccessibilityForm() {
+      document.getElementById('accessibilityModal').classList.add('open');
+      loadAccessibilityForm();
+    }
+    window.openAccessibilityForm = openAccessibilityForm;
+    
+    function closeAccessibilityForm() {
+      document.getElementById('accessibilityModal').classList.remove('open');
+    }
+    window.closeAccessibilityForm = closeAccessibilityForm;
+    
+    async function loadAccessibilityForm() {
+      const container = document.getElementById('accessibilityFormContainer');
+      
+      // Basic accessibility form
+      container.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">♿ Wheelchair Accessible</label>
+          <div class="toggle-options">
+            <label class="toggle-option"><input type="radio" name="wheelchair" value="yes"><span class="toggle-option-icon">✅</span><div><div class="toggle-option-text">Yes</div></div></label>
+            <label class="toggle-option"><input type="radio" name="wheelchair" value="partial"><span class="toggle-option-icon">⚠️</span><div><div class="toggle-option-text">Partial</div></div></label>
+            <label class="toggle-option selected"><input type="radio" name="wheelchair" value="no" checked><span class="toggle-option-icon">❌</span><div><div class="toggle-option-text">No</div></div></label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">🛤️ Surface Quality</label>
+          <select class="form-select" id="surveyQuality">
+            <option value="excellent">Excellent - Smooth, paved</option>
+            <option value="good" selected>Good - Minor imperfections</option>
+            <option value="fair">Fair - Some obstacles</option>
+            <option value="poor">Poor - Difficult terrain</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">📐 Max Slope</label>
+          <select class="form-select" id="surveySlope">
+            <option value="flat">Flat (0-2%)</option>
+            <option value="gentle" selected>Gentle (2-5%)</option>
+            <option value="moderate">Moderate (5-8%)</option>
+            <option value="steep">Steep (8%+)</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">🚻 Accessible Restrooms</label>
+          <div class="toggle-options">
+            <label class="toggle-option"><input type="radio" name="restrooms" value="yes"><span class="toggle-option-icon">✅</span><div><div class="toggle-option-text">Yes</div></div></label>
+            <label class="toggle-option selected"><input type="radio" name="restrooms" value="no" checked><span class="toggle-option-icon">❌</span><div><div class="toggle-option-text">No</div></div></label>
+            <label class="toggle-option"><input type="radio" name="restrooms" value="unknown"><span class="toggle-option-icon">❓</span><div><div class="toggle-option-text">Unknown</div></div></label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">🅿️ Accessible Parking</label>
+          <div class="toggle-options">
+            <label class="toggle-option"><input type="radio" name="parking" value="yes"><span class="toggle-option-icon">✅</span><div><div class="toggle-option-text">Yes</div></div></label>
+            <label class="toggle-option selected"><input type="radio" name="parking" value="no" checked><span class="toggle-option-icon">❌</span><div><div class="toggle-option-text">No</div></div></label>
+            <label class="toggle-option"><input type="radio" name="parking" value="unknown"><span class="toggle-option-icon">❓</span><div><div class="toggle-option-text">Unknown</div></div></label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">🪑 Rest Areas / Benches</label>
+          <select class="form-select" id="surveyRestAreas">
+            <option value="frequent">Frequent (every 100m)</option>
+            <option value="regular">Regular (every 200-500m)</option>
+            <option value="sparse" selected>Sparse (few available)</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">📝 Additional Notes</label>
+          <textarea class="form-textarea" id="surveyNotes" placeholder="Any other accessibility information..."></textarea>
+        </div>
+      `;
+      
+      // Re-setup toggle listeners
+      container.querySelectorAll('.toggle-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          const group = opt.closest('.toggle-options');
+          if (group) {
+            group.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
+          }
+          opt.classList.add('selected');
+          opt.querySelector('input').checked = true;
+        });
+      });
+    }
+    
+    function saveAccessibilityData() {
+      accessibilityData = {
+        wheelchairAccessible: document.querySelector('input[name="wheelchair"]:checked')?.value || 'no',
+        surfaceQuality: document.getElementById('surveyQuality')?.value || 'good',
+        maxSlope: document.getElementById('surveySlope')?.value || 'gentle',
+        accessibleRestrooms: document.querySelector('input[name="restrooms"]:checked')?.value || 'unknown',
+        accessibleParking: document.querySelector('input[name="parking"]:checked')?.value || 'unknown',
+        restAreas: document.getElementById('surveyRestAreas')?.value || 'sparse',
+        notes: document.getElementById('surveyNotes')?.value || ''
+      };
+      
+      closeAccessibilityForm();
+      showToast('Accessibility data saved', 'success');
+    }
+    window.saveAccessibilityData = saveAccessibilityData;
+    
+    // ============================================
+    // NOTES
+    // ============================================
+    function addTextNote() {
+      document.getElementById('noteModal').classList.add('open');
+      document.getElementById('noteText').value = '';
+    }
+    window.addTextNote = addTextNote;
+    
+    function closeNoteModal() {
+      document.getElementById('noteModal').classList.remove('open');
+    }
+    window.closeNoteModal = closeNoteModal;
+    
+    function saveNote() {
+      const text = document.getElementById('noteText').value.trim();
+      if (!text) {
+        showToast('Please enter a note', 'error');
+        return;
+      }
+      
+      if (userMarker) {
+        const pos = userMarker.getLatLng();
+        trailNotes.push({
+          type: 'text',
+          text: text,
+          timestamp: Date.now(),
+          lat: pos.lat,
+          lng: pos.lng
+        });
+        
+        // Add marker on map
+        L.marker([pos.lat, pos.lng], {
+          icon: L.divIcon({
+            html: '<div style="background:#2196F3;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid #fff">📝</div>',
+            className: '',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          })
+        }).addTo(map).bindPopup(text);
+      }
+      
+      closeNoteModal();
+      showToast('Note added!', 'success');
+    }
+    window.saveNote = saveNote;
+    
+    // ============================================
+    // SAFETY FEATURES
+    // ============================================
+    function openEmergencyModal() {
+      document.getElementById('emergencyModal').classList.add('open');
+      
+      // Update location
+      if (userMarker) {
+        const pos = userMarker.getLatLng();
+        document.getElementById('sosLocation').textContent = `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`;
+      } else {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            document.getElementById('sosLocation').textContent = 
+              `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+          },
+          () => {
+            document.getElementById('sosLocation').textContent = 'Location unavailable';
+          }
+        );
+      }
+    }
+    window.openEmergencyModal = openEmergencyModal;
+    
+    function closeEmergencyModal() {
+      document.getElementById('emergencyModal').classList.remove('open');
+    }
+    window.closeEmergencyModal = closeEmergencyModal;
+    
+    function sendSOS() {
+      // Get emergency contacts from localStorage
+      const contacts = JSON.parse(localStorage.getItem('accessNature_emergencyContacts') || '[]');
+      
+      if (contacts.length === 0) {
+        showToast('No emergency contacts set. Please add contacts in settings.', 'error');
+        return;
+      }
+      
+      const location = document.getElementById('sosLocation').textContent;
+      const message = `🆘 SOS Alert from Access Nature app!\n\nI need help at location: ${location}\n\nMap: https://www.google.com/maps?q=${location.replace(' ', '')}`;
+      
+      // Try SMS if available
+      if (navigator.share) {
+        navigator.share({
+          title: 'SOS Emergency',
+          text: message
+        }).then(() => {
+          showToast('SOS shared!', 'success');
+          closeEmergencyModal();
+        }).catch(console.error);
+      } else {
+        // Copy to clipboard
+        navigator.clipboard.writeText(message).then(() => {
+          showToast('SOS message copied. Please send to your emergency contacts.', 'success');
+          closeEmergencyModal();
+        });
+      }
+    }
+    window.sendSOS = sendSOS;
+    
+    function startLifeline() {
+      showToast('Lifeline feature coming soon');
+    }
+    window.startLifeline = startLifeline;
+    
+    function manageEmergencyContacts() {
+      showToast('Manage contacts in Profile > Settings');
+    }
+    window.manageEmergencyContacts = manageEmergencyContacts;
+    
+    function showWeather() {
+      if (userMarker) {
+        const pos = userMarker.getLatLng();
+        window.open(`https://weather.com/weather/today/l/${pos.lat},${pos.lng}`, '_blank');
+      } else {
+        showToast('Location needed for weather', 'error');
+      }
+    }
+    window.showWeather = showWeather;
+    
+    function shareLocation() {
+      if (userMarker) {
+        const pos = userMarker.getLatLng();
+        const url = `https://www.google.com/maps?q=${pos.lat},${pos.lng}`;
+        
+        if (navigator.share) {
+          navigator.share({
+            title: 'My Location',
+            text: 'Here is my current location',
+            url: url
+          });
+        } else {
+          navigator.clipboard.writeText(url);
+          showToast('Location link copied!', 'success');
+        }
+      } else {
+        showToast('Location unavailable', 'error');
+      }
+    }
+    window.shareLocation = shareLocation;
+    
+    // ============================================
+    // BETA FEEDBACK
+    // ============================================
+    function openBetaFeedback() {
+      document.getElementById('betaFeedbackModal').classList.add('open');
+    }
+    window.openBetaFeedback = openBetaFeedback;
+    
+    function closeBetaFeedback() {
+      document.getElementById('betaFeedbackModal').classList.remove('open');
+    }
+    window.closeBetaFeedback = closeBetaFeedback;
+    
+    async function submitBetaFeedback() {
+      const type = document.getElementById('feedbackType').value;
+      const text = document.getElementById('feedbackText').value.trim();
+      
+      if (!text) {
+        showToast('Please enter your feedback', 'error');
+        return;
+      }
+      
+      try {
+        if (window.db) {
+          const { collection, addDoc, serverTimestamp } = window.firebaseModules;
+          
+          await addDoc(collection(window.db, 'beta_feedback'), {
+            type,
+            text,
+            page: 'map',
+            mode: currentMode,
+            userAgent: navigator.userAgent,
+            createdAt: serverTimestamp(),
+            userId: window.currentUser?.uid || 'anonymous',
+            userEmail: window.currentUser?.email || null
+          });
+          
+          showToast('Thank you for your feedback!', 'success');
+          closeBetaFeedback();
+          document.getElementById('betaFeedbackForm').reset();
+        }
+      } catch (error) {
+        showToast('Error submitting feedback', 'error');
+      }
+    }
+    window.submitBetaFeedback = submitBetaFeedback;
+    
+    // ============================================
+    // PANELS
+    // ============================================
+    function togglePanel(panelId) {
+      const panel = document.getElementById(panelId);
+      const isHidden = panel.classList.contains('hidden');
+      
+      // Close all panels first
+      document.querySelectorAll('.bottom-popup').forEach(p => {
+        p.classList.add('hidden');
+        p.classList.remove('open');
+      });
+      
+      if (isHidden) {
+        panel.classList.remove('hidden');
+        setTimeout(() => panel.classList.add('open'), 10);
+      }
+    }
+    window.togglePanel = togglePanel;
+    
+    // ============================================
+    // MORE OPTIONS
+    // ============================================
+    function saveToCloud() {
+      if (!window.currentUser || window.currentUser.isAnonymous) {
+        openAuthModal();
+        return;
+      }
+      showToast('Cloud save available after recording a trail');
+    }
+    window.saveToCloud = saveToCloud;
+    
+    function loadCloudRoutes() {
+      showToast('Routes loading...');
+      // TODO: Implement
+    }
+    window.loadCloudRoutes = loadCloudRoutes;
+    
+    function loadMyGuides() {
+      showToast('Guides loading...');
+      // TODO: Implement
+    }
+    window.loadMyGuides = loadMyGuides;
+    
+    function showLocalStorage() {
+      showToast('Local storage viewer coming soon');
+    }
+    window.showLocalStorage = showLocalStorage;
+    
+    function exportCurrentRoute() {
+      if (trackingPath.length === 0) {
+        showToast('No route to export', 'error');
+        return;
+      }
+      
+      const gpx = generateGPX(trackingPath);
+      downloadFile(gpx, 'trail.gpx', 'application/gpx+xml');
+      showToast('Route exported!', 'success');
+    }
+    window.exportCurrentRoute = exportCurrentRoute;
+    
+    function generateGPX(points) {
+      const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Access Nature">
+<trk><name>Trail</name><trkseg>`;
+      const gpxFooter = `</trkseg></trk></gpx>`;
+      
+      const trackpoints = points.map(p => 
+        `<trkpt lat="${p.lat}" lon="${p.lng}"><time>${new Date(p.timestamp).toISOString()}</time></trkpt>`
+      ).join('\n');
+      
+      return gpxHeader + trackpoints + gpxFooter;
+    }
+    
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    
+    function toggleHighContrast() {
+      const isHC = document.documentElement.classList.toggle('high-contrast');
+      try {
+        const prefs = JSON.parse(localStorage.getItem('accessNature_displayPrefs') || '{}');
+        prefs.highContrast = isHC;
+        localStorage.setItem('accessNature_displayPrefs', JSON.stringify(prefs));
+      } catch(e) {}
+      showToast(isHC ? 'High contrast enabled' : 'High contrast disabled');
+    }
+    window.toggleHighContrast = toggleHighContrast;
+    
+    // ============================================
+    // AUTH MODAL
+    // ============================================
+    function openAuthModal() {
+      document.getElementById('authModal').classList.add('open');
+    }
+    window.openAuthModal = openAuthModal;
+    
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.remove('open');
+    }
+    window.closeAuthModal = closeAuthModal;
+    
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show ' + type;
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+    window.showToast = showToast;
+    
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    window.escapeHtml = escapeHtml;
+    
+    async function upvoteReport(reportId) {
+      try {
+        const { doc, updateDoc } = window.firebaseModules;
+        const reportRef = doc(window.db, 'accessibility_reports', reportId);
+        
+        // Simple increment (in production, track user votes)
+        const report = allReports.find(r => r.id === reportId);
+        if (report) {
+          await updateDoc(reportRef, {
+            upvotes: (report.upvotes || 0) + 1
+          });
+          report.upvotes = (report.upvotes || 0) + 1;
+          viewReportDetails(reportId); // Refresh view
+          showToast('Upvoted!', 'success');
+        }
+      } catch (error) {
+        showToast('Error upvoting', 'error');
+      }
+    }
+    window.upvoteReport = upvoteReport;
+    
+    async function verifyReport(reportId) {
+      try {
+        const { doc, updateDoc } = window.firebaseModules;
+        const reportRef = doc(window.db, 'accessibility_reports', reportId);
+        
+        const report = allReports.find(r => r.id === reportId);
+        if (report) {
+          await updateDoc(reportRef, {
+            verificationCount: (report.verificationCount || 0) + 1
+          });
+          report.verificationCount = (report.verificationCount || 0) + 1;
+          viewReportDetails(reportId);
+          showToast('Report verified!', 'success');
+        }
+      } catch (error) {
+        showToast('Error verifying', 'error');
+      }
+    }
+    window.verifyReport = verifyReport;
+  </script>
+  
+  <!-- Global Bottom Navigation -->
+  <script type="module">
+    import { initGlobalNav } from './src/components/globalNav.js';
+    initGlobalNav({ currentPage: 'map' });
+  </script>
+</body>
+</html>
