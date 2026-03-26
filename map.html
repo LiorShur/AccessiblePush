@@ -875,6 +875,61 @@
     </div>
   </div>
   
+  <!-- ============================================
+       TRAIL DETAIL MODAL
+       ============================================ -->
+  <div class="modal-overlay" id="trailDetailModal">
+    <div class="modal-container" style="max-width:500px">
+      <div class="modal-header">
+        <h2 id="trailDetailTitle">Trail Details</h2>
+        <button class="modal-close" onclick="closeTrailDetailModal()">×</button>
+      </div>
+      <div class="modal-body" id="trailDetailBody">
+        <!-- Content loaded dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeTrailDetailModal()">Close</button>
+        <button type="button" class="btn btn-primary" id="trailNavigateBtn" onclick="navigateToTrail()">🧭 Navigate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       CLOUD ROUTES LIST MODAL
+       ============================================ -->
+  <div class="modal-overlay" id="cloudRoutesModal">
+    <div class="modal-container" style="max-width:500px">
+      <div class="modal-header">
+        <h2>☁️ My Cloud Routes</h2>
+        <button class="modal-close" onclick="closeCloudRoutesModal()">×</button>
+      </div>
+      <div class="modal-body" id="cloudRoutesBody" style="max-height:400px;overflow-y:auto">
+        <!-- Content loaded dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeCloudRoutesModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       MY GUIDES LIST MODAL
+       ============================================ -->
+  <div class="modal-overlay" id="myGuidesModal">
+    <div class="modal-container" style="max-width:500px">
+      <div class="modal-header">
+        <h2>📚 My Trail Guides</h2>
+        <button class="modal-close" onclick="closeMyGuidesModal()">×</button>
+      </div>
+      <div class="modal-body" id="myGuidesBody" style="max-height:400px;overflow-y:auto">
+        <!-- Content loaded dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeMyGuidesModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Hidden file inputs -->
   <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
   <input type="file" id="importFile" accept=".json,.gpx" hidden>
@@ -1921,15 +1976,132 @@
     }
     window.navigateToLocation = navigateToLocation;
     
+    let selectedTrail = null;
+
     function viewTrailDetails(trailId) {
       const trail = allTrails.find(t => t.id === trailId);
-      if (trail) {
-        // For now, show basic info
-        showToast(`${trail.trailName}: ${trail.overallRating} accessibility`);
-        // TODO: Full trail detail modal
+      if (!trail) {
+        showToast('Trail not found', 'error');
+        return;
       }
+
+      selectedTrail = trail;
+
+      // Build detail content
+      const distance = trail.totalDistance ? (trail.totalDistance / 1000).toFixed(2) : 'N/A';
+      const duration = trail.totalDuration ? formatDuration(trail.totalDuration) : 'N/A';
+      const rating = trail.overallRating || 'Not rated';
+      const surface = trail.surfaceType || 'Unknown';
+      const width = trail.pathWidth || 'Unknown';
+
+      let photosHtml = '';
+      if (trail.photos && trail.photos.length > 0) {
+        photosHtml = `
+          <div style="margin-top:12px">
+            <strong>Photos:</strong>
+            <div style="display:flex;gap:8px;overflow-x:auto;margin-top:8px;padding-bottom:8px">
+              ${trail.photos.map(url => `<img src="${escapeHtml(url)}" style="height:80px;border-radius:8px;object-fit:cover" onclick="window.open('${escapeHtml(url)}','_blank')">`).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      let notesHtml = '';
+      if (trail.notes && trail.notes.length > 0) {
+        notesHtml = `
+          <div style="margin-top:12px">
+            <strong>Notes:</strong>
+            <ul style="margin:8px 0;padding-left:20px">
+              ${trail.notes.map(note => `<li>${escapeHtml(note.text || note)}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      let accessibilityHtml = '';
+      if (trail.accessibilityData) {
+        const data = trail.accessibilityData;
+        accessibilityHtml = `
+          <div style="margin-top:12px">
+            <strong>Accessibility Details:</strong>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;font-size:.9rem">
+              ${data.wheelchairAccess ? `<span>♿ Wheelchair: ${data.wheelchairAccess}</span>` : ''}
+              ${data.restrooms ? `<span>🚻 Restrooms: ${data.restrooms}</span>` : ''}
+              ${data.parking ? `<span>🅿️ Parking: ${data.parking}</span>` : ''}
+              ${data.shade ? `<span>🌳 Shade: ${data.shade}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      document.getElementById('trailDetailTitle').textContent = trail.trailName || 'Trail Details';
+      document.getElementById('trailDetailBody').innerHTML = `
+        <div style="display:grid;gap:16px">
+          ${trail.description ? `<p style="margin:0;color:var(--text-secondary)">${escapeHtml(trail.description)}</p>` : ''}
+
+          <div style="background:var(--bg-secondary);border-radius:12px;padding:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px;text-align:center">
+            <div>
+              <div style="font-size:1.5rem;font-weight:700;color:var(--primary)">${distance}</div>
+              <div style="font-size:.8rem;color:var(--text-secondary)">km</div>
+            </div>
+            <div>
+              <div style="font-size:1.5rem;font-weight:700;color:var(--primary)">${duration}</div>
+              <div style="font-size:.8rem;color:var(--text-secondary)">duration</div>
+            </div>
+          </div>
+
+          <div style="display:grid;gap:8px;font-size:.95rem">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span>Accessibility Rating</span>
+              <span style="font-weight:600">${escapeHtml(rating)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span>Surface Type</span>
+              <span style="font-weight:600">${escapeHtml(surface)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span>Path Width</span>
+              <span style="font-weight:600">${escapeHtml(width)}</span>
+            </div>
+          </div>
+
+          ${accessibilityHtml}
+          ${notesHtml}
+          ${photosHtml}
+
+          ${trail.userName ? `<div style="font-size:.8rem;color:var(--text-secondary);text-align:right">Contributed by ${escapeHtml(trail.userName)}</div>` : ''}
+        </div>
+      `;
+
+      // Show/hide navigate button based on available location
+      const navBtn = document.getElementById('trailNavigateBtn');
+      if (trail.startPoint) {
+        navBtn.style.display = 'inline-flex';
+      } else {
+        navBtn.style.display = 'none';
+      }
+
+      document.getElementById('trailDetailModal').classList.add('open');
     }
     window.viewTrailDetails = viewTrailDetails;
+
+    function closeTrailDetailModal() {
+      document.getElementById('trailDetailModal').classList.remove('open');
+      selectedTrail = null;
+    }
+    window.closeTrailDetailModal = closeTrailDetailModal;
+
+    function navigateToTrail() {
+      if (selectedTrail && selectedTrail.startPoint) {
+        const lat = selectedTrail.startPoint.latitude || selectedTrail.startPoint.lat;
+        const lng = selectedTrail.startPoint.longitude || selectedTrail.startPoint.lng;
+        if (lat && lng) {
+          navigateToLocation(lat, lng);
+        }
+      }
+      closeTrailDetailModal();
+    }
+    window.navigateToTrail = navigateToTrail;
     
     // ============================================
     // REPORT MODAL
@@ -2522,17 +2694,220 @@
     }
     window.saveToCloud = saveToCloud;
     
-    function loadCloudRoutes() {
-      showToast('Routes loading...');
-      // TODO: Implement
+    async function loadCloudRoutes() {
+      if (!window.currentUser || window.currentUser.isAnonymous) {
+        showToast('Please sign in to view your routes', 'error');
+        openAuthModal();
+        return;
+      }
+
+      if (!window.db) {
+        showToast('Database not available', 'error');
+        return;
+      }
+
+      try {
+        showToast('Loading your routes...');
+        const { collection, query, where, getDocs, orderBy } = window.firebaseModules;
+
+        const routesQuery = query(
+          collection(window.db, 'user_routes'),
+          where('userId', '==', window.currentUser.uid),
+          orderBy('createdAt', 'desc')
+        );
+
+        const snapshot = await getDocs(routesQuery);
+        const routes = [];
+        snapshot.forEach(doc => {
+          routes.push({ id: doc.id, ...doc.data() });
+        });
+
+        if (routes.length === 0) {
+          showToast('No saved routes found');
+          return;
+        }
+
+        displayCloudRoutes(routes);
+      } catch (error) {
+        console.error('Failed to load routes:', error);
+        if (error.code === 'failed-precondition') {
+          showToast('Database index required. Please try again later.', 'error');
+        } else {
+          showToast('Failed to load routes: ' + error.message, 'error');
+        }
+      }
     }
     window.loadCloudRoutes = loadCloudRoutes;
-    
-    function loadMyGuides() {
-      showToast('Guides loading...');
-      // TODO: Implement
+
+    function displayCloudRoutes(routes) {
+      const container = document.getElementById('cloudRoutesBody');
+      container.innerHTML = routes.map(route => {
+        const distance = route.totalDistance ? (route.totalDistance / 1000).toFixed(2) : '?';
+        const date = route.createdAt?.toDate?.() || new Date(route.createdAt);
+        const dateStr = date.toLocaleDateString();
+        return `
+          <div style="padding:12px;border-bottom:1px solid var(--border);cursor:pointer" onclick="selectCloudRoute('${route.id}')">
+            <div style="font-weight:600">${escapeHtml(route.routeName || 'Unnamed Route')}</div>
+            <div style="font-size:.85rem;color:var(--text-secondary);margin-top:4px">
+              📏 ${distance} km | 📅 ${dateStr} | 📍 ${route.locationCount || route.trackPoints?.length || 0} points
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('cloudRoutesModal').classList.add('open');
+    }
+
+    function closeCloudRoutesModal() {
+      document.getElementById('cloudRoutesModal').classList.remove('open');
+    }
+    window.closeCloudRoutesModal = closeCloudRoutesModal;
+
+    async function selectCloudRoute(routeId) {
+      try {
+        const { doc, getDoc } = window.firebaseModules;
+        const routeDoc = await getDoc(doc(window.db, 'user_routes', routeId));
+
+        if (!routeDoc.exists()) {
+          showToast('Route not found', 'error');
+          return;
+        }
+
+        const route = routeDoc.data();
+        if (route.trackPoints && route.trackPoints.length > 0) {
+          // Clear current tracking and load the route
+          trackingPath = route.trackPoints.map(p => ({
+            lat: p.lat || p.latitude,
+            lng: p.lng || p.longitude,
+            timestamp: p.timestamp
+          }));
+
+          // Draw the route on the map
+          if (trackingLine) {
+            map.removeLayer(trackingLine);
+          }
+          trackingLine = L.polyline(trackingPath.map(p => [p.lat, p.lng]), {
+            color: '#4CAF50',
+            weight: 4,
+            opacity: 0.8
+          }).addTo(map);
+
+          // Fit map to route bounds
+          map.fitBounds(trackingLine.getBounds(), { padding: [50, 50] });
+
+          showToast(`Loaded: ${route.routeName || 'Route'}`, 'success');
+        }
+
+        closeCloudRoutesModal();
+      } catch (error) {
+        console.error('Failed to load route:', error);
+        showToast('Failed to load route', 'error');
+      }
+    }
+    window.selectCloudRoute = selectCloudRoute;
+
+    async function loadMyGuides() {
+      if (!window.currentUser || window.currentUser.isAnonymous) {
+        showToast('Please sign in to view your guides', 'error');
+        openAuthModal();
+        return;
+      }
+
+      if (!window.db) {
+        showToast('Database not available', 'error');
+        return;
+      }
+
+      try {
+        showToast('Loading your guides...');
+        const { collection, query, where, getDocs } = window.firebaseModules;
+
+        const guidesQuery = query(
+          collection(window.db, 'trail_guides'),
+          where('userId', '==', window.currentUser.uid)
+        );
+
+        const snapshot = await getDocs(guidesQuery);
+        const guides = [];
+        snapshot.forEach(doc => {
+          guides.push({ id: doc.id, ...doc.data() });
+        });
+
+        // Sort by date client-side
+        guides.sort((a, b) => {
+          const dateA = a.generatedAt || a.createdAt;
+          const dateB = b.generatedAt || b.createdAt;
+          return new Date(dateB) - new Date(dateA);
+        });
+
+        if (guides.length === 0) {
+          showToast('No trail guides found. Save a trail to create one!');
+          return;
+        }
+
+        displayMyGuides(guides);
+      } catch (error) {
+        console.error('Failed to load guides:', error);
+        showToast('Failed to load guides: ' + error.message, 'error');
+      }
     }
     window.loadMyGuides = loadMyGuides;
+
+    function displayMyGuides(guides) {
+      const container = document.getElementById('myGuidesBody');
+      container.innerHTML = guides.map(guide => {
+        const distance = guide.totalDistance ? (guide.totalDistance / 1000).toFixed(2) : '?';
+        const rating = guide.overallRating || 'N/A';
+        const isPublic = guide.isPublic ? '🌍 Public' : '🔒 Private';
+        return `
+          <div style="padding:12px;border-bottom:1px solid var(--border);cursor:pointer" onclick="viewGuideDetails('${guide.id}')">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-weight:600">${escapeHtml(guide.trailName || 'Unnamed Guide')}</span>
+              <span style="font-size:.75rem;background:var(--bg-secondary);padding:2px 8px;border-radius:12px">${isPublic}</span>
+            </div>
+            <div style="font-size:.85rem;color:var(--text-secondary);margin-top:4px">
+              📏 ${distance} km | ♿ ${rating}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('myGuidesModal').classList.add('open');
+    }
+
+    function closeMyGuidesModal() {
+      document.getElementById('myGuidesModal').classList.remove('open');
+    }
+    window.closeMyGuidesModal = closeMyGuidesModal;
+
+    async function viewGuideDetails(guideId) {
+      // Find the guide in allTrails or fetch it
+      let guide = allTrails.find(t => t.id === guideId);
+
+      if (!guide) {
+        try {
+          const { doc, getDoc } = window.firebaseModules;
+          const guideDoc = await getDoc(doc(window.db, 'trail_guides', guideId));
+          if (guideDoc.exists()) {
+            guide = { id: guideDoc.id, ...guideDoc.data() };
+          }
+        } catch (error) {
+          console.error('Failed to fetch guide:', error);
+        }
+      }
+
+      if (guide) {
+        closeMyGuidesModal();
+        // Add to allTrails temporarily if not present
+        if (!allTrails.find(t => t.id === guideId)) {
+          allTrails.push(guide);
+        }
+        viewTrailDetails(guideId);
+      } else {
+        showToast('Guide not found', 'error');
+      }
+    }
+    window.viewGuideDetails = viewGuideDetails;
     
     function showLocalStorage() {
       showToast('Local storage viewer coming soon');
