@@ -1,0 +1,26 @@
+{
+  "My Work Projects": {
+    "keywords": ["project alpha", "sprint", "standup", "release", "deploy"],
+    "senders": ["jira", "github", "mycompany.com"]
+  },
+  "Family": {
+    "keywords": ["family", "reunion", "birthday", "holiday", "thanksgiving"],
+    "senders": []
+  },
+  "Clients": {
+    "keywords": ["proposal", "scope", "deliverable", "milestone", "sow"],
+    "senders": ["clientdomain.com"]
+  },
+  "Freelance & Side Projects": {
+    "keywords": ["freelance", "gig", "contract", "hourly", "retainer"],
+    "senders": ["upwork", "fiverr", "toptal"]
+  },
+  "Home & Utilities": {
+    "keywords": ["electricity", "water bill", "gas bill", "rent", "lease", "maintenance", "HOA"],
+    "senders": ["electric", "utility", "comcast", "verizon", "att"]
+  },
+  "Receipts & Warranties": {
+    "keywords": ["receipt", "warranty", "proof of purchase", "return policy"],
+    "senders": []
+  }
+}
