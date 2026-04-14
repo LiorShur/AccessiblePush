@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^6.0.0",
-    "serve": "^14.2.0"
+    "serve": "^14.2.0",
+    "typescript": "^5.4.0"
   }
 }
