@@ -212,35 +212,15 @@ class DevTools {
 // Create and export singleton
 export const devTools = new DevTools();
 
-// Auto-enable secret gesture and show toolbar in development
+// Expose to window for console access and More Options modal integration
 if (typeof window !== 'undefined') {
   window.devTools = devTools;
-  
-  // Auto-show in development or if URL has ?debug parameter
-  if (window.location.hostname === 'localhost' || 
-      window.location.hostname === '127.0.0.1' ||
-      window.location.search.includes('debug=1') ||
-      window.location.search.includes('dev=1')) {
-    
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        devTools.show();
-        devTools.enableSecretGesture();
-      });
-    } else {
-      devTools.show();
-      devTools.enableSecretGesture();
-    }
-  } else {
-    // Enable secret gesture on production
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        devTools.enableSecretGesture();
-      });
-    } else {
-      devTools.enableSecretGesture();
-    }
-  }
+
+  // Note: Dev tools are now accessed via More Options modal (Tools section)
+  // The secret gesture area has been removed to avoid overlapping with UI elements
+  // To show dev tools: window.devTools.show() or use More Options > Tools > Dev Tools
+
+  console.log('🛠️ Dev tools available via window.devTools or More Options modal');
 }
 
 export default devTools;
