@@ -1868,50 +1868,6 @@ textarea:focus-visible,
     })();
   </script>
 
-  <!-- Stop Button Confirmation Handler -->
-  <script>
-    (function() {
-      'use strict';
-
-      const stopBtn = document.getElementById('stopBtn');
-
-      if (stopBtn) {
-        // Store original onclick if any
-        const originalOnClick = stopBtn.onclick;
-
-        // Override click handler
-        stopBtn.addEventListener('click', function(e) {
-          // Check if tracking is active
-          const trackingCtrl = window.AccessNatureApp?.controllers?.tracking;
-          const isTracking = trackingCtrl?.isTracking || document.body.classList.contains('tracking-active');
-
-          if (isTracking) {
-            // Prevent default action
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Show confirmation
-            const confirmed = confirm('⚠️ Stop tracking and save your route?\n\nYour current progress will be saved.');
-
-            if (confirmed) {
-              // Call the original handler or emit stop event
-              if (originalOnClick) {
-                originalOnClick.call(stopBtn, e);
-              } else if (trackingCtrl?.stopTracking) {
-                trackingCtrl.stopTracking();
-              } else {
-                // Dispatch custom event for tracking controller to handle
-                window.dispatchEvent(new CustomEvent('tracking:confirmStop'));
-              }
-            }
-          }
-        }, true); // Use capture phase
-      }
-
-      console.log('[StopConfirm] Handler initialized');
-    })();
-  </script>
-
   <!-- App JavaScript -->
   <script type="module" src="src/main.js"></script>
   <script type="module" src="src/features/auth.js"></script>
