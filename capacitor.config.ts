@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.accessnature.app',
   appName: 'Access Nature',
-  webDir: '.',
+  webDir: 'www',
 
   // Server configuration for development
   server: {
