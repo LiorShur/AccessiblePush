@@ -555,16 +555,16 @@ class MobileDebugger {
 // Create and export singleton
 export const mobileDebugger = new MobileDebugger();
 
-// Auto-initialize on load and add toggle button
+// Initialize on load but DON'T add floating toggle button
+// Access debugger via More Options modal > DEV TOOLS > Mobile Console
 if (typeof document !== 'undefined') {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       mobileDebugger.initialize();
-      mobileDebugger.addToggleButton();
+      // Toggle button removed - use More Options modal instead
     });
   } else {
     mobileDebugger.initialize();
-    mobileDebugger.addToggleButton();
   }
 }
 
