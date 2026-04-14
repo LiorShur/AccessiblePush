@@ -18,9 +18,9 @@ class MobileConsole {
   }
 
   init() {
-    // Only create the toggle button initially - don't intercept console yet
-    this.createToggleButton();
-    console.log('[MobileConsole] Ready - tap bug icon to enable');
+    // Don't create floating toggle button - access via More Options modal > DEV TOOLS
+    // Console interception starts when show() is called
+    console.log('[MobileConsole] Ready - access via More Options > DEV TOOLS');
   }
 
   createToggleButton() {
@@ -197,8 +197,10 @@ class MobileConsole {
     window.addEventListener('unhandledrejection', this.rejectionHandler);
 
     this.isEnabled = true;
-    this.toggleBtn.style.borderColor = '#4CAF50';
-    this.toggleBtn.style.opacity = '1';
+    if (this.toggleBtn) {
+      this.toggleBtn.style.borderColor = '#4CAF50';
+      this.toggleBtn.style.opacity = '1';
+    }
 
     console.log('[MobileConsole] Console interception ENABLED');
   }
@@ -220,8 +222,10 @@ class MobileConsole {
     }
 
     this.isEnabled = false;
-    this.toggleBtn.style.borderColor = '#666';
-    this.toggleBtn.style.opacity = '0.7';
+    if (this.toggleBtn) {
+      this.toggleBtn.style.borderColor = '#666';
+      this.toggleBtn.style.opacity = '0.7';
+    }
 
     console.log('[MobileConsole] Console interception DISABLED');
   }
@@ -252,8 +256,8 @@ class MobileConsole {
       this.logs = this.logs.slice(-this.maxLogs);
     }
 
-    // Update badge
-    if (!this.isVisible) {
+    // Update badge (if toggle button exists)
+    if (!this.isVisible && this.badge) {
       this.unreadCount++;
       this.badge.textContent = this.unreadCount > 99 ? '99+' : this.unreadCount;
       this.badge.style.display = 'flex';
@@ -336,7 +340,9 @@ class MobileConsole {
 
     if (this.isVisible) {
       this.unreadCount = 0;
-      this.badge.style.display = 'none';
+      if (this.badge) {
+        this.badge.style.display = 'none';
+      }
       this.renderLogs();
     }
   }
