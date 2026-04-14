@@ -561,7 +561,140 @@ textarea:focus-visible,
     direction: ltr !important;
     text-align: left !important;
   }
-  
+
+  /* ==========================================
+     POCKET MODE / SCREEN LOCK STYLES
+     ========================================== */
+
+  .pocket-mode-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 100000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .pocket-mode-overlay.active {
+    display: flex;
+  }
+
+  .pocket-mode-content {
+    text-align: center;
+    color: white;
+    padding: 40px;
+  }
+
+  .pocket-mode-icon {
+    font-size: 80px;
+    margin-bottom: 24px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+
+  .pocket-mode-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .pocket-mode-stats {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    margin-bottom: 32px;
+  }
+
+  .pocket-mode-stat {
+    text-align: center;
+  }
+
+  .pocket-mode-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #4CAF50;
+  }
+
+  .pocket-mode-stat-label {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .pocket-mode-unlock-area {
+    width: 200px;
+    height: 60px;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 24px auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pocket-mode-unlock-progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    border-radius: 30px;
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  .pocket-mode-unlock-text {
+    position: relative;
+    z-index: 1;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .pocket-mode-hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 16px;
+  }
+
+  /* Pocket mode toggle button */
+  .pocket-mode-btn {
+    width: 40px;
+    height: 40px;
+    background: #9C27B0;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .pocket-mode-btn:hover {
+    background: #7B1FA2;
+  }
+
+  .pocket-mode-btn.active {
+    background: #4CAF50;
+  }
+
 </style>
 
 <!-- Analytics & Error Monitoring -->
@@ -570,7 +703,36 @@ textarea:focus-visible,
 <body class="tracker-page">
   <!-- Skip to main content link for keyboard users -->
   <a href="#map-container" class="skip-link" data-i18n="trackerUI.skipToMap">Skip to map</a>
-  
+
+  <!-- ============================================
+       POCKET MODE OVERLAY (Screen Lock)
+       ============================================ -->
+  <div id="pocketModeOverlay" class="pocket-mode-overlay" aria-hidden="true" role="dialog" aria-label="Screen locked for pocket mode">
+    <div class="pocket-mode-content">
+      <div class="pocket-mode-icon">🔒</div>
+      <div class="pocket-mode-title">Screen Locked</div>
+      <p style="color: #aaa; margin-bottom: 24px;">Tracking continues in the background</p>
+
+      <div class="pocket-mode-stats">
+        <div class="pocket-mode-stat">
+          <div class="pocket-mode-stat-value" id="pocketModeTimer">00:00:00</div>
+          <div class="pocket-mode-stat-label">Time</div>
+        </div>
+        <div class="pocket-mode-stat">
+          <div class="pocket-mode-stat-value" id="pocketModeDistance">0.00 km</div>
+          <div class="pocket-mode-stat-label">Distance</div>
+        </div>
+      </div>
+
+      <div class="pocket-mode-unlock-area" id="unlockArea">
+        <div class="pocket-mode-unlock-progress" id="unlockProgress"></div>
+        <span class="pocket-mode-unlock-text">Hold to unlock</span>
+      </div>
+
+      <div class="pocket-mode-hint">Press and hold for 2 seconds to unlock</div>
+    </div>
+  </div>
+
   <nav class="top-nav" role="navigation" aria-label="Main navigation">
   <a href="index.html" class="nav-brand">♿ Accessible</a>
   <div class="nav-auth-indicator">
@@ -863,6 +1025,14 @@ textarea:focus-visible,
       <span id="distance" style="font-size: 16px; font-weight: 700; color: white; font-variant-numeric: tabular-nums;">0.00 km</span>
       <span style="font-size: 9px; color: #888; text-transform: uppercase;" data-i18n="trackerUI.dist">Dist</span>
     </div>
+
+    <!-- Separator -->
+    <div style="width: 1px; height: 28px; background: rgba(255,255,255,0.3); margin: 0 4px;"></div>
+
+    <!-- Pocket Mode Lock Button -->
+    <button id="pocketModeBtn" class="pocket-mode-btn" title="Lock Screen (Pocket Mode)" aria-label="Lock screen for pocket mode">
+      🔒
+    </button>
   </div>
 
   <!-- ============================================
@@ -1519,6 +1689,225 @@ textarea:focus-visible,
         updateHCButton();
         if (navigator.vibrate) navigator.vibrate(10);
       });
+    })();
+  </script>
+
+  <!-- Pocket Mode (Screen Lock) Handler -->
+  <script>
+    (function() {
+      'use strict';
+
+      // Pocket Mode State
+      let isPocketModeActive = false;
+      let unlockTimer = null;
+      let unlockProgress = 0;
+      const UNLOCK_DURATION = 2000; // 2 seconds to unlock
+      const UNLOCK_INTERVAL = 50; // Update every 50ms
+
+      // DOM Elements
+      const overlay = document.getElementById('pocketModeOverlay');
+      const pocketModeBtn = document.getElementById('pocketModeBtn');
+      const unlockArea = document.getElementById('unlockArea');
+      const unlockProgressBar = document.getElementById('unlockProgress');
+      const pocketModeTimer = document.getElementById('pocketModeTimer');
+      const pocketModeDistance = document.getElementById('pocketModeDistance');
+
+      // Activate pocket mode
+      function activatePocketMode() {
+        if (!overlay) return;
+
+        isPocketModeActive = true;
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+        pocketModeBtn?.classList.add('active');
+
+        // Update stats
+        syncPocketModeStats();
+
+        // Vibrate to confirm
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+        console.log('[PocketMode] Activated');
+      }
+
+      // Deactivate pocket mode
+      function deactivatePocketMode() {
+        if (!overlay) return;
+
+        isPocketModeActive = false;
+        overlay.classList.remove('active');
+        overlay.setAttribute('aria-hidden', 'true');
+        pocketModeBtn?.classList.remove('active');
+        resetUnlockProgress();
+
+        // Vibrate to confirm
+        if (navigator.vibrate) navigator.vibrate(200);
+
+        console.log('[PocketMode] Deactivated');
+      }
+
+      // Sync stats display from main timer/distance
+      function syncPocketModeStats() {
+        if (!isPocketModeActive) return;
+
+        const mainTimer = document.getElementById('timer');
+        const mainDistance = document.getElementById('distance');
+
+        if (pocketModeTimer && mainTimer) {
+          pocketModeTimer.textContent = mainTimer.textContent;
+        }
+        if (pocketModeDistance && mainDistance) {
+          pocketModeDistance.textContent = mainDistance.textContent;
+        }
+
+        // Continue syncing while pocket mode is active
+        if (isPocketModeActive) {
+          requestAnimationFrame(syncPocketModeStats);
+        }
+      }
+
+      // Start unlock progress
+      function startUnlock() {
+        if (unlockTimer) return;
+
+        unlockProgress = 0;
+        unlockTimer = setInterval(function() {
+          unlockProgress += (100 * UNLOCK_INTERVAL / UNLOCK_DURATION);
+
+          if (unlockProgressBar) {
+            unlockProgressBar.style.width = unlockProgress + '%';
+          }
+
+          if (unlockProgress >= 100) {
+            clearInterval(unlockTimer);
+            unlockTimer = null;
+            deactivatePocketMode();
+          }
+        }, UNLOCK_INTERVAL);
+      }
+
+      // Cancel unlock progress
+      function cancelUnlock() {
+        if (unlockTimer) {
+          clearInterval(unlockTimer);
+          unlockTimer = null;
+        }
+        resetUnlockProgress();
+      }
+
+      // Reset unlock progress bar
+      function resetUnlockProgress() {
+        unlockProgress = 0;
+        if (unlockProgressBar) {
+          unlockProgressBar.style.width = '0%';
+        }
+      }
+
+      // Event Listeners
+      pocketModeBtn?.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        activatePocketMode();
+      });
+
+      // Unlock area - touch events
+      unlockArea?.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        startUnlock();
+      });
+
+      unlockArea?.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        cancelUnlock();
+      });
+
+      unlockArea?.addEventListener('touchcancel', function(e) {
+        cancelUnlock();
+      });
+
+      // Unlock area - mouse events (for testing)
+      unlockArea?.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        startUnlock();
+      });
+
+      unlockArea?.addEventListener('mouseup', function(e) {
+        e.preventDefault();
+        cancelUnlock();
+      });
+
+      unlockArea?.addEventListener('mouseleave', function(e) {
+        cancelUnlock();
+      });
+
+      // Prevent any other interactions on the overlay
+      overlay?.addEventListener('touchstart', function(e) {
+        // Only allow touches on the unlock area
+        if (!unlockArea?.contains(e.target)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, { passive: false });
+
+      overlay?.addEventListener('click', function(e) {
+        if (!unlockArea?.contains(e.target)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+
+      // Expose for external use
+      window.pocketMode = {
+        activate: activatePocketMode,
+        deactivate: deactivatePocketMode,
+        isActive: function() { return isPocketModeActive; }
+      };
+
+      console.log('[PocketMode] Handler initialized');
+    })();
+  </script>
+
+  <!-- Stop Button Confirmation Handler -->
+  <script>
+    (function() {
+      'use strict';
+
+      const stopBtn = document.getElementById('stopBtn');
+
+      if (stopBtn) {
+        // Store original onclick if any
+        const originalOnClick = stopBtn.onclick;
+
+        // Override click handler
+        stopBtn.addEventListener('click', function(e) {
+          // Check if tracking is active
+          const trackingCtrl = window.AccessNatureApp?.controllers?.tracking;
+          const isTracking = trackingCtrl?.isTracking || document.body.classList.contains('tracking-active');
+
+          if (isTracking) {
+            // Prevent default action
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Show confirmation
+            const confirmed = confirm('⚠️ Stop tracking and save your route?\n\nYour current progress will be saved.');
+
+            if (confirmed) {
+              // Call the original handler or emit stop event
+              if (originalOnClick) {
+                originalOnClick.call(stopBtn, e);
+              } else if (trackingCtrl?.stopTracking) {
+                trackingCtrl.stopTracking();
+              } else {
+                // Dispatch custom event for tracking controller to handle
+                window.dispatchEvent(new CustomEvent('tracking:confirmStop'));
+              }
+            }
+          }
+        }, true); // Use capture phase
+      }
+
+      console.log('[StopConfirm] Handler initialized');
     })();
   </script>
 
