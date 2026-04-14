@@ -1562,6 +1562,14 @@ textarea:focus-visible,
       <button onclick="triggerImport()" data-i18n="trackerUI.buttons.importRoute">📥 Import Route</button>
       <button id="clearAllSessionsBtn" data-i18n="trackerUI.buttons.clearRoutes">🗑️ Clear Routes</button>
     </div>
+
+    <div style="padding: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+      <div style="font-size: 11px; color: #888; padding: 4px 8px; margin-bottom: 4px;">DEV TOOLS</div>
+      <button onclick="openMobileDebugger(); togglePanel('moreOptionsPanel');">🐛 Mobile Console</button>
+      <button onclick="openRouteRecovery(); togglePanel('moreOptionsPanel');">🔧 Route Recovery</button>
+      <button onclick="showStorageMonitor(); togglePanel('moreOptionsPanel');">🧪 Storage Monitor</button>
+      <button onclick="confirmAndResetApp()">🔄 Reset App</button>
+    </div>
   </div>
 
   <!-- Export Panel (legacy, kept for compatibility) -->
@@ -1595,13 +1603,6 @@ textarea:focus-visible,
     <button onclick="trailConditions?.quickReportCondition()" data-i18n="trackerUI.safety.reportConditions">🚧 Report Conditions</button>
     <button onclick="trailConditions?.showNearbyConditions()" data-i18n="trackerUI.safety.nearbyConditions">📍 Nearby Conditions</button>
     <button onclick="trailAlerts?.showSettingsModal()" data-i18n="trackerUI.safety.alertSettings">⚠️ Alert Settings</button>
-  </div>
-
-  <!-- Dev Tools Panel -->
-  <div id="devToolsPanel" class="bottom-popup hidden">
-    <button onclick="showStorageMonitor()" data-i18n="trackerUI.buttons.storageMonitor">🧪 Storage Monitor</button>
-    <button onclick="triggerImport()" data-i18n="trackerUI.buttons.importRoute">📥 Import Route</button>
-    <button id="resetBtn" onclick="confirmAndResetApp()" data-i18n="trackerUI.buttons.resetApp">🔄 Reset App</button>
   </div>
 
   <!-- Trail Guide Panel (kept for compatibility) -->

@@ -17,6 +17,57 @@ export class NavigationController {
     window.showStorageMonitor = () => this.showStorageMonitor();
     window.clearAllSessions = () => this.clearAllSessions();
     window.clearAllAppData = () => this.clearAllAppData();
+
+    // Dev tools helpers
+    window.openMobileDebugger = async () => {
+      try {
+        const { mobileDebugger } = await import('../features/mobileDebugger.js');
+        mobileDebugger.toggle();
+      } catch (e) {
+        console.error('Failed to load mobile debugger:', e);
+        toast.error('Failed to load debugger: ' + e.message);
+      }
+    };
+
+    window.openRouteRecovery = async () => {
+      try {
+        const { routeRecovery } = await import('../features/routeRecovery.js');
+        routeRecovery.showPanel();
+      } catch (e) {
+        console.error('Failed to load route recovery:', e);
+        toast.error('Failed to load recovery: ' + e.message);
+      }
+    };
+
+    // Setup tap-outside and Escape key handlers for panels
+    this.setupPanelCloseHandlers();
+  }
+
+  setupPanelCloseHandlers() {
+    // Close panel on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.currentPanel) {
+        this.hideAllPanels();
+      }
+    });
+
+    // Close panel on tap outside
+    document.addEventListener('click', (e) => {
+      if (!this.currentPanel) return;
+
+      const panel = document.getElementById(this.currentPanel);
+      if (!panel) return;
+
+      // Check if click is outside the panel and its trigger button
+      const isClickInsidePanel = panel.contains(e.target);
+      const isClickOnTrigger = e.target.closest('[onclick*="togglePanel"]') ||
+                               e.target.closest('#moreOptionsBtn') ||
+                               e.target.closest('#safetyPanelBtn');
+
+      if (!isClickInsidePanel && !isClickOnTrigger) {
+        this.hideAllPanels();
+      }
+    });
   }
 
   togglePanel(panelId) {
@@ -153,6 +204,8 @@ ${storageInfo.usagePercent > 80 ? '⚠️ Storage nearly full! Consider exportin
     delete window.showStorageMonitor;
     delete window.clearAllSessions;
     delete window.clearAllAppData;
+    delete window.openMobileDebugger;
+    delete window.openRouteRecovery;
   }
 
   // Enhanced route management
