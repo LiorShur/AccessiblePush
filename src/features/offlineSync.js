@@ -538,25 +538,38 @@ class OfflineSync {
       );
 
       // Handle both old format (flat) and new format (nested routeData, routeInfo, accessibilityData)
+      console.log('📤 uploadRouteToCloud - Parsing route data format...');
+      console.log('  - routeData keys:', Object.keys(routeData || {}));
+      console.log('  - routeData.routeData exists:', !!routeData?.routeData);
+      console.log('  - routeData.routeInfo exists:', !!routeData?.routeInfo);
+
       let docData;
       let actualRouteData;
       let routeInfo;
       let accessibilityData;
-      
+
       let poiElements = [];
       if (routeData.routeData && routeData.routeInfo) {
         // New format from tracking.js saveRoute
+        console.log('📤 Using NEW format (nested routeData, routeInfo)');
         actualRouteData = routeData.routeData;
         routeInfo = routeData.routeInfo;
         accessibilityData = routeData.accessibilityData;
         poiElements = routeData.poiElements || [];
       } else {
         // Old format - spread as-is
+        console.log('📤 Using OLD format (flat)');
         actualRouteData = routeData.routeData || routeData.data || [];
         routeInfo = { name: routeData.name || 'Untitled Route' };
         accessibilityData = routeData.accessibilityData;
         poiElements = routeData.poiElements || [];
       }
+
+      console.log('📤 Extracted data:');
+      console.log('  - actualRouteData type:', typeof actualRouteData);
+      console.log('  - actualRouteData is array:', Array.isArray(actualRouteData));
+      console.log('  - actualRouteData length:', actualRouteData?.length || 0);
+      console.log('  - routeInfo:', JSON.stringify(routeInfo));
       
       // Mark prepare stage as done
       if (onProgress) {
@@ -664,16 +677,34 @@ class OfflineSync {
       }
       
       // Generate trail guide for this route
-      if (processedRouteData && processedRouteData.length > 0) {
+      console.log('📚 Preparing to generate trail guide...');
+      console.log('  - processedRouteData:', processedRouteData?.length || 0, 'points');
+      console.log('  - routeInfo:', routeInfo);
+      console.log('  - accessibilityData:', accessibilityData);
+      console.log('  - poiElements:', poiElements?.length || 0);
+
+      if (processedRouteData && Array.isArray(processedRouteData) && processedRouteData.length > 0) {
         try {
+          console.log('📚 Calling generateAndUploadTrailGuide...');
           await this.generateAndUploadTrailGuide(docRef.id, processedRouteData, routeInfo, accessibilityData, user, poiElements);
+          console.log('✅ Trail guide generated successfully');
           if (onProgress) {
             onProgress('guide-done');
           }
         } catch (guideError) {
-          console.warn('Trail guide generation failed:', guideError);
+          console.error('❌ Trail guide generation failed:', guideError);
+          console.error('  - Error name:', guideError.name);
+          console.error('  - Error message:', guideError.message);
+          console.error('  - Error stack:', guideError.stack);
+          // Show toast so user knows guide failed
+          toast.warning('Route saved but trail guide generation failed. You can regenerate it later.');
           // Don't throw - route was saved successfully
         }
+      } else {
+        console.warn('⚠️ Skipping trail guide - no valid route data');
+        console.warn('  - processedRouteData exists:', !!processedRouteData);
+        console.warn('  - Is array:', Array.isArray(processedRouteData));
+        console.warn('  - Length:', processedRouteData?.length);
       }
       
       return docRef.id;
@@ -687,30 +718,48 @@ class OfflineSync {
    * Generate and upload trail guide for a route
    */
   async generateAndUploadTrailGuide(routeId, routeData, routeInfo, accessibilityData, user, poiElements = []) {
+    console.log('📚 generateAndUploadTrailGuide called with:');
+    console.log('  - routeId:', routeId);
+    console.log('  - routeData points:', routeData?.length || 0);
+    console.log('  - routeInfo:', JSON.stringify(routeInfo));
+    console.log('  - user:', user?.uid);
+
     try {
+      console.log('📚 Step 1: Importing trailGuideGeneratorV2...');
       const { trailGuideGeneratorV2 } = await import('./trailGuideGeneratorV2.js');
+      console.log('📚 Step 2: Importing firebase...');
       const { db } = await import('../../firebase-setup.js');
+      console.log('📚 Step 3: Importing firestore...');
       const { collection, addDoc, serverTimestamp, waitForPendingWrites } = await import(
         'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js'
       );
 
       // Generate HTML with POI elements
-      const htmlContent = trailGuideGeneratorV2.generateHTML(routeData, routeInfo, accessibilityData || {}, null, poiElements);
+      // Ensure routeInfo has required fields
+      const safeRouteInfo = {
+        name: routeInfo?.name || 'Untitled Route',
+        totalDistance: routeInfo?.totalDistance || 0,
+        elapsedTime: routeInfo?.elapsedTime || 0,
+        date: routeInfo?.date || new Date().toISOString()
+      };
+      console.log('📚 Step 4: Generating HTML with safeRouteInfo:', JSON.stringify(safeRouteInfo));
+      const htmlContent = trailGuideGeneratorV2.generateHTML(routeData, safeRouteInfo, accessibilityData || {}, null, poiElements);
+      console.log('📚 Step 5: HTML generated, length:', htmlContent?.length || 0);
       
       // Save to Firestore with correct field names
       const guideDoc = {
         routeId: routeId,
-        routeName: routeInfo.name || 'Trail Guide',
+        routeName: safeRouteInfo.name,
         userId: user.uid,
         userEmail: user.email,
         htmlContent: htmlContent,  // Changed from 'html'
         generatedAt: new Date().toISOString(),  // Changed from 'createdAt'
         isPublic: true,
-        
+
         metadata: {
-          totalDistance: routeInfo.totalDistance || 0,
-          elapsedTime: routeInfo.elapsedTime || 0,
-          originalDate: routeInfo.date,
+          totalDistance: safeRouteInfo.totalDistance,
+          elapsedTime: safeRouteInfo.elapsedTime,
+          originalDate: safeRouteInfo.date,
           locationCount: routeData.filter(p => p.type === 'location').length,
           photoCount: routeData.filter(p => p.type === 'photo').length,
           noteCount: routeData.filter(p => p.type === 'text').length,
@@ -743,6 +792,7 @@ class OfflineSync {
         }
       };
 
+      console.log('📚 Step 6: Saving trail guide to Firestore...');
       const guideRef = await addDoc(collection(db, 'trail_guides'), guideDoc);
       console.log('📚 Trail guide saved locally, waiting for server sync...');
 
@@ -756,9 +806,11 @@ class OfflineSync {
         // Don't throw - the write is saved locally and will sync when online
       }
 
+      console.log('📚 Trail guide generation complete!');
       return guideRef.id;
     } catch (error) {
-      console.error('❌ Trail guide generation failed:', error);
+      console.error('❌ Trail guide generation failed at step:', error);
+      console.error('  - Error details:', error.message);
       throw error;
     }
   }
@@ -1289,10 +1341,20 @@ class OfflineSync {
           console.log(`⚠️ Skipping route ${route.localId} - already being uploaded`);
           continue;
         }
-        
+
         // Mark as uploading
         this.uploadingRoutes.add(route.localId);
-        
+
+        // Debug: Log the route data structure
+        console.log('🔍 Syncing route data structure:');
+        console.log('  - route.localId:', route.localId);
+        console.log('  - route.data exists:', !!route.data);
+        console.log('  - route.data.routeData exists:', !!route.data?.routeData);
+        console.log('  - route.data.routeData length:', route.data?.routeData?.length || 0);
+        console.log('  - route.data.routeInfo:', route.data?.routeInfo);
+        console.log('  - route.data.accessibilityData:', route.data?.accessibilityData);
+        console.log('  - route.data.poiElements length:', route.data?.poiElements?.length || 0);
+
         try {
           const cloudId = await this.uploadRouteToCloud(route.data, user);
           await this.markRouteUploaded(route.localId, cloudId);
