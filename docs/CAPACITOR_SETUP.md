@@ -96,9 +96,23 @@ Use Android Studio's Image Asset Studio for easy generation.
 
 ### Splash Screen
 
-Replace:
+The splash screen is configured in `capacitor.config.ts` under the `SplashScreen` plugin:
+- Background color: `#2c5530` (brand green)
+- Spinner: enabled (white, large)
+- Duration: 2.5 seconds with 300ms fade-out
+
+To replace the splash image (logo) with a custom PNG:
 - `android/app/src/main/res/drawable/splash.png`
-- `android/app/src/main/res/drawable-*/splash.png`
+- `android/app/src/main/res/drawable-land-*/splash.png`
+- `android/app/src/main/res/drawable-port-*/splash.png`
+
+**Recommended**: Use `@capacitor/assets` to auto-generate all splash/icon assets from a single source image:
+```bash
+npm install --save-dev @capacitor/assets
+npx capacitor-assets generate --assetPath assets/icons/icon.svg
+```
+
+**Note**: The web interface also has a splash loader (logo + spinner) in `index.html` that shows during initial page load. This provides a smooth transition from the native splash screen on Android, and serves as the splash on the web version. It auto-hides when stats finish loading, or after 3 seconds as a fallback.
 
 ### Permissions
 

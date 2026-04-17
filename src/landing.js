@@ -888,6 +888,9 @@ async loadCommunityStats(retryCount = 0) {
 
     this.calculateAndDisplayStats(this.publicGuidesCache);
 
+    // Signal that the app is ready (stats loaded) so splash loader can hide
+    window.dispatchEvent(new CustomEvent('appReady'));
+
     // Warn if returned 0 items
     if (this.publicGuidesCache.length === 0) {
       console.warn('⚠️ Community stats: No public guides found');
@@ -914,6 +917,9 @@ async loadCommunityStats(retryCount = 0) {
     this.updateElement('totalKm', '0');
     this.updateElement('accessibleTrails', '0');
     this.updateElement('totalUsers', '0');
+
+    // Even on error, signal app is ready so splash loader hides
+    window.dispatchEvent(new CustomEvent('appReady'));
     return { success: false, error: error.message };
   }
 }
