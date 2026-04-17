@@ -518,6 +518,16 @@
     var splash = document.getElementById('appSplashLoader');
     if (!splash) return;
     var hidden = false;
+
+    // Hide native Capacitor splash screen once web content is visible
+    function hideNativeSplash() {
+      try {
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
+          window.Capacitor.Plugins.SplashScreen.hide();
+        }
+      } catch (e) { /* ignore if not on native */ }
+    }
+
     function hideSplash() {
       if (hidden) return;
       hidden = true;
@@ -526,6 +536,10 @@
         if (splash.parentNode) splash.parentNode.removeChild(splash);
       }, 500);
     }
+
+    // Hide native splash after a brief moment (allows web splash to render first)
+    setTimeout(hideNativeSplash, 100);
+
     // Expose for app code to hide explicitly once ready
     window.__hideAppSplash = hideSplash;
     // Max fallback: hide after 3s regardless of load state (handles connectivity issues)
