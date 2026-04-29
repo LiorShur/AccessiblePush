@@ -160,26 +160,31 @@ class OfflineSync {
 
     // Show prompt after a short delay to let auth UI settle
     setTimeout(async () => {
-      // If auto-upload, skip the confirmation
-      if (autoUpload) {
-        toast.info('Uploading your route to the cloud...');
-        const result = await this.syncAllPending();
-        // Notify that sync is complete so routes list can be refreshed
-        if (result?.success !== false) {
-          toast.success('Route saved to cloud! You can now load it from "My Routes".');
-          window.dispatchEvent(new CustomEvent('routesSynced', { detail: { success: true } }));
+      try {
+        // If auto-upload, skip the confirmation
+        if (autoUpload) {
+          toast.info('Uploading your route to the cloud...');
+          const result = await this.syncAllPending();
+          // Notify that sync is complete so routes list can be refreshed
+          if (result?.success !== false) {
+            toast.success('Route saved to cloud! You can now load it from "My Routes".');
+            window.dispatchEvent(new CustomEvent('routesSynced', { detail: { success: true } }));
+          }
+          return;
         }
-        return;
-      }
 
-      const { modal } = await import('../utils/modal.js');
-      const wantsToUpload = await modal.confirm(
-        `You have ${pendingCount} route${pendingCount > 1 ? 's' : ''} saved locally.\n\nWould you like to upload ${pendingCount > 1 ? 'them' : 'it'} to the cloud now?`,
-        '☁️ Upload Pending Routes'
-      );
-      
-      if (wantsToUpload) {
-        this.showPendingUploadsModal();
+        const { modal } = await import('../utils/modal.js');
+        const wantsToUpload = await modal.confirm(
+          `You have ${pendingCount} route${pendingCount > 1 ? 's' : ''} saved locally.\n\nWould you like to upload ${pendingCount > 1 ? 'them' : 'it'} to the cloud now?`,
+          '☁️ Upload Pending Routes'
+        );
+
+        if (wantsToUpload) {
+          this.showPendingUploadsModal();
+        }
+      } catch (error) {
+        console.error('❌ Error during post-signin sync:', error);
+        toast.error('Upload failed: ' + error.message);
       }
     }, 1000);
   }
@@ -366,7 +371,7 @@ class OfflineSync {
    * @param {object} guideData - The guide data
    * @param {object} user - Current user
    */
-  async saveTrailGuide(guideData, user = null) {
+  async saveTrailGuide(guideData, user = null, skipImmediateUpload = false) {
     const pendingGuide = {
       data: guideData,
       userId: user?.uid || 'anonymous',
@@ -385,8 +390,8 @@ class OfflineSync {
     // Queue email backup
     await this.queueEmailBackup('guide', { ...pendingGuide, localId });
 
-    // Try cloud upload if online
-    if (this.isOnline && user) {
+    // Try cloud upload if online (unless we're saving after a failure)
+    if (this.isOnline && user && !skipImmediateUpload) {
       try {
         const cloudId = await this.uploadGuideToCloud(guideData, user);
         if (cloudId) {
@@ -398,7 +403,7 @@ class OfflineSync {
         console.warn('⚠️ Cloud upload failed, saved locally:', error);
         toast.warning('Guide saved locally - will sync when online');
       }
-    } else {
+    } else if (!skipImmediateUpload) {
       toast.success('Trail guide saved locally 💾');
     }
 
@@ -696,8 +701,23 @@ class OfflineSync {
           console.error('  - Error name:', guideError.name);
           console.error('  - Error message:', guideError.message);
           console.error('  - Error stack:', guideError.stack);
-          // Show toast so user knows guide failed
-          toast.warning('Route saved but trail guide generation failed. You can regenerate it later.');
+
+          // Save trail guide data to pending queue for retry (skip immediate upload to avoid retry loop)
+          try {
+            const pendingGuideData = {
+              routeId: docRef.id,
+              routeData: processedRouteData,
+              routeInfo: routeInfo,
+              accessibilityData: accessibilityData,
+              poiElements: poiElements
+            };
+            await this.saveTrailGuide(pendingGuideData, user, true);
+            console.log('💾 Trail guide saved to pending queue for retry');
+            toast.warning('Route saved! Trail guide will be uploaded on next sync.');
+          } catch (saveError) {
+            console.error('❌ Failed to save trail guide to pending queue:', saveError);
+            toast.warning('Route saved but trail guide generation failed. You can regenerate it later.');
+          }
           // Don't throw - route was saved successfully
         }
       } else {
@@ -725,10 +745,31 @@ class OfflineSync {
     console.log('  - user:', user?.uid);
 
     try {
+      // Validate inputs
+      if (!routeId) {
+        throw new Error('Missing routeId for trail guide generation');
+      }
+      if (!user || !user.uid) {
+        throw new Error('Missing user for trail guide generation');
+      }
+      if (!routeData || !Array.isArray(routeData)) {
+        throw new Error('Invalid routeData for trail guide generation');
+      }
+
       console.log('📚 Step 1: Importing trailGuideGeneratorV2...');
       const { trailGuideGeneratorV2 } = await import('./trailGuideGeneratorV2.js');
+
+      if (!trailGuideGeneratorV2 || typeof trailGuideGeneratorV2.generateHTML !== 'function') {
+        throw new Error('trailGuideGeneratorV2 module failed to load properly');
+      }
+
       console.log('📚 Step 2: Importing firebase...');
       const { db } = await import('../../firebase-setup.js');
+
+      if (!db) {
+        throw new Error('Firebase database not initialized');
+      }
+
       console.log('📚 Step 3: Importing firestore...');
       const { collection, addDoc, serverTimestamp, waitForPendingWrites } = await import(
         'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js'
@@ -744,7 +785,12 @@ class OfflineSync {
       };
       console.log('📚 Step 4: Generating HTML with safeRouteInfo:', JSON.stringify(safeRouteInfo));
       const htmlContent = trailGuideGeneratorV2.generateHTML(routeData, safeRouteInfo, accessibilityData || {}, null, poiElements);
-      console.log('📚 Step 5: HTML generated, length:', htmlContent?.length || 0);
+
+      if (!htmlContent || htmlContent.length < 100) {
+        throw new Error(`Trail guide HTML generation failed (length: ${htmlContent?.length || 0})`);
+      }
+
+      console.log('📚 Step 5: HTML generated, length:', htmlContent.length);
       
       // Save to Firestore with correct field names
       const guideDoc = {
@@ -818,20 +864,97 @@ class OfflineSync {
   async uploadGuideToCloud(guideData, user) {
     try {
       const { db } = await import('../../firebase-setup.js');
-      const { collection, addDoc } = await import(
+      const { collection, addDoc, waitForPendingWrites } = await import(
         'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js'
       );
 
-      const docData = {
-        ...guideData,
-        userId: user.uid,
-        userDisplayName: user.displayName || 'Anonymous',
-        generatedAt: new Date().toISOString(),  // Changed from createdAt with serverTimestamp
-        isPublic: guideData.isPublic !== false  // Default to true unless explicitly set to false
-      };
+      let docData;
+
+      // Check if we need to generate HTML (pending guide from failed generation)
+      if (guideData.routeId && guideData.routeData && !guideData.htmlContent) {
+        console.log('📚 Regenerating trail guide HTML from pending data...');
+        const { trailGuideGeneratorV2 } = await import('./trailGuideGeneratorV2.js');
+
+        const safeRouteInfo = {
+          name: guideData.routeInfo?.name || 'Untitled Route',
+          totalDistance: guideData.routeInfo?.totalDistance || 0,
+          elapsedTime: guideData.routeInfo?.elapsedTime || 0,
+          date: guideData.routeInfo?.date || new Date().toISOString()
+        };
+
+        const htmlContent = trailGuideGeneratorV2.generateHTML(
+          guideData.routeData,
+          safeRouteInfo,
+          guideData.accessibilityData || {},
+          null,
+          guideData.poiElements || []
+        );
+
+        docData = {
+          routeId: guideData.routeId,
+          routeName: safeRouteInfo.name,
+          userId: user.uid,
+          userEmail: user.email,
+          htmlContent: htmlContent,
+          generatedAt: new Date().toISOString(),
+          isPublic: true,
+
+          metadata: {
+            totalDistance: safeRouteInfo.totalDistance,
+            elapsedTime: safeRouteInfo.elapsedTime,
+            originalDate: safeRouteInfo.date,
+            locationCount: guideData.routeData.filter(p => p.type === 'location').length,
+            photoCount: guideData.routeData.filter(p => p.type === 'photo').length,
+            noteCount: guideData.routeData.filter(p => p.type === 'text').length,
+            poiElementCount: guideData.poiElements?.length || 0
+          },
+
+          poiElements: guideData.poiElements || [],
+
+          accessibility: guideData.accessibilityData ? {
+            wheelchairAccess: guideData.accessibilityData.wheelchairAccess || 'Unknown',
+            trailSurface: guideData.accessibilityData.trailSurface || 'Unknown',
+            difficulty: guideData.accessibilityData.difficulty || 'Unknown',
+            facilities: guideData.accessibilityData.facilities || [],
+            location: guideData.accessibilityData.location || 'Unknown'
+          } : null,
+
+          stats: {
+            fileSize: new Blob([htmlContent]).size,
+            version: '1.0',
+            generatedBy: 'Access Nature App'
+          },
+
+          community: {
+            views: 0,
+            downloads: 0,
+            ratings: [],
+            averageRating: 0,
+            reviews: []
+          }
+        };
+      } else {
+        // Pre-generated guide data - just add user info
+        docData = {
+          ...guideData,
+          userId: user.uid,
+          userDisplayName: user.displayName || 'Anonymous',
+          generatedAt: new Date().toISOString(),
+          isPublic: guideData.isPublic !== false
+        };
+      }
 
       const docRef = await addDoc(collection(db, 'trail_guides'), docData);
       console.log('☁️ Trail guide uploaded to cloud:', docRef.id);
+
+      // Wait for server sync
+      try {
+        await waitForPendingWrites(db);
+        console.log('✅ Trail guide synced to server');
+      } catch (syncError) {
+        console.warn('⚠️ Trail guide sync may be pending:', syncError.message);
+      }
+
       return docRef.id;
     } catch (error) {
       console.error('❌ Guide cloud upload failed:', error);
