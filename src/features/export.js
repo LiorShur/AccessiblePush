@@ -47,7 +47,7 @@ export class ExportController {
   // NEW: Show export options - current route or saved routes
   async showExportOptions() {
     const currentRouteData = this.appState.getRouteData();
-    const savedSessions = this.appState.getSessions();
+    const savedSessions = await this.appState.getSessions();
     
     let message = `📦 ${t('trackerUI.export.exportOptions')}:\n\n`;
     let options = [];
@@ -117,7 +117,7 @@ export class ExportController {
 
   // Show list of saved routes for export selection
   async showSavedRoutesForExport() {
-    const sessions = this.appState.getSessions();
+    const sessions = await this.appState.getSessions();
     if (!sessions || sessions.length === 0) {
       toast.info(t('trackerUI.export.noSavedRoutes'));
       return;
@@ -166,8 +166,8 @@ export class ExportController {
   }
 
   // Export all saved routes
-  exportAllRoutes() {
-    const sessions = this.appState.getSessions();
+  async exportAllRoutes() {
+    const sessions = await this.appState.getSessions();
     if (!sessions || sessions.length === 0) {
       toast.info('No saved routes to export');
       return;
@@ -195,7 +195,7 @@ export class ExportController {
   // Updated GPX export to handle both current and saved routes
   async exportGPX() {
     const currentRouteData = this.appState.getRouteData();
-    const savedSessions = this.appState.getSessions();
+    const savedSessions = await this.appState.getSessions();
     
     let routeDataToExport = null;
     let filename = `route-${Date.now()}.gpx`;
@@ -258,11 +258,11 @@ export class ExportController {
     }
 
     const currentRouteData = this.appState.getRouteData();
-    const savedSessions = this.appState.getSessions();
-    
+    const savedSessions = await this.appState.getSessions();
+
     let routeDataToExport = null;
     let routeInfo = null;
-    
+
     // Determine what data to export
     if (currentRouteData && currentRouteData.length > 0) {
       const choice = await modal.choice(t('trackerUI.export.whichRoutePdf'), `📤 ${t('trackerUI.export.exportPdf')}`, [
@@ -654,8 +654,8 @@ setupExportButtons() {
 // NEW: Export Route Summary - Beautiful HTML page for sharing
 async exportRouteSummary() {
   const currentRouteData = this.appState.getRouteData();
-  const savedSessions = this.appState.getSessions();
-  
+  const savedSessions = await this.appState.getSessions();
+
   let routeDataToExport = null;
   let routeInfo = null;
   let accessibilityData = null;

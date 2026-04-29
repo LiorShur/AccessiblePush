@@ -168,7 +168,7 @@ export class MediaController {
   }
 
   async showPhotoCleanupDialog() {
-    const photos = this.getStoredPhotos();
+    const photos = await this.getStoredPhotos();
 
     if (photos.length === 0) {
       toast.infoKey('noStoredPhotos');
@@ -177,21 +177,22 @@ export class MediaController {
 
     const shouldDelete = await modal.confirm(`Found ${photos.length} photos. Delete all to free up space?`, '🗑️ Delete Photos?');
     if (shouldDelete) {
-      this.deleteAllPhotos();
+      await this.deleteAllPhotos();
       toast.successKey('allPhotosDeleted');
     }
   }
 
-  getStoredPhotos() {
+  async getStoredPhotos() {
     const photos = [];
-    
+
     this.appState.getRouteData().forEach(entry => {
       if (entry.type === 'photo' && entry.content) {
         photos.push(entry);
       }
     });
 
-    this.appState.getSessions().forEach(session => {
+    const sessions = await this.appState.getSessions();
+    sessions.forEach(session => {
       if (session.data) {
         session.data.forEach(entry => {
           if (entry.type === 'photo' && entry.content) {
@@ -204,14 +205,14 @@ export class MediaController {
     return photos;
   }
 
-  deleteAllPhotos() {
+  async deleteAllPhotos() {
     // Clear from current route data
     const routeData = this.appState.getRouteData();
     const filtered = routeData.filter(entry => entry.type !== 'photo');
     this.appState.routeData = filtered;
 
     // Clear from all sessions
-    const sessions = this.appState.getSessions();
+    const sessions = await this.appState.getSessions();
     sessions.forEach(session => {
       if (session.data) {
         session.data = session.data.filter(entry => entry.type !== 'photo');
