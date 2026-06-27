@@ -100,6 +100,49 @@ class LandingPageController {
     return key ? t(key) : value;
   }
 
+  /**
+   * Case-insensitive wheelchair access matcher.
+   * Survey stores values like "Fully accessible" (lowercase 'a'),
+   * while filter HTML uses "Fully Accessible". Compare normalized.
+   * "Partially Accessible" filter also matches "Accessible with assistance".
+   */
+  matchesWheelchairFilter(accessibility, filterValue) {
+    const stored = (accessibility?.wheelchairAccess || '').toLowerCase().trim();
+    const filter = (filterValue || '').toLowerCase().trim();
+    if (!stored) return false;
+    if (stored === filter) return true;
+    if (filter === 'partially accessible' && stored === 'accessible with assistance') return true;
+    return false;
+  }
+
+  /**
+   * Difficulty matcher. The survey doesn't have a direct "difficulty" field,
+   * so we derive it from trailSlopes + surfaceQuality. We also match
+   * the stored value if it happens to be set directly.
+   * Filter values: "Easy" | "Moderate" | "Difficult"
+   */
+  matchesDifficultyFilter(accessibility, filterValue) {
+    if (!accessibility) return false;
+    const filter = (filterValue || '').toLowerCase().trim();
+    const derived = this.deriveDifficulty(accessibility);
+    return derived === filter;
+  }
+
+  deriveDifficulty(accessibility) {
+    const direct = (accessibility?.difficulty || '').toLowerCase().trim();
+    if (direct && direct !== 'unknown') {
+      // Map common variants to the canonical filter values
+      if (direct.includes('hard') || direct.includes('difficult') || direct.includes('challenging') || direct.includes('steep')) return 'difficult';
+      if (direct.includes('moderate') || direct.includes('medium')) return 'moderate';
+      if (direct.includes('easy') || direct.includes('mild')) return 'easy';
+    }
+    const slopes = (accessibility?.trailSlopes || '').toLowerCase();
+    const quality = (accessibility?.surfaceQuality || '').toLowerCase();
+    if (slopes.includes('steep') || quality.includes('poor') || quality.includes('vegetation')) return 'difficult';
+    if (slopes.includes('moderate')) return 'moderate';
+    return 'easy';
+  }
+
   async initialize() {
     console.log('🏠 initialize() method called');
     try {
@@ -659,13 +702,13 @@ async searchTrails() {
       }
       
       // Apply other filters on client side
-      if (this.currentFilters.wheelchairAccess && 
-          data.accessibility?.wheelchairAccess !== this.currentFilters.wheelchairAccess) {
+      if (this.currentFilters.wheelchairAccess &&
+          !this.matchesWheelchairFilter(data.accessibility, this.currentFilters.wheelchairAccess)) {
         return;
       }
-      
-      if (this.currentFilters.difficulty && 
-          data.accessibility?.difficulty !== this.currentFilters.difficulty) {
+
+      if (this.currentFilters.difficulty &&
+          !this.matchesDifficultyFilter(data.accessibility, this.currentFilters.difficulty)) {
         return;
       }
       
@@ -3784,11 +3827,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize mobility profile UI
     mobilityProfileUI.initialize();
     
-    // Initialize community challenges
-    await communityChallenges.initialize();
-    const challengesContainer = document.getElementById('communityChallengesPanel');
-    if (challengesContainer) {
-      communityChallenges.mount(challengesContainer);
+    // Community challenges — hidden for now (kept for later re-enable)
+    const COMMUNITY_CHALLENGES_ENABLED = false;
+    if (COMMUNITY_CHALLENGES_ENABLED) {
+      await communityChallenges.initialize();
+      const challengesContainer = document.getElementById('communityChallengesPanel');
+      if (challengesContainer) {
+        communityChallenges.mount(challengesContainer);
+      }
     }
     
     // Initialize access report if available
