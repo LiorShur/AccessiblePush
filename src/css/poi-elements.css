@@ -82,42 +82,44 @@ body.has-bottom-nav .poi-fab {
 /* ============================================
    QUICK ADD FAB (alternate one-tap flow)
    Sits immediately to the right of the centered main POI FAB so both
-   are visible together in the middle of the screen. The right edge of
-   the main FAB is at 50% + 32px (width 64 / 2); leave a 12px gap, then
-   the quick FAB starts at 50% + 44px.
+   are visible together near the middle of the screen. !important is
+   used on positioning because the base `.poi-fab` and several
+   higher-specificity overrides (`[dir="rtl"] .poi-fab`,
+   `body.fullscreen-mode .poi-fab`) would otherwise pull this button
+   off-center.
    ============================================ */
-.poi-fab-quick {
-  left: calc(50% + 44px);
-  right: auto;
-  transform: none;
+.poi-fab.poi-fab-quick {
+  left: calc(50% + 44px) !important;
+  right: auto !important;
+  transform: none !important;
   width: 64px;
   height: 64px;
   background: #2196F3;
   box-shadow: 0 4px 20px rgba(33, 150, 243, 0.5);
 }
 
-.poi-fab-quick:hover {
-  transform: scale(1.08);
+.poi-fab.poi-fab-quick:hover {
+  transform: scale(1.08) !important;
   box-shadow: 0 6px 28px rgba(33, 150, 243, 0.6);
 }
 
-.poi-fab-quick:active {
-  transform: scale(0.95);
+.poi-fab.poi-fab-quick:active {
+  transform: scale(0.95) !important;
 }
 
-.poi-fab-quick svg {
+.poi-fab.poi-fab-quick svg {
   width: 30px;
   height: 30px;
 }
 
-body.has-bottom-nav .poi-fab-quick {
+body.has-bottom-nav .poi-fab.poi-fab-quick {
   bottom: 80px;
 }
 
 /* In RTL the quick FAB mirrors to the left of the centered main FAB */
-[dir="rtl"] .poi-fab-quick {
-  left: auto;
-  right: calc(50% + 44px);
+[dir="rtl"] .poi-fab.poi-fab-quick {
+  left: auto !important;
+  right: calc(50% + 44px) !important;
 }
 
 /* ============================================
