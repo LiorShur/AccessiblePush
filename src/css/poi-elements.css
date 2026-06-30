@@ -80,6 +80,130 @@ body.has-bottom-nav .poi-fab {
 }
 
 /* ============================================
+   QUICK ADD FAB (alternate one-tap flow)
+   ============================================ */
+.poi-fab-quick {
+  /* Position to the right of the main FAB */
+  left: auto;
+  right: 24px;
+  transform: none;
+  width: 56px;
+  height: 56px;
+  background: #2196F3;
+  box-shadow: 0 4px 20px rgba(33, 150, 243, 0.5);
+}
+
+.poi-fab-quick:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(33, 150, 243, 0.6);
+}
+
+.poi-fab-quick:active {
+  transform: scale(0.95);
+}
+
+.poi-fab-quick svg {
+  width: 28px;
+  height: 28px;
+}
+
+body.has-bottom-nav .poi-fab-quick {
+  bottom: 80px;
+}
+
+[dir="rtl"] .poi-fab-quick {
+  right: auto;
+  left: 24px;
+}
+
+/* ============================================
+   QUICK ADD SHEET
+   ============================================ */
+.poi-quick-row.poi-quick-loc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+.poi-quick-row.poi-quick-loc svg {
+  width: 18px;
+  height: 18px;
+  fill: #475569;
+}
+
+.poi-quick-select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fff;
+  margin-bottom: 14px;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%23475569' d='M2 4l4 4 4-4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
+  padding-right: 36px;
+}
+
+[dir="rtl"] .poi-quick-select {
+  background-position: left 14px center;
+  padding-right: 14px;
+  padding-left: 36px;
+}
+
+.poi-quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.poi-quick-photo,
+.poi-quick-save {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.poi-quick-photo {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.poi-quick-photo svg {
+  width: 20px;
+  height: 20px;
+  fill: #1e293b;
+}
+
+.poi-quick-save {
+  background: #2196F3;
+  color: #fff;
+}
+
+.poi-quick-save svg {
+  width: 20px;
+  height: 20px;
+  fill: #fff;
+}
+
+/* ============================================
    ELEMENT PICKER OVERLAY
    ============================================ */
 .poi-overlay {

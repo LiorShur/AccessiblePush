@@ -627,6 +627,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   app = new AccessNatureApp();
   await app.initialize();
   window.AccessNatureApp = app;
+
+  // GPS sanity filter — runtime tweak from console / future settings UI.
+  // Allowed presets: 5 (walking/wheelchair, default), 10 (brisk), 25 (bike).
+  window.setGpsMaxSpeed = (kmh) => {
+    const t = app?.getController('tracking');
+    if (!t || typeof t.setMaxSpeedKmh !== 'function') {
+      console.warn('Tracking controller not ready');
+      return;
+    }
+    t.setMaxSpeedKmh(kmh);
+  };
 });
 
 // Global functions for HTML onclick handlers

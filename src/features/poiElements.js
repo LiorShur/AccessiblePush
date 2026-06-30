@@ -155,12 +155,20 @@ export class POIElementsManager {
    * Create the FAB and overlay UI
    */
   createUI() {
-    // Create FAB button
+    // Create FAB button (existing detailed flow)
     this.fabButton = document.createElement('button');
     this.fabButton.id = 'poiFab';
     this.fabButton.className = 'poi-fab';
     this.fabButton.setAttribute('aria-label', this.t('addElement'));
     this.fabButton.innerHTML = POI_ICONS.plus;
+
+    // Create Quick FAB (alternate one-tap flow — for A/B testing)
+    this.quickFabButton = document.createElement('button');
+    this.quickFabButton.id = 'poiQuickFab';
+    this.quickFabButton.className = 'poi-fab poi-fab-quick';
+    this.quickFabButton.setAttribute('aria-label', this.t('quickAddElement') || 'Quick add POI');
+    this.quickFabButton.title = this.t('quickAddElement') || 'Quick add POI';
+    this.quickFabButton.innerHTML = POI_ICONS.camera;
 
     // Create element picker overlay
     this.overlay = document.createElement('div');
@@ -189,6 +197,7 @@ export class POIElementsManager {
 
     // Append to body
     document.body.appendChild(this.fabButton);
+    document.body.appendChild(this.quickFabButton);
     document.body.appendChild(this.overlay);
     document.body.appendChild(this.sheetBackdrop);
     document.body.appendChild(this.bottomSheet);
@@ -400,8 +409,11 @@ export class POIElementsManager {
    * Bind event listeners
    */
   bindEvents() {
-    // FAB click - open overlay
+    // FAB click - open overlay (detailed flow)
     this.fabButton.addEventListener('click', () => this.openOverlay());
+
+    // Quick FAB click - open one-step quick sheet
+    this.quickFabButton.addEventListener('click', () => this.openQuickSheet());
 
     // Overlay close - X button
     this.overlay.querySelector('#poiOverlayClose').addEventListener('click', () => this.closeOverlay());
@@ -482,6 +494,156 @@ export class POIElementsManager {
   closeSheet() {
     this.sheetBackdrop.classList.remove('visible');
     this.bottomSheet.classList.remove('visible');
+  }
+
+  /**
+   * Open the Quick Add sheet — a single screen with type dropdown,
+   * optional photo, optional notes. Aimed at users moving on the trail
+   * who need to log a POI in 2–3 taps. Reuses the existing bottom sheet
+   * element so the overlay/backdrop logic stays consistent.
+   */
+  async openQuickSheet() {
+    if (!this.currentLocation) {
+      await this.getCurrentLocation();
+    }
+
+    this.pendingPhoto = null;
+    this.bottomSheet.innerHTML = this.buildQuickSheetHTML();
+
+    // Sheet close (header X)
+    this.bottomSheet.querySelector('#poiQuickClose')?.addEventListener('click', () => this.closeSheet());
+
+    // Photo capture button
+    this.bottomSheet.querySelector('#poiQuickPhotoBtn')?.addEventListener('click', () => this.handleQuickPhotoCapture());
+
+    // Save button
+    this.bottomSheet.querySelector('#poiQuickSaveBtn')?.addEventListener('click', () => this.saveQuickElement());
+
+    // Re-render type label when select changes
+    const select = this.bottomSheet.querySelector('#poiQuickType');
+    const iconEl = this.bottomSheet.querySelector('#poiQuickTypeIcon');
+    if (select && iconEl) {
+      select.addEventListener('change', () => {
+        const el = POI_ELEMENTS.find(e => e.id === select.value);
+        if (el) iconEl.innerHTML = POI_ICONS[el.icon];
+      });
+    }
+
+    this.sheetBackdrop.classList.add('visible');
+    this.bottomSheet.classList.add('visible');
+  }
+
+  buildQuickSheetHTML() {
+    const optionsHTML = POI_ELEMENTS.map(el => {
+      const label = this.t(`el_${el.id}`);
+      return `<option value="${el.id}">${label}</option>`;
+    }).join('');
+
+    const defaultEl = POI_ELEMENTS[0];
+    const defaultIcon = POI_ICONS[defaultEl.icon];
+
+    const loc = this.currentLocation;
+    const locText = loc
+      ? `${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)} (±${(loc.accuracy || 0).toFixed(0)}m)`
+      : '—';
+
+    return `
+      <div class="poi-sheet-handle"></div>
+      <div class="poi-sheet-header">
+        <span class="poi-sheet-icon" id="poiQuickTypeIcon">${defaultIcon}</span>
+        <span class="poi-sheet-title">${this.t('quickAdd') || 'Quick add'}</span>
+        <button class="poi-sheet-close" id="poiQuickClose" aria-label="${this.t('cancel') || 'Cancel'}">
+          ${POI_ICONS.close}
+        </button>
+      </div>
+      <div class="poi-sheet-content">
+        <div class="poi-quick-row poi-quick-loc">
+          <span>${POI_ICONS.location}</span>
+          <span class="poi-quick-loc-text">${locText}</span>
+        </div>
+
+        <label class="poi-form-label" for="poiQuickType">${this.t('type') || 'Type'}</label>
+        <select id="poiQuickType" class="poi-quick-select">${optionsHTML}</select>
+
+        <label class="poi-form-label" for="poiQuickNotes">${this.t('notesOptional') || 'Notes (optional)'}</label>
+        <textarea id="poiQuickNotes" class="poi-notes-textarea" placeholder="${this.t('notesPlaceholder') || ''}"></textarea>
+
+        <div class="poi-quick-actions">
+          <button id="poiQuickPhotoBtn" class="poi-photo-btn poi-quick-photo">
+            ${POI_ICONS.camera}
+            <span id="poiQuickPhotoText" class="poi-photo-btn-text">${this.t('takePhotoOptional') || 'Photo (optional)'}</span>
+          </button>
+          <button id="poiQuickSaveBtn" class="poi-submit-btn poi-quick-save">
+            ${POI_ICONS.check}
+            <span>${this.t('save') || 'Save'}</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  async handleQuickPhotoCapture() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      this.pendingPhoto = file;
+      const textEl = this.bottomSheet.querySelector('#poiQuickPhotoText');
+      if (textEl) textEl.textContent = '✓ ' + (this.t('photoAdded') || 'Photo added');
+    };
+    input.click();
+  }
+
+  /**
+   * Save a POI created via the Quick sheet. Shares storage + marker logic
+   * with the detailed saveElement() but reads only the minimal fields the
+   * quick sheet exposes (type from a select, optional notes, optional photo).
+   */
+  async saveQuickElement() {
+    if (!this.currentLocation) {
+      await this.getCurrentLocation();
+      if (!this.currentLocation) {
+        toast.error(this.t('locationRequired') || 'Location required');
+        return;
+      }
+    }
+
+    const select = this.bottomSheet.querySelector('#poiQuickType');
+    const elementId = select?.value || POI_ELEMENTS[0].id;
+
+    const formData = {
+      type: elementId,
+      location: this.currentLocation,
+      routeId: this.routeId,
+      timestamp: Date.now(),
+      notes: this.bottomSheet.querySelector('#poiQuickNotes')?.value || '',
+      fields: {},
+      source: 'quick'
+    };
+
+    if (this.pendingPhoto) {
+      try {
+        formData.photoDataUrl = await this.fileToBase64(this.pendingPhoto);
+      } catch (e) {
+        console.warn('[POIElements] Quick photo conversion failed:', e);
+      }
+      this.pendingPhoto = null;
+    }
+
+    formData.id = `poi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    this.elements.push(formData);
+    this.saveToStorage();
+    this.addMarker(formData);
+    this.closeSheet();
+
+    if (this.onElementAdded) this.onElementAdded(formData);
+
+    toast.success(this.t('elementSaved') || 'Saved');
+    console.log('[POIElements] Quick-saved:', formData);
   }
 
   /**
@@ -941,14 +1103,16 @@ export class POIElementsManager {
   }
 
   /**
-   * Show/Hide FAB
+   * Show/Hide FAB(s) — both detailed and quick variants stay in sync.
    */
   show() {
-    this.fabButton.classList.remove('hidden');
+    this.fabButton?.classList.remove('hidden');
+    this.quickFabButton?.classList.remove('hidden');
   }
 
   hide() {
-    this.fabButton.classList.add('hidden');
+    this.fabButton?.classList.add('hidden');
+    this.quickFabButton?.classList.add('hidden');
   }
 }
 

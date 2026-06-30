@@ -1148,6 +1148,12 @@
   },
   "poi": {
     "addElement": "Add Element",
+    "quickAddElement": "Quick Add",
+    "quickAdd": "Quick Add",
+    "type": "Type",
+    "takePhotoOptional": "Photo (Optional)",
+    "save": "Save",
+    "cancel": "Cancel",
     "saveElement": "Save Element",
     "elementSaved": "Element saved",
     "location": "Location",

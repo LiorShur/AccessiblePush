@@ -19,6 +19,94 @@ export class TrackingController {
     this.lastElevationFetch = 0;
     this.elevationFetchInterval = 10000; // Fetch from API max every 10 seconds
     this.lastApiElevation = null;
+
+    // GPS sanity filter — reject jumps implying motion faster than this.
+    // Stored as m/s. Default = 5 km/h. UI exposes 5/10/25 km/h presets.
+    this.maxSpeedMps = this.loadMaxSpeedSetting();
+
+    // Recovering from a backgrounding gap — discard the first fix until we
+    // see a reasonably accurate reading. Avoids drawing a straight line
+    // across the gap on resume.
+    this.awaitingResumeFix = false;
+    this._lastFixTime = 0;
+    this._appStateUnsub = null;
+  }
+
+  loadMaxSpeedSetting() {
+    const raw = parseFloat(localStorage.getItem('gpsMaxSpeedKmh'));
+    const kmh = Number.isFinite(raw) && raw > 0 ? raw : 5;
+    return kmh / 3.6;
+  }
+
+  setMaxSpeedKmh(kmh) {
+    const safe = Number.isFinite(kmh) && kmh > 0 ? kmh : 5;
+    localStorage.setItem('gpsMaxSpeedKmh', String(safe));
+    this.maxSpeedMps = safe / 3.6;
+    console.log(`🎚️ GPS max speed filter set to ${safe} km/h`);
+  }
+
+  /**
+   * Watch foreground/background transitions while tracking. When the app
+   * returns to the foreground we set `awaitingResumeFix` so the first
+   * (potentially stale) reading is dropped, preventing a straight-line
+   * "teleport" across the gap.
+   */
+  installAppStateWatcher() {
+    if (this._appStateUnsub) return;
+    this._bgEnteredAt = 0;
+    const onHidden = () => {
+      if (!this.isTracking) return;
+      this._bgEnteredAt = Date.now();
+      console.log('📴 App backgrounded while tracking');
+    };
+    const onVisible = () => {
+      if (!this.isTracking) return;
+      const gapMs = this._bgEnteredAt ? Date.now() - this._bgEnteredAt : 0;
+      this._bgEnteredAt = 0;
+      // Only treat as a gap if we were hidden long enough that GPS likely
+      // paused (web browsers throttle aggressively after a few seconds).
+      if (gapMs > 3000) {
+        this.awaitingResumeFix = true;
+        console.log(`📲 Resuming after ${(gapMs/1000).toFixed(1)}s gap — waiting for accurate fix`);
+        try { toast.infoKey?.('resumingGps') || toast.info?.('Resuming GPS…'); } catch (_) {}
+      }
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) onHidden();
+      else onVisible();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // Capacitor native App plugin — fires on actual app state change.
+    let nativeRemove = null;
+    if (window.Capacitor?.Plugins?.App) {
+      try {
+        const handle = window.Capacitor.Plugins.App.addListener('appStateChange', ({ isActive }) => {
+          if (isActive) onVisible();
+          else onHidden();
+        });
+        // Capacitor's addListener returns a handle (or Promise resolving to one)
+        nativeRemove = () => {
+          Promise.resolve(handle).then(h => h?.remove?.()).catch(() => {});
+        };
+      } catch (e) {
+        console.warn('Could not attach native appStateChange listener:', e.message);
+      }
+    }
+
+    this._appStateUnsub = () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (nativeRemove) nativeRemove();
+    };
+  }
+
+  uninstallAppStateWatcher() {
+    if (this._appStateUnsub) {
+      this._appStateUnsub();
+      this._appStateUnsub = null;
+    }
+    this.awaitingResumeFix = false;
+    this._bgEnteredAt = 0;
   }
 
   setDependencies(deps) {
@@ -101,6 +189,10 @@ async start() {
       timeout: 30000    // Increased timeout to 30 seconds for slow GPS
     }
   );
+
+  // Watch app foreground/background transitions so we can drop the
+  // gap-spanning fix when the user returns from another app.
+  this.installAppStateWatcher();
 
   // FIXED: Start timer with current elapsed time (if resuming)
   if (this.dependencies.timer) {
@@ -422,6 +514,9 @@ async stop() {
     this.watchId = null;
   }
 
+  // Detach app foreground/background listener
+  this.uninstallAppStateWatcher();
+
   // Stop timer and get final elapsed time
   let finalElapsed = 0;
   if (this.dependencies.timer) {
@@ -510,7 +605,8 @@ async stop() {
     if (!this.isTracking || this.isPaused) return;
 
     const { latitude, longitude, accuracy, altitude, altitudeAccuracy } = position.coords;
-    
+    const now = Date.now();
+
     // Filter out inaccurate readings
     if (accuracy > 100) {
       console.warn(`GPS accuracy too low: ${accuracy}m`);
@@ -520,15 +616,49 @@ async stop() {
     const currentCoords = { lat: latitude, lng: longitude };
     const lastCoords = this.appState.getLastCoords();
 
+    // If we're recovering from a backgrounding gap, require a fresh accurate
+    // reading before we trust the next segment. Drop the gap-spanning fix.
+    if (this.awaitingResumeFix) {
+      if (accuracy <= 30) {
+        console.log(`🔄 Resume fix acquired (±${accuracy.toFixed(1)}m); resyncing tracking.`);
+        this.awaitingResumeFix = false;
+        // Reset lastCoords so we don't draw a segment from the pre-background point.
+        this.appState.lastCoords = null;
+        this._lastFixTime = now;
+        // Fall through and accept this point as a fresh anchor.
+      } else {
+        console.log(`⏳ Waiting for accurate fix to resume (±${accuracy.toFixed(1)}m)`);
+        return;
+      }
+    }
+
     // Calculate distance if we have a previous point
     if (lastCoords) {
-      const distance = haversineDistance(lastCoords, currentCoords);
-      
+      const distanceKm = haversineDistance(lastCoords, currentCoords);
+      const distanceM = distanceKm * 1000;
+
       // Ignore micro-movements (less than 3 meters)
-      if (distance < 0.003) return;
+      if (distanceKm < 0.003) return;
+
+      // ----- GPS JUMP FILTER -----
+      // If we have a recent previous fix, compute implied speed and reject if
+      // it exceeds the configured max. Tolerate the reading's own accuracy:
+      // a 50 m "jump" with ±40 m accuracy is mostly noise, not motion.
+      const dtSec = this._lastFixTime ? Math.max(0.5, (now - this._lastFixTime) / 1000) : 0;
+      if (dtSec > 0 && dtSec < 60) {
+        const slackM = Math.max(accuracy || 0, 10);
+        const effectiveMeters = Math.max(0, distanceM - slackM);
+        const speedMps = effectiveMeters / dtSec;
+        if (speedMps > this.maxSpeedMps) {
+          const kmh = (speedMps * 3.6).toFixed(1);
+          const limitKmh = (this.maxSpeedMps * 3.6).toFixed(0);
+          console.warn(`🚫 GPS jump rejected: ${distanceM.toFixed(0)}m in ${dtSec.toFixed(1)}s (~${kmh} km/h > ${limitKmh} km/h limit)`);
+          return;
+        }
+      }
 
       // Update total distance
-      const newTotal = this.appState.getTotalDistance() + distance;
+      const newTotal = this.appState.getTotalDistance() + distanceKm;
       this.appState.updateDistance(newTotal);
       this.updateDistanceDisplay(newTotal);
 
@@ -537,6 +667,8 @@ async stop() {
         this.dependencies.map.addRouteSegment(lastCoords, currentCoords);
       }
     }
+
+    this._lastFixTime = now;
 
     // Add GPS point to route data (including elevation if available)
     const routePoint = {
