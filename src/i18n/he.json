@@ -1148,6 +1148,12 @@
   },
   "poi": {
     "addElement": "הוסף אלמנט",
+    "quickAddElement": "הוספה מהירה",
+    "quickAdd": "הוספה מהירה",
+    "type": "סוג",
+    "takePhotoOptional": "תמונה (אופציונלי)",
+    "save": "שמור",
+    "cancel": "ביטול",
     "saveElement": "שמור אלמנט",
     "elementSaved": "האלמנט נשמר",
     "location": "מיקום",
