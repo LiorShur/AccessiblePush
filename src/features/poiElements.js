@@ -722,8 +722,14 @@ export class POIElementsManager {
       const categories = POI_ELEMENTS.map(el => ({ id: el.id, label: this.t(`el_${el.id}`) }));
       const suggestion = await vision.identifyPOI(dataUrl, categories);
 
-      if (!suggestion || !suggestion.top) {
-        // No usable result — hide badge silently
+      // Confidence gate — if the model isn't reasonably sure this is a
+      // trail feature, don't overwrite the user's dropdown. Threshold is
+      // deliberately generous so genuine matches still pre-select.
+      const CONFIDENCE_THRESHOLD = 0.5;
+      const conf = typeof suggestion?.confidence === 'number' ? suggestion.confidence : null;
+
+      if (!suggestion || !suggestion.top || (conf !== null && conf < CONFIDENCE_THRESHOLD)) {
+        console.log('[POIElements] AI: no confident match', suggestion);
         if (badge) badge.hidden = true;
         return;
       }
