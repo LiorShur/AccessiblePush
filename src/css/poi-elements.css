@@ -166,11 +166,183 @@ body.has-bottom-nav .poi-fab.poi-fab-quick {
   padding-left: 36px;
 }
 
+/* ============================================
+   QUICK ADD SHEET — In-modal camera + AI badge
+   ============================================ */
+.poi-quick-camera {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #0f172a;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.poi-quick-video,
+.poi-quick-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #0f172a;
+}
+
+.poi-quick-preview[hidden],
+.poi-quick-video[hidden] { display: none !important; }
+
+.poi-quick-camera-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9rem;
+  background: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.55));
+  text-align: center;
+  padding: 12px;
+}
+
+.poi-quick-camera-overlay[hidden] { display: none !important; }
+
+.poi-quick-camera-actions {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.poi-quick-camera-actions > * { pointer-events: auto; }
+
+.poi-quick-capture-btn {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.9);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+  transition: transform 0.15s ease;
+}
+
+.poi-quick-capture-btn:active { transform: scale(0.9); }
+
+.poi-quick-capture-ring {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.poi-quick-capture-btn[hidden],
+.poi-quick-retake-btn[hidden],
+.poi-quick-fallback-btn[hidden],
+.poi-quick-ai-badge[hidden] { display: none !important; }
+
+.poi-quick-retake-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 22px;
+  border: none;
+  background: rgba(255,255,255,0.94);
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.poi-quick-retake-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: #0f172a;
+}
+
+.poi-quick-fallback-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.5);
+  background: rgba(15, 23, 42, 0.7);
+  color: #fff;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+/* AI suggestion badge */
+.poi-quick-ai-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  color: #0c4a6e;
+  font-size: 0.9rem;
+}
+
+.poi-quick-ai-badge.is-loading .poi-quick-ai-icon {
+  animation: poi-ai-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes poi-ai-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.poi-quick-ai-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.poi-quick-ai-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.poi-quick-ai-label {
+  color: #075985;
+  opacity: 0.85;
+  margin-right: 4px;
+}
+
+.poi-quick-ai-dismiss {
+  background: transparent;
+  border: none;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: #0c4a6e;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
 .poi-quick-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-top: 14px;
+}
+
+.poi-quick-actions-single {
+  grid-template-columns: 1fr;
 }
 
 .poi-quick-photo,
