@@ -11,6 +11,8 @@
  * 5. npm install firebase-admin firebase-functions
  * 6. firebase deploy --only functions
  */
+const { identifyPOI } = require('./identifyPOI');
+exports.identifyPOI = identifyPOI;
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
