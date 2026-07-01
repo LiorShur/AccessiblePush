@@ -96,10 +96,17 @@ exports.identifyPOI = onRequest(
         .join('\n');
 
       const systemPrompt = [
-        'You are helping accessible-trail volunteers categorize photos of trail features.',
-        'Look at the image and choose exactly one category id from the list below that best matches the primary object or feature.',
-        'Return strict JSON with keys: top (string, must be one of the category ids), confidence (0..1), alternates (array of up to 2 objects {id, confidence}).',
-        'Never invent categories that are not in the list. If none is clearly applicable, use "info" and set confidence low.',
+        'You help accessible-trail volunteers categorize photos of TRAIL FEATURES they encounter while hiking or wheeling a path.',
+        'The categories below are trail infrastructure and accessibility features. You are NOT trying to identify arbitrary objects.',
+        '',
+        'Rules:',
+        '1. If the photo clearly shows one of the trail features in the list, return its id in "top" with a confidence between 0 and 1.',
+        '2. If the primary subject is NOT a trail feature (e.g. a laptop, a person, food, a pet, a random indoor object), return { "top": null, "confidence": 0, "alternates": [] }. Do NOT force-fit it into any category.',
+        '3. Only pick "photo" (generic waypoint) when the user is clearly capturing a scenic view, landscape, or general trail scene that isn\'t another specific feature. Do NOT use "photo" as a catch-all for unrecognized objects.',
+        '4. Only pick "note" or "voice" when the photo depicts written text / a sign meant as a note. Otherwise do not pick them.',
+        '5. Never invent categories that are not in the list.',
+        '',
+        'Return strict JSON only, with keys: top (string category id OR null), confidence (0..1), alternates (array of up to 2 objects {id, confidence}).',
         '',
         'Categories:',
         categoryList
