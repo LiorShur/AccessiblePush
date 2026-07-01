@@ -13,6 +13,14 @@ const firebaseConfig = {
   measurementId: "G-99QRHT5XBH"
 };
 
+// Expose project id + region for downstream services (e.g. the POI
+// vision service builds its Cloud Function URL from this).
+if (typeof window !== 'undefined') {
+  window.__FIREBASE_PROJECT_ID__ = firebaseConfig.projectId;
+  window.__FIREBASE_REGION__ = window.__FIREBASE_REGION__ || 'us-central1';
+  window.firebaseConfig = firebaseConfig;
+}
+
 // Initialize app - check if already exists
 let app;
 if (getApps().length === 0) {
