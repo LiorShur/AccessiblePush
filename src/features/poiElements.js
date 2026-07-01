@@ -492,38 +492,46 @@ export class POIElementsManager {
    * Close bottom sheet
    */
   closeSheet() {
-    // Always release the camera if the quick sheet had one live.
-    if (this._quickStream) {
-      this.stopQuickCamera();
-    }
     this.sheetBackdrop.classList.remove('visible');
     this.bottomSheet.classList.remove('visible');
   }
 
   /**
-   * Open the Quick Add sheet — a single screen with an in-modal camera
-   * preview, type dropdown, optional notes, and (if consented) AI-driven
-   * type identification. Aimed at users moving on the trail who need to
-   * log a POI in as few taps as possible.
+   * Quick POI flow:
+   *   1. Grab current GPS (in background)
+   *   2. Immediately launch the OS native camera app
+   *   3. If the user captures a photo, open the streamlined modal
+   *      showing preview + type dropdown + notes + save
+   *   4. If the user cancels the camera, nothing else happens
+   *
+   * This replaces the earlier in-modal getUserMedia preview which
+   * proved too laggy on mobile browsers.
    */
   async openQuickSheet() {
-    if (!this.currentLocation) {
-      await this.getCurrentLocation();
-    }
-
     // Reset per-open state
     this.pendingPhoto = null;
     this.pendingPhotoDataUrl = null;
     this.aiSuggestion = null;
-    this._quickStream = null;
+
+    // Warm up location in parallel with the camera launch
+    const locPromise = this.currentLocation
+      ? Promise.resolve(this.currentLocation)
+      : this.getCurrentLocation();
+
+    const dataUrl = await this.captureViaNativeCamera();
+    if (!dataUrl) {
+      // User cancelled the camera — abort the flow silently
+      return;
+    }
+    this.pendingPhotoDataUrl = dataUrl;
+
+    await locPromise; // ensure location is available before rendering
 
     this.bottomSheet.innerHTML = this.buildQuickSheetHTML();
 
-    // Wire up events
+    // Wire events
     this.bottomSheet.querySelector('#poiQuickClose')?.addEventListener('click', () => this.closeQuickSheet());
-    this.bottomSheet.querySelector('#poiQuickCaptureBtn')?.addEventListener('click', () => this.captureQuickPhoto());
     this.bottomSheet.querySelector('#poiQuickRetakeBtn')?.addEventListener('click', () => this.retakeQuickPhoto());
-    this.bottomSheet.querySelector('#poiQuickFallbackBtn')?.addEventListener('click', () => this.handleQuickPhotoFallback());
     this.bottomSheet.querySelector('#poiQuickSaveBtn')?.addEventListener('click', () => this.saveQuickElement());
     this.bottomSheet.querySelector('#poiQuickAiDismiss')?.addEventListener('click', () => this.dismissAiSuggestion());
 
@@ -533,24 +541,90 @@ export class POIElementsManager {
       select.addEventListener('change', () => {
         const el = POI_ELEMENTS.find(e => e.id === select.value);
         if (el) iconEl.innerHTML = POI_ICONS[el.icon];
-        // User overrode AI suggestion → hide the badge
         this.dismissAiSuggestion();
       });
     }
 
+    // Prime the preview <img> with the captured photo
+    const preview = this.bottomSheet.querySelector('#poiQuickPreview');
+    if (preview) preview.src = dataUrl;
+
     this.sheetBackdrop.classList.add('visible');
     this.bottomSheet.classList.add('visible');
 
-    // Start the live camera preview (may fail silently → fallback UI)
-    this.startQuickCamera();
+    // Kick off AI identification (only if user consents)
+    this.runAIIdentification(dataUrl);
+  }
+
+  closeQuickSheet() {
+    this.closeSheet();
   }
 
   /**
-   * Close the quick sheet and release camera resources.
+   * Launch the OS native camera via a file <input capture="environment">
+   * and resolve with a compressed data URL, or null if the user cancelled.
+   * We hide the input off-screen so the browser doesn't try to render it.
    */
-  closeQuickSheet() {
-    this.stopQuickCamera();
-    this.closeSheet();
+  captureViaNativeCamera() {
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment';
+      input.style.position = 'fixed';
+      input.style.left = '-9999px';
+      input.style.top = '-9999px';
+
+      // Some Android browsers only trigger cancel via focusout / no change
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        try { document.body.removeChild(input); } catch (_) {}
+        window.removeEventListener('focus', onFocusBack);
+        resolve(value);
+      };
+
+      // If focus returns to the window without a file, treat as cancel.
+      // Slight delay because Android sometimes fires focus BEFORE the
+      // change event when a photo was actually taken.
+      const onFocusBack = () => {
+        setTimeout(() => {
+          if (!settled && (!input.files || input.files.length === 0)) {
+            finish(null);
+          }
+        }, 800);
+      };
+      window.addEventListener('focus', onFocusBack, { once: true });
+
+      input.onchange = async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return finish(null);
+        try {
+          const dataUrl = await this.fileToBase64(file);
+          finish(dataUrl);
+        } catch (err) {
+          console.warn('[POIElements] Native camera photo read failed:', err);
+          finish(null);
+        }
+      };
+
+      document.body.appendChild(input);
+      input.click();
+    });
+  }
+
+  async retakeQuickPhoto() {
+    const dataUrl = await this.captureViaNativeCamera();
+    if (!dataUrl) return; // user cancelled — keep existing photo
+
+    this.pendingPhotoDataUrl = dataUrl;
+    this.dismissAiSuggestion();
+
+    const preview = this.bottomSheet.querySelector('#poiQuickPreview');
+    if (preview) preview.src = dataUrl;
+
+    this.runAIIdentification(dataUrl);
   }
 
   buildQuickSheetHTML() {
@@ -582,24 +656,12 @@ export class POIElementsManager {
           <span class="poi-quick-loc-text">${locText}</span>
         </div>
 
-        <!-- Live camera preview / captured photo -->
-        <div class="poi-quick-camera" id="poiQuickCameraContainer">
-          <video id="poiQuickVideo" class="poi-quick-video" autoplay playsinline muted></video>
-          <img id="poiQuickPreview" class="poi-quick-preview" alt="Captured photo" hidden>
-          <div class="poi-quick-camera-overlay" id="poiQuickCameraStatus">
-            <span>${this.t('startingCamera') || 'Starting camera…'}</span>
-          </div>
-          <div class="poi-quick-camera-actions">
-            <button id="poiQuickCaptureBtn" class="poi-quick-capture-btn" hidden aria-label="${this.t('capture') || 'Capture'}">
-              <span class="poi-quick-capture-ring"></span>
-            </button>
-            <button id="poiQuickRetakeBtn" class="poi-quick-retake-btn" hidden>
-              ${POI_ICONS.camera}
-              <span>${this.t('retake') || 'Retake'}</span>
-            </button>
-          </div>
-          <button id="poiQuickFallbackBtn" class="poi-quick-fallback-btn" hidden>
-            ${this.t('openCameraApp') || 'Open camera app'}
+        <!-- Captured photo preview -->
+        <div class="poi-quick-camera">
+          <img id="poiQuickPreview" class="poi-quick-preview" alt="${this.t('capturedPhoto') || 'Captured photo'}">
+          <button id="poiQuickRetakeBtn" class="poi-quick-retake-btn">
+            ${POI_ICONS.camera}
+            <span>${this.t('retake') || 'Retake'}</span>
           </button>
         </div>
 
@@ -627,152 +689,6 @@ export class POIElementsManager {
         </div>
       </div>
     `;
-  }
-
-  /**
-   * Try to start a live camera preview via getUserMedia. On failure
-   * (permission denied, HTTPS missing, unsupported browser, etc.) show
-   * the "Open camera app" fallback button so the user still has a path.
-   */
-  async startQuickCamera() {
-    const video = this.bottomSheet.querySelector('#poiQuickVideo');
-    const status = this.bottomSheet.querySelector('#poiQuickCameraStatus');
-    const captureBtn = this.bottomSheet.querySelector('#poiQuickCaptureBtn');
-    const fallbackBtn = this.bottomSheet.querySelector('#poiQuickFallbackBtn');
-    if (!video) return;
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      if (status) status.querySelector('span').textContent = this.t('cameraNotSupported') || 'Live camera not supported here';
-      if (fallbackBtn) fallbackBtn.hidden = false;
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false
-      });
-      this._quickStream = stream;
-      video.srcObject = stream;
-      await video.play().catch(() => {});
-      if (status) status.hidden = true;
-      if (captureBtn) captureBtn.hidden = false;
-    } catch (err) {
-      console.warn('[POIElements] Live camera unavailable:', err?.name || err);
-      if (status) status.querySelector('span').textContent = this.t('cameraBlocked') || 'Camera unavailable — use the camera app';
-      if (fallbackBtn) fallbackBtn.hidden = false;
-    }
-  }
-
-  stopQuickCamera() {
-    if (this._quickStream) {
-      this._quickStream.getTracks().forEach(t => { try { t.stop(); } catch (_) {} });
-      this._quickStream = null;
-    }
-    const video = this.bottomSheet.querySelector('#poiQuickVideo');
-    if (video) {
-      try { video.pause(); } catch (_) {}
-      video.srcObject = null;
-    }
-  }
-
-  /**
-   * Capture a still from the live video stream, compress it, and hand
-   * it to the AI identification pipeline.
-   */
-  async captureQuickPhoto() {
-    const video = this.bottomSheet.querySelector('#poiQuickVideo');
-    const preview = this.bottomSheet.querySelector('#poiQuickPreview');
-    const captureBtn = this.bottomSheet.querySelector('#poiQuickCaptureBtn');
-    const retakeBtn = this.bottomSheet.querySelector('#poiQuickRetakeBtn');
-    if (!video || !video.videoWidth) return;
-
-    const w = video.videoWidth;
-    const h = video.videoHeight;
-    const canvas = document.createElement('canvas');
-    canvas.width = w;
-    canvas.height = h;
-    canvas.getContext('2d').drawImage(video, 0, 0, w, h);
-
-    // Compress to reasonable size for storage + AI upload
-    const dataUrl = this.compressCanvas(canvas, 1024, 0.75);
-    this.pendingPhotoDataUrl = dataUrl;
-
-    // Swap preview UI
-    if (preview) {
-      preview.src = dataUrl;
-      preview.hidden = false;
-    }
-    video.hidden = true;
-    if (captureBtn) captureBtn.hidden = true;
-    if (retakeBtn) retakeBtn.hidden = false;
-
-    this.stopQuickCamera();
-
-    // Kick off AI identification (only if consented — see runAIIdentification)
-    this.runAIIdentification(dataUrl);
-  }
-
-  retakeQuickPhoto() {
-    const video = this.bottomSheet.querySelector('#poiQuickVideo');
-    const preview = this.bottomSheet.querySelector('#poiQuickPreview');
-    const captureBtn = this.bottomSheet.querySelector('#poiQuickCaptureBtn');
-    const retakeBtn = this.bottomSheet.querySelector('#poiQuickRetakeBtn');
-
-    this.pendingPhotoDataUrl = null;
-    this.dismissAiSuggestion();
-
-    if (preview) { preview.hidden = true; preview.src = ''; }
-    if (retakeBtn) retakeBtn.hidden = true;
-    if (video) video.hidden = false;
-    if (captureBtn) captureBtn.hidden = false;
-
-    this.startQuickCamera();
-  }
-
-  /**
-   * Fallback: if getUserMedia isn't available (older iOS WebView, permission
-   * blocked, etc.) open the OS camera app via the classic file input.
-   */
-  async handleQuickPhotoFallback() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment';
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      try {
-        const dataUrl = await this.fileToBase64(file);
-        this.pendingPhotoDataUrl = dataUrl;
-        const preview = this.bottomSheet.querySelector('#poiQuickPreview');
-        const status = this.bottomSheet.querySelector('#poiQuickCameraStatus');
-        if (preview) { preview.src = dataUrl; preview.hidden = false; }
-        if (status) status.hidden = true;
-        this.runAIIdentification(dataUrl);
-      } catch (err) {
-        console.warn('[POIElements] Fallback photo failed:', err);
-      }
-    };
-    input.click();
-  }
-
-  /**
-   * Draw a canvas to a compressed JPEG data URL, maintaining aspect ratio
-   * and clamping to the given max dimension.
-   */
-  compressCanvas(canvas, maxDim = 1024, quality = 0.75) {
-    const src = canvas;
-    let { width, height } = src;
-    const scale = Math.min(1, maxDim / Math.max(width, height));
-    if (scale < 1) {
-      const out = document.createElement('canvas');
-      out.width = Math.round(width * scale);
-      out.height = Math.round(height * scale);
-      out.getContext('2d').drawImage(src, 0, 0, out.width, out.height);
-      return out.toDataURL('image/jpeg', quality);
-    }
-    return src.toDataURL('image/jpeg', quality);
   }
 
   /**
@@ -927,7 +843,6 @@ export class POIElementsManager {
     this.elements.push(formData);
     this.saveToStorage();
     this.addMarker(formData);
-    this.stopQuickCamera();
     this.closeSheet();
 
     if (this.onElementAdded) this.onElementAdded(formData);

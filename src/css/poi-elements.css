@@ -167,7 +167,7 @@ body.has-bottom-nav .poi-fab.poi-fab-quick {
 }
 
 /* ============================================
-   QUICK ADD SHEET — In-modal camera + AI badge
+   QUICK ADD SHEET — Captured photo preview
    ============================================ */
 .poi-quick-camera {
   position: relative;
@@ -177,12 +177,8 @@ body.has-bottom-nav .poi-fab.poi-fab-quick {
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.poi-quick-video,
 .poi-quick-preview {
   position: absolute;
   inset: 0;
@@ -192,71 +188,14 @@ body.has-bottom-nav .poi-fab.poi-fab-quick {
   background: #0f172a;
 }
 
-.poi-quick-preview[hidden],
-.poi-quick-video[hidden] { display: none !important; }
-
-.poi-quick-camera-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255,255,255,0.85);
-  font-size: 0.9rem;
-  background: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.55));
-  text-align: center;
-  padding: 12px;
-}
-
-.poi-quick-camera-overlay[hidden] { display: none !important; }
-
-.poi-quick-camera-actions {
+.poi-quick-retake-btn {
   position: absolute;
   bottom: 10px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  pointer-events: none;
-}
-
-.poi-quick-camera-actions > * { pointer-events: auto; }
-
-.poi-quick-capture-btn {
-  width: 62px;
-  height: 62px;
-  border-radius: 50%;
-  border: 4px solid rgba(255,255,255,0.9);
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-  transition: transform 0.15s ease;
-}
-
-.poi-quick-capture-btn:active { transform: scale(0.9); }
-
-.poi-quick-capture-ring {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #ffffff;
-}
-
-.poi-quick-capture-btn[hidden],
-.poi-quick-retake-btn[hidden],
-.poi-quick-fallback-btn[hidden],
-.poi-quick-ai-badge[hidden] { display: none !important; }
-
-.poi-quick-retake-btn {
+  right: 10px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: 22px;
   border: none;
   background: rgba(255,255,255,0.94);
@@ -264,6 +203,7 @@ body.has-bottom-nav .poi-fab.poi-fab-quick {
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .poi-quick-retake-btn svg {
@@ -272,18 +212,7 @@ body.has-bottom-nav .poi-fab.poi-fab-quick {
   fill: #0f172a;
 }
 
-.poi-quick-fallback-btn {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.5);
-  background: rgba(15, 23, 42, 0.7);
-  color: #fff;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
+.poi-quick-ai-badge[hidden] { display: none !important; }
 
 /* AI suggestion badge */
 .poi-quick-ai-badge {
