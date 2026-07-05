@@ -146,6 +146,11 @@ export function runChecklist({ tracker }) {
           routeName: name,
           completenessScore: score,
         });
+        // Wipe the local autosave now that Firebase has the truth.
+        try {
+          const { clearAutosave } = await import('./autosave.js');
+          clearAutosave();
+        } catch (_) { /* non-critical */ }
         overlay.remove();
         alert(tt(
           'Thanks — your survey was submitted for review.',

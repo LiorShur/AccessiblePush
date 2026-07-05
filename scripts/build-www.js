@@ -29,6 +29,7 @@ const COPY_LIST = [
   'fab-flow-mockup.html',
   'surveyor.html',
   'surveyor-tracker.html',
+  'surveyor-admin.html',
 
   // JavaScript
   'sw.js',

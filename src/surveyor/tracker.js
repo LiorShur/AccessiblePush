@@ -26,6 +26,8 @@ import { AccessibilityFormV2Quick } from '../features/accessibilityFormV2Quick.j
 
 import { runPreflight } from './preflight.js';
 import { runChecklist } from './checklist.js';
+import { attachAutosaveAndNudge, clearAutosave } from './autosave.js';
+import { attachOfflineTileLayer } from './offline-tiles.js';
 
 // ------------------------------------------------------------------
 // Small helpers
@@ -107,6 +109,11 @@ async function bootTracker() {
 
   // Initialize the map, then the POI system (POI needs the Leaflet instance).
   await surveyor.map.initialize();
+  // Swap the default tile layer for the offline-aware one so pre-downloaded
+  // tiles serve locally when the volunteer is out of signal.
+  try { attachOfflineTileLayer(surveyor.map.map); } catch (e) {
+    console.warn('[SurveyorTracker] Offline tile layer install failed:', e);
+  }
   poiElements.init(surveyor.map.map, surveyor.map.markerCluster || null);
 
   // Expose in the shape the POI module expects to find the tracking state.
@@ -126,18 +133,20 @@ async function bootTracker() {
   wireControls();
   startStatsLoop();
 
-  // Watch tracking state so we can flip the UI + auto-restart the survey
-  // reminder timer.
+  // Watch tracking state so we can flip the UI, auto-restart the survey
+  // reminder timer, and hook up the autosave / idle-nudge loops.
   window.addEventListener('trackingStarted', () => {
     document.getElementById('svControls')?.classList.add('tracking');
     document.getElementById('svControlsActive')?.removeAttribute('hidden');
-    // Prompt to fill the accessibility survey if not done yet.
     document.getElementById('svSurveyBtn')?.classList.add('needs-attention');
+    attachAutosaveAndNudge(surveyor);
   });
 
   window.addEventListener('trackingStopped', () => {
     document.getElementById('svControls')?.classList.remove('tracking');
     document.getElementById('svControlsActive')?.setAttribute('hidden', '');
+    // Autosave listener already removes itself on this event; keep the
+    // cached snapshot around until submit succeeds.
   });
 
   // If the URL asked for pre-flight, show it immediately.
