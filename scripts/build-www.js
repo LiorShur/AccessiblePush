@@ -28,6 +28,7 @@ const COPY_LIST = [
   'fab-comparison.html',
   'fab-flow-mockup.html',
   'surveyor.html',
+  'surveyor-tracker.html',
 
   // JavaScript
   'sw.js',
