@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Access Nature — Surveyor</title>
+
+  <!-- PWA meta -->
+  <meta name="theme-color" content="#0f3d1e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Shared reset + tokens -->
+  <link rel="stylesheet" href="src/css/design-system.css">
+  <link rel="stylesheet" href="src/css/base.css">
+
+  <!-- Surveyor-specific styles -->
+  <link rel="stylesheet" href="src/css/surveyor.css">
+
+  <!-- Apply saved language early to avoid flash -->
+  <script>
+    (function () {
+      var lang = localStorage.getItem('accessNature_language') || 'he';
+      document.documentElement.setAttribute('lang', lang);
+      document.documentElement.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
+    })();
+  </script>
+</head>
+<body class="sv-body">
+
+  <!-- Boot splash — replaced by the app once auth resolves -->
+  <div id="svBoot" class="sv-boot">
+    <div class="sv-boot-inner">
+      <svg class="sv-boot-logo" viewBox="0 0 512 512" aria-hidden="true">
+        <defs>
+          <linearGradient id="svg1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0f3d1e"/>
+            <stop offset="100%" stop-color="#2c5530"/>
+          </linearGradient>
+        </defs>
+        <circle cx="256" cy="256" r="240" fill="url(#svg1)"/>
+        <path d="M128 360 L200 260 L240 300 L320 180 L384 360 Z" fill="white" opacity="0.9"/>
+        <circle cx="180" cy="200" r="25" fill="white"/>
+        <path d="M180 230 L180 280 L150 320 M180 280 L220 280 L240 320" stroke="white" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="sv-boot-title">Access Nature</div>
+      <div class="sv-boot-subtitle" data-en="Surveyor" data-he="סוקר שבילים">סוקר שבילים</div>
+      <div class="sv-boot-spinner" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- Root — populated by src/surveyor/index.js -->
+  <div id="svApp" hidden></div>
+
+  <!-- Firebase + entry point -->
+  <script type="module" src="src/surveyor/index.js"></script>
+</body>
+</html>

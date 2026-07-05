@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Access Nature — Survey Session</title>
+
+  <meta name="theme-color" content="#0b1410">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
+
+  <!-- Shared/consumer CSS we reuse for map + POI -->
+  <link rel="stylesheet" href="src/css/design-system.css">
+  <link rel="stylesheet" href="src/css/base.css">
+  <link rel="stylesheet" href="src/css/poi-elements.css">
+
+  <!-- Surveyor overrides -->
+  <link rel="stylesheet" href="src/css/surveyor.css">
+  <link rel="stylesheet" href="src/css/surveyor-tracker.css">
+
+  <script>
+    (function () {
+      var lang = localStorage.getItem('accessNature_language') || 'he';
+      document.documentElement.setAttribute('lang', lang);
+      document.documentElement.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
+    })();
+  </script>
+</head>
+<body class="sv-body sv-tracker-body">
+
+  <!-- Map fills the viewport -->
+  <div id="map" class="sv-map"></div>
+
+  <!-- Top stat bar (distance + duration + GPS accuracy) -->
+  <div class="sv-topbar" id="svTopBar">
+    <div class="sv-topbar-stat">
+      <div class="sv-topbar-value" id="svDistance">0.00</div>
+      <div class="sv-topbar-label">km</div>
+    </div>
+    <div class="sv-topbar-stat">
+      <div class="sv-topbar-value" id="svDuration">00:00</div>
+      <div class="sv-topbar-label" data-en="duration" data-he="משך">משך</div>
+    </div>
+    <div class="sv-topbar-stat">
+      <div class="sv-topbar-value" id="svAccuracy">--</div>
+      <div class="sv-topbar-label" data-en="GPS ±" data-he="דיוק">דיוק</div>
+    </div>
+    <button class="sv-topbar-back" id="svBackBtn" aria-label="Back to home">✕</button>
+  </div>
+
+  <!-- Survey button (opens the accessibility form) -->
+  <button class="sv-survey-btn" id="svSurveyBtn" aria-label="Accessibility survey">
+    📋
+    <span class="sv-survey-btn-label" data-en="Survey" data-he="סקר">סקר</span>
+  </button>
+
+  <!-- Bottom control bar (Start / Pause / Stop) -->
+  <div class="sv-controls" id="svControls">
+    <button class="sv-btn sv-btn-primary sv-controls-start" id="svStartBtn">
+      <span data-en="▶ Start Survey" data-he="▶ התחל סקר">▶ התחל סקר</span>
+    </button>
+
+    <div class="sv-controls-active" hidden id="svControlsActive">
+      <button class="sv-btn sv-btn-ghost sv-controls-pause" id="svPauseBtn">
+        <span id="svPauseLabel" data-en="⏸ Pause" data-he="⏸ השהה">⏸ השהה</span>
+      </button>
+      <button class="sv-btn sv-btn-danger sv-controls-stop" id="svStopBtn">
+        <span data-en="■ Stop &amp; Submit" data-he="■ עצור והגש">■ עצור והגש</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Pre-flight modal target -->
+  <div id="svPreflightRoot"></div>
+
+  <!-- Checklist modal target -->
+  <div id="svChecklistRoot"></div>
+
+  <!-- Entry -->
+  <script type="module" src="src/surveyor/tracker.js"></script>
+</body>
+</html>

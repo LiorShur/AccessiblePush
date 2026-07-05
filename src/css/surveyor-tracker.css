@@ -1,0 +1,356 @@
+/**
+ * Surveyor tracker — full-screen map with minimalist controls.
+ * Uses the surveyor.css palette. Hits: 56px minimum for outdoor thumb use.
+ */
+
+html, body { height: 100%; }
+
+.sv-tracker-body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+.sv-map {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: #111;
+}
+
+/* ============================================
+   TOP STAT BAR
+   ============================================ */
+.sv-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  align-items: center;
+  gap: 6px;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 10px;
+  background: linear-gradient(180deg, rgba(11,20,16,0.94) 0%, rgba(11,20,16,0.75) 100%);
+  color: var(--sv-text);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.sv-topbar-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.sv-topbar-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.sv-topbar-label {
+  font-size: 0.66rem;
+  color: var(--sv-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.sv-topbar-back {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--sv-border);
+  background: rgba(255,255,255,0.06);
+  color: var(--sv-text);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* When GPS accuracy is bad the label shows red — set via JS by adding
+   .sv-topbar-value--bad on the value node. */
+.sv-topbar-value--bad { color: #ffa2a2; }
+.sv-topbar-value--warn { color: #f5c473; }
+.sv-topbar-value--ok { color: #7fd7a0; }
+
+/* ============================================
+   BOTTOM CONTROLS
+   ============================================ */
+.sv-controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  background: linear-gradient(0deg, rgba(11,20,16,0.94) 0%, rgba(11,20,16,0) 100%);
+}
+
+.sv-controls-start,
+.sv-controls-active {
+  display: flex;
+  gap: 10px;
+}
+
+.sv-controls-start { width: 100%; }
+
+.sv-controls-active[hidden] { display: none; }
+.sv-controls-active .sv-btn { flex: 1; }
+
+/* Hide the standalone start button once tracking begins */
+.sv-controls.tracking .sv-controls-start { display: none; }
+
+/* ============================================
+   SURVEY BUTTON (side)
+   ============================================ */
+.sv-survey-btn {
+  position: fixed;
+  bottom: 100px;
+  left: 16px;
+  z-index: 890;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--sv-accent-strong);
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sv-survey-btn-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+body.has-bottom-nav .sv-survey-btn { bottom: 160px; }
+
+[dir="rtl"] .sv-survey-btn {
+  left: auto;
+  right: 16px;
+}
+
+/* Survey button gets a red dot until the form is filled at least once */
+.sv-survey-btn::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sv-danger);
+  border: 2px solid var(--sv-bg);
+  display: none;
+}
+
+.sv-survey-btn.needs-attention::after { display: block; }
+
+/* ============================================
+   PRE-FLIGHT MODAL
+   ============================================ */
+.sv-preflight-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3,8,6,0.9);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sv-preflight-modal {
+  background: var(--sv-surface);
+  border: 1px solid var(--sv-border);
+  border-radius: 16px;
+  max-width: 460px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.sv-preflight-title {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.sv-preflight-subtitle {
+  margin: 0 0 18px;
+  color: var(--sv-text-dim);
+  font-size: 0.92rem;
+}
+
+.sv-check {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--sv-border);
+}
+
+.sv-check:last-of-type { border-bottom: none; }
+
+.sv-check-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+}
+
+.sv-check-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sv-surface-2);
+  font-size: 1.1rem;
+}
+
+.sv-check-status {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.sv-check-status--pending { color: var(--sv-text-dim); }
+.sv-check-status--ok      { color: #7fd7a0; }
+.sv-check-status--warn    { color: #f5c473; }
+.sv-check-status--bad     { color: #ffa2a2; }
+
+.sv-preflight-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.sv-preflight-actions .sv-btn-primary[disabled] {
+  background: var(--sv-surface-2);
+  color: var(--sv-text-dim);
+}
+
+/* ============================================
+   CHECKLIST / SAVE MODAL
+   ============================================ */
+.sv-checklist-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3,8,6,0.9);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.sv-checklist-modal {
+  background: var(--sv-surface);
+  border: 1px solid var(--sv-border);
+  border-radius: 16px;
+  max-width: 460px;
+  width: 100%;
+  padding: 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.sv-score {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--sv-surface-2);
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.sv-score-ring {
+  --p: 0;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: conic-gradient(var(--sv-accent) calc(var(--p) * 1%), var(--sv-border) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.sv-score-inner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--sv-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.sv-score-copy {
+  font-size: 0.92rem;
+  color: var(--sv-text-dim);
+}
+
+.sv-check-input {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  cursor: pointer;
+  font-size: 0.92rem;
+}
+
+.sv-check-input input[type="checkbox"] {
+  margin-top: 3px;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--sv-accent);
+  flex: 0 0 auto;
+}
+
+/* ============================================
+   IDLE NUDGE TOAST
+   ============================================ */
+.sv-nudge-toast {
+  position: fixed;
+  bottom: 180px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(20, 37, 33, 0.96);
+  border: 1px solid var(--sv-border);
+  color: var(--sv-text);
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  opacity: 0;
+  z-index: 950;
+  max-width: 90vw;
+  text-align: center;
+  cursor: pointer;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.sv-nudge-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

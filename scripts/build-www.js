@@ -27,6 +27,9 @@ const COPY_LIST = [
   'route-recovery.html',
   'fab-comparison.html',
   'fab-flow-mockup.html',
+  'surveyor.html',
+  'surveyor-tracker.html',
+  'surveyor-admin.html',
 
   // JavaScript
   'sw.js',

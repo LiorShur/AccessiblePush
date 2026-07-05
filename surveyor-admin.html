@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Nature — Surveyor Admin</title>
+
+  <meta name="theme-color" content="#0f3d1e">
+  <link rel="stylesheet" href="src/css/design-system.css">
+  <link rel="stylesheet" href="src/css/base.css">
+  <link rel="stylesheet" href="src/css/surveyor.css">
+  <link rel="stylesheet" href="src/css/surveyor-admin.css">
+
+  <script>
+    (function () {
+      var lang = localStorage.getItem('accessNature_language') || 'en';
+      document.documentElement.setAttribute('lang', lang);
+      document.documentElement.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
+    })();
+  </script>
+</head>
+<body class="sv-body">
+  <div id="svAdminBoot" class="sv-boot">
+    <div class="sv-boot-inner">
+      <div class="sv-boot-title">Loading…</div>
+      <div class="sv-boot-spinner"></div>
+    </div>
+  </div>
+
+  <div id="svAdminApp" hidden></div>
+
+  <script type="module" src="src/surveyor/admin.js"></script>
+</body>
+</html>
