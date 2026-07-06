@@ -15,7 +15,13 @@
  * consistent between online and offline views.
  */
 
-import { tt } from './index.js';
+// Small inline i18n — importing tt from ./index.js would drag the entire
+// surveyor entry (including its onAuthStateChanged handler) into every
+// page that uses offline tiles, which then tries to render the home
+// screen on the tracker page. Keep this module standalone.
+function tt(en, he) {
+  return document.documentElement.lang === 'he' ? he : en;
+}
 
 const TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
 const TILE_SUBDOMAINS = ['a', 'b', 'c', 'd'];
