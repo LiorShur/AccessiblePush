@@ -109,6 +109,87 @@ export class TrackingController {
     this._bgEnteredAt = 0;
   }
 
+  /**
+   * Install a touchmove guard that blocks the browser's native
+   * pull-to-refresh gesture while tracking. Runs at document level so
+   * CSS overrides on the page can't defeat it, but only intervenes for
+   * downward drags at the top of the viewport originating outside of
+   * the map or any interactive/scrollable target — everything else
+   * behaves normally.
+   */
+  installPullToRefreshGuard() {
+    if (this._ptrGuard) return;
+
+    const INTERACTIVE_SELECTORS = [
+      '.leaflet-container',
+      '.modal-overlay',
+      '.modal',
+      '[role="dialog"]',
+      '.poi-overlay',
+      '.poi-bottom-sheet',
+      '.poi-fullscreen-modal',
+      '.af2-overlay',
+      '.af2f-overlay',
+      '.tg-container',
+      'input',
+      'textarea',
+      'select',
+      'button',
+      '[contenteditable="true"]',
+      '.scroll-container'
+    ].join(',');
+
+    let startY = 0;
+    let tracking = false;
+
+    const onTouchStart = (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
+      tracking = true;
+      startY = e.touches[0].clientY;
+    };
+
+    const onTouchMove = (e) => {
+      if (!tracking || !this.isTracking) return;
+      if (!e.touches || e.touches.length !== 1) return;
+
+      const t = e.touches[0];
+      const deltaY = t.clientY - startY;
+
+      // Only intervene on downward drags near the top of the viewport
+      // (the pull-to-refresh trigger area). Anything else falls through.
+      if (deltaY <= 0) return;
+      if (window.scrollY > 0) return;
+
+      const target = e.target;
+      // Skip if the drag originates inside the map or any interactive
+      // / scrollable element — those need their own touch handling.
+      if (target?.closest?.(INTERACTIVE_SELECTORS)) return;
+
+      e.preventDefault();
+    };
+
+    const onTouchEnd = () => { tracking = false; };
+
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd, { passive: true });
+    document.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+    this._ptrGuard = () => {
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+      document.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }
+
+  uninstallPullToRefreshGuard() {
+    if (this._ptrGuard) {
+      this._ptrGuard();
+      this._ptrGuard = null;
+    }
+  }
+
   setDependencies(deps) {
     this.dependencies = deps;
   }
@@ -175,9 +256,16 @@ async start() {
   this.isTracking = true;
   this.isPaused = false;
   this.appState.setTrackingState(true);
-  
-  // Add body class to disable pull-to-refresh
+
+  // Add body class to disable pull-to-refresh via CSS
   document.body.classList.add('tracking-active');
+
+  // Belt-and-suspenders: install a document-level touchmove guard so
+  // the browser can't kick off pull-to-refresh even if CSS gets
+  // overruled on the current WebView. Skips touches that originate
+  // inside the map, modals, or any scrollable/interactive element so
+  // normal interaction is unaffected.
+  this.installPullToRefreshGuard();
 
   // Start GPS watch
   this.watchId = navigator.geolocation.watchPosition(
@@ -516,6 +604,9 @@ async stop() {
 
   // Detach app foreground/background listener
   this.uninstallAppStateWatcher();
+
+  // Remove pull-to-refresh guard
+  this.uninstallPullToRefreshGuard();
 
   // Stop timer and get final elapsed time
   let finalElapsed = 0;
