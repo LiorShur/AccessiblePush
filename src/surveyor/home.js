@@ -18,7 +18,13 @@ export function renderHome(profile) {
   const displayName = profile.name || profile.email;
   const firstLaunch = !localStorage.getItem(TUTORIAL_KEY);
 
+  // Hide the boot splash and reveal the app container. renderHome writes
+  // directly into #svApp instead of going through showApp(), so it has to
+  // clear the boot classes itself.
+  document.getElementById('svBoot')?.classList.add('hidden');
   const app = document.getElementById('svApp');
+  if (!app) return;
+  app.hidden = false;
   app.innerHTML = `
     <div class="sv-app">
       <div class="sv-header">

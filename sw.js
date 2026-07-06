@@ -9,7 +9,7 @@
  * - Images: Cache First
  */
 
-const CACHE_VERSION = 'v2.9.82-surveyor-full';
+const CACHE_VERSION = 'v2.9.83-surveyor-boot-fixes';
 const APP_CACHE = `access-nature-app-${CACHE_VERSION}`;
 const DATA_CACHE = `access-nature-data-${CACHE_VERSION}`;
 const MAP_CACHE = `access-nature-maps-${CACHE_VERSION}`;
