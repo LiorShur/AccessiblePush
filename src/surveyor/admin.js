@@ -134,17 +134,45 @@ async function renderReview() {
   const body = document.getElementById('svAdminBody');
   body.innerHTML = `<p class="sv-admin-status">${tt('Loading…', 'טוען…')}</p>`;
 
-  let items;
+  let items = [];
   try {
-    const q = query(
-      collection(db, 'routes'),
-      where('officialSurvey', '==', true),
-      where('reviewStatus', '==', 'pending'),
-      orderBy('submittedAt', 'desc'),
-      limit(50),
-    );
-    const snap = await getDocs(q);
-    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // 1. Any route explicitly tagged as an official survey and pending.
+    // 2. Plus any recent route authored by a whitelisted surveyor that
+    //    hasn't been approved yet — this catches surveys done via the
+    //    consumer tracker without the officialSurvey tag.
+    const [tagged, surveyorEmails] = await Promise.all([
+      getDocs(query(
+        collection(db, 'routes'),
+        where('officialSurvey', '==', true),
+        limit(100),
+      )).then(s => s.docs.map(d => ({ id: d.id, ...d.data() }))).catch(() => []),
+      getDocs(query(collection(db, 'surveyors'), limit(200)))
+        .then(s => s.docs.map(d => d.data().email?.toLowerCase()).filter(Boolean))
+    ]);
+
+    const bySurveyor = surveyorEmails.length > 0
+      ? await Promise.all(surveyorEmails.map(email =>
+          getDocs(query(
+            collection(db, 'routes'),
+            where('userEmail', '==', email),
+            orderBy('uploadedAt', 'desc'),
+            limit(20),
+          )).then(s => s.docs.map(d => ({ id: d.id, ...d.data() }))).catch(() => [])
+        )).then(arr => arr.flat())
+      : [];
+
+    const merged = new Map();
+    [...tagged, ...bySurveyor].forEach(r => merged.set(r.id, r));
+
+    // Filter to routes still awaiting review or with no review yet.
+    items = Array.from(merged.values())
+      .filter(r => !r.reviewStatus || r.reviewStatus === 'pending' || r.reviewStatus === 'needs-fixes')
+      .sort((a, b) => {
+        const ta = new Date(a.submittedAt || a.uploadedAt || 0).getTime();
+        const tb = new Date(b.submittedAt || b.uploadedAt || 0).getTime();
+        return tb - ta;
+      })
+      .slice(0, 50);
   } catch (err) {
     console.error('[SurveyorAdmin] Review query failed:', err);
     body.innerHTML = `<p class="sv-admin-status sv-admin-status--bad">${tt(
@@ -169,8 +197,8 @@ async function renderReview() {
         <div>
           <div class="sv-admin-card-title">${esc(r.routeName || '(untitled)')}</div>
           <div class="sv-admin-card-meta">
-            ${esc(r.surveyorName || r.surveyorEmail || '?')} ·
-            ${r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : '—'}
+            ${esc(r.surveyorName || r.userDisplayName || r.userEmail || r.surveyorEmail || '?')} ·
+            ${new Date(r.submittedAt || r.uploadedAt || r.createdAt || Date.now()).toLocaleDateString()}
           </div>
         </div>
         <div class="sv-admin-score">
