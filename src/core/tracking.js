@@ -190,6 +190,17 @@ export class TrackingController {
     }
   }
 
+  /**
+   * Release the "tracking mode" UI lock (body class + PTR guard) once
+   * the route data has actually been persisted or discarded. Called
+   * from saveRoute() and discardRoute() so an accidental refresh
+   * between Stop and Save can't wipe an unsaved survey.
+   */
+  releaseTrackingUiLock() {
+    document.body.classList.remove('tracking-active');
+    this.uninstallPullToRefreshGuard();
+  }
+
   setDependencies(deps) {
     this.dependencies = deps;
   }
@@ -605,8 +616,8 @@ async stop() {
   // Detach app foreground/background listener
   this.uninstallAppStateWatcher();
 
-  // Remove pull-to-refresh guard
-  this.uninstallPullToRefreshGuard();
+  // Pull-to-refresh guard is removed AFTER promptForSave completes —
+  // see the try/finally block further down.
 
   // Stop timer and get final elapsed time
   let finalElapsed = 0;
@@ -618,10 +629,7 @@ async stop() {
   this.isTracking = false;
   this.isPaused = false;
   this.appState.setTrackingState(false);
-  
-  // Remove body class to re-enable pull-to-refresh
-  document.body.classList.remove('tracking-active');
-  
+
   this.updateTrackingButtons();
 
   // Track user engagement (distance and time)
@@ -635,7 +643,11 @@ async stop() {
     }
   }
 
-  // Prompt for save (await to ensure proper sequencing)
+  // Prompt for save. The tracking-active class + PTR guard stay on
+  // until route data actually gets cleared (either by successful save
+  // or by explicit discard) — see releaseTrackingUiLock() calls in
+  // saveRoute() and discardRoute(). This prevents an accidental
+  // refresh between Stop and Save from losing the whole survey.
   await this.promptForSave();
 
   // Dispatch tracking stopped event for other modules
@@ -1147,6 +1159,10 @@ async saveRoute(skipSurveyPrompt = false) {
     // Clear route data after saving
     this.appState.clearRouteData();
 
+    // Route is now safely persisted — release the tracking UI lock so
+    // the browser can accept pull-to-refresh again.
+    this.releaseTrackingUiLock();
+
     // Clear map markers (photos, notes, route line)
     const mapController = window.AccessNatureApp?.controllers?.map;
     if (mapController) {
@@ -1463,6 +1479,9 @@ async saveRouteToCloud(routeData, routeInfo, accessibilityData, authController, 
 
   discardRoute() {
     this.appState.clearRouteData();
+
+    // Route is dropped — release the tracking UI lock.
+    this.releaseTrackingUiLock();
 
     // Clear map markers (photos, notes, route line)
     const mapController = window.AccessNatureApp?.controllers?.map;

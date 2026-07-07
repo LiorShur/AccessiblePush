@@ -191,6 +191,11 @@ async function renderReview() {
     return;
   }
 
+  // Cache the fetched routes so we can pass the full object to the
+  // detail modal without another Firestore round-trip.
+  window.__svReviewCache = new Map();
+  items.forEach(r => window.__svReviewCache.set(r.id, r));
+
   body.innerHTML = items.map(r => `
     <article class="sv-admin-card" data-id="${esc(r.id)}">
       <header class="sv-admin-card-header">
@@ -217,16 +222,182 @@ async function renderReview() {
         <button class="sv-btn sv-btn-ghost" data-act="reject" data-id="${esc(r.id)}">
           ${tt('Needs fixes', 'דורש תיקונים')}
         </button>
+        <button class="sv-btn sv-btn-ghost" data-act="view" data-id="${esc(r.id)}">
+          👁 ${tt('Inspect', 'בדוק')}
+        </button>
         <button class="sv-btn sv-btn-primary" data-act="approve" data-id="${esc(r.id)}">
-          ${tt('Approve &amp; publish', 'אשר ופרסם')}
+          ${tt('Approve', 'אשר')}
         </button>
       </div>
     </article>
   `).join('');
 
   body.querySelectorAll('[data-act]').forEach(btn => {
-    btn.addEventListener('click', () => handleReviewAction(btn.dataset.act, btn.dataset.id));
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleReviewAction(btn.dataset.act, btn.dataset.id);
+    });
   });
+  // Make the whole card open the inspector (except when clicking a button).
+  body.querySelectorAll('.sv-admin-card').forEach(card => {
+    card.addEventListener('click', () => openDetail(card.dataset.id));
+  });
+}
+
+// ------------------------------------------------------------------
+// Route detail modal — renders the linked trail guide inside an
+// iframe when one exists, else falls back to a raw summary of the
+// route data (map + photos + POIs + survey).
+// ------------------------------------------------------------------
+async function openDetail(routeId) {
+  const route = window.__svReviewCache?.get(routeId);
+  if (!route) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'sv-detail-overlay';
+  overlay.innerHTML = `
+    <div class="sv-detail-modal">
+      <header class="sv-detail-header">
+        <div>
+          <div class="sv-detail-title">${esc(route.routeName || '(untitled)')}</div>
+          <div class="sv-detail-meta">
+            ${esc(route.surveyorName || route.userDisplayName || route.userEmail || '?')} ·
+            ${new Date(route.submittedAt || route.uploadedAt || Date.now()).toLocaleString()}
+          </div>
+        </div>
+        <button class="sv-detail-close" aria-label="Close">×</button>
+      </header>
+      <div class="sv-detail-body" id="svDetailBody">
+        <p class="sv-admin-status">${tt('Loading route data…', 'טוען נתוני מסלול…')}</p>
+      </div>
+      <footer class="sv-detail-footer">
+        <button class="sv-btn sv-btn-ghost" data-act="reject" data-id="${esc(routeId)}">
+          ${tt('Send back for fixes', 'שלח לתיקון')}
+        </button>
+        <button class="sv-btn sv-btn-primary" data-act="approve" data-id="${esc(routeId)}">
+          ${tt('Approve & publish', 'אשר ופרסם')}
+        </button>
+      </footer>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.querySelector('.sv-detail-close').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await handleReviewAction(btn.dataset.act, btn.dataset.id);
+      close();
+    });
+  });
+
+  // Populate body — prefer the linked trail_guide's htmlContent, else
+  // render a lightweight summary.
+  const body = overlay.querySelector('#svDetailBody');
+  try {
+    const gsnap = await getDocs(query(
+      collection(db, 'trail_guides'),
+      where('routeId', '==', routeId),
+      limit(1),
+    ));
+    if (!gsnap.empty && gsnap.docs[0].data().htmlContent) {
+      const guide = gsnap.docs[0].data();
+      const blob = new Blob([guide.htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      body.innerHTML = `
+        <iframe class="sv-detail-iframe" src="${url}" title="Trail guide preview"></iframe>
+        <div class="sv-detail-actions-inline">
+          <a href="${url}" target="_blank" rel="noopener">${tt('Open in new tab', 'פתח בכרטיסייה חדשה')}</a>
+        </div>
+      `;
+    } else {
+      body.innerHTML = renderSummary(route);
+    }
+  } catch (err) {
+    console.warn('[SurveyorAdmin] Failed to load trail guide:', err);
+    body.innerHTML = renderSummary(route);
+  }
+}
+
+function renderSummary(route) {
+  const acc = route.accessibility || {};
+  const stats = route.stats || {};
+  const photos = (route.routeData || []).filter(p => p.type === 'photo');
+  const notes = (route.routeData || []).filter(p => p.type === 'text');
+  const pois = route.poiElements || [];
+
+  return `
+    <div class="sv-detail-summary">
+      <section>
+        <h3>${tt('Route', 'מסלול')}</h3>
+        <ul class="sv-list">
+          <li><span>${tt('Distance', 'מרחק')}</span><span>${(route.totalDistance || 0).toFixed(2)} km</span></li>
+          <li><span>${tt('Duration', 'משך')}</span><span>${formatMs(route.elapsedTime || 0)}</span></li>
+          <li><span>${tt('GPS points', 'נקודות GPS')}</span><span>${stats.locationPoints || 0}</span></li>
+          <li><span>${tt('Photos', 'תמונות')}</span><span>${stats.photos || photos.length}</span></li>
+          <li><span>${tt('Notes', 'הערות')}</span><span>${stats.notes || notes.length}</span></li>
+          <li><span>${tt('POI markers', 'נקודות עניין')}</span><span>${pois.length}</span></li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>${tt('Accessibility', 'נגישות')}</h3>
+        <ul class="sv-list">
+          <li><span>${tt('Location', 'מיקום')}</span><span>${esc(acc.location || '—')}</span></li>
+          <li><span>${tt('Wheelchair access', 'נגישות לכיסא גלגלים')}</span><span>${esc(acc.wheelchairAccess || '—')}</span></li>
+          <li><span>${tt('Surface', 'משטח')}</span><span>${esc(Array.isArray(acc.trailSurface) ? acc.trailSurface.join(', ') : (acc.trailSurface || '—'))}</span></li>
+          <li><span>${tt('Difficulty', 'קושי')}</span><span>${esc(acc.difficulty || '—')}</span></li>
+        </ul>
+      </section>
+
+      ${photos.length > 0 ? `
+        <section>
+          <h3>${tt('Photos', 'תמונות')} (${photos.length})</h3>
+          <div class="sv-detail-photos">
+            ${photos.map(p => p.content ? `
+              <a href="${esc(p.content)}" target="_blank" rel="noopener">
+                <img src="${esc(p.content)}" alt="">
+              </a>
+            ` : '').join('')}
+          </div>
+        </section>
+      ` : ''}
+
+      ${pois.length > 0 ? `
+        <section>
+          <h3>${tt('POI markers', 'נקודות עניין')} (${pois.length})</h3>
+          <ul class="sv-detail-pois">
+            ${pois.map(p => `
+              <li>
+                <span class="sv-detail-poi-type">${esc(p.type || '')}</span>
+                ${p.notes ? `<span class="sv-detail-poi-note">${esc(p.notes)}</span>` : ''}
+                ${p.photoDataUrl ? `<a href="${esc(p.photoDataUrl)}" target="_blank" rel="noopener"><img src="${esc(p.photoDataUrl)}" alt=""></a>` : ''}
+              </li>
+            `).join('')}
+          </ul>
+        </section>
+      ` : ''}
+
+      ${notes.length > 0 ? `
+        <section>
+          <h3>${tt('Notes', 'הערות')} (${notes.length})</h3>
+          <ul class="sv-list">
+            ${notes.map(n => `<li>${esc(n.content || '')}</li>`).join('')}
+          </ul>
+        </section>
+      ` : ''}
+    </div>
+  `;
+}
+
+function formatMs(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  const pad = n => n.toString().padStart(2, '0');
+  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
 }
 
 async function handleReviewAction(action, id) {
