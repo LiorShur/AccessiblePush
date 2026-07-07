@@ -1893,7 +1893,14 @@ textarea:focus-visible,
   <script type="module" src="src/pwa/pwaManager.js"></script>
   <script type="module" src="src/pwa/offlineMapsUI.js"></script>
   <script type="module" src="src/features/devTools.js"></script>
-  
+
+  <!-- Surveyor mode adapter — only when ?surveyor=1 is present. -->
+  <script type="module">
+    if (new URLSearchParams(location.search).has('surveyor')) {
+      import('./src/surveyor/consumer-adapter.js');
+    }
+  </script>
+
   <!-- i18n (Internationalization) -->
   <script type="module">
     import { i18n, t } from './src/i18n/i18n.js';
