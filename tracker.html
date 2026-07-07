@@ -367,16 +367,29 @@ textarea:focus-visible,
   
   /* Disable native browser pull-to-refresh */
   html, body {
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: contain !important;
   }
-  
-  /* When modals are open, prevent all overscroll */
+
+  /* When modals are open OR tracking is active, prevent ALL overscroll
+     and pin the body so a downward drag never becomes a page refresh.
+     !important because various global stylesheets set overscroll on
+     html/body and can otherwise overrule these. */
   body.modal-open,
   body.tracking-active {
-    overscroll-behavior: none;
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
     touch-action: pan-x pan-y;
   }
-  
+
+  /* While tracking, lock the body height so no scroll = no PTR trigger.
+     The map is fixed-positioned and handles its own touches, so this
+     doesn't break interaction. */
+  body.tracking-active {
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+  }
+
   /* Prevent pull-to-refresh on modal overlays */
   .modal-overlay,
   .survey-modal,

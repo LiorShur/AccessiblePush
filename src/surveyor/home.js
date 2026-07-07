@@ -97,9 +97,12 @@ export function renderHome(profile) {
   document.getElementById('svSignOutBtn')?.addEventListener('click', () => svSignOut());
 
   document.getElementById('svStartBtn')?.addEventListener('click', () => {
-    // The pre-flight sequence lives in the tracker page. Passing a flag so
-    // the tracker knows to open pre-flight immediately on load.
-    window.location.href = 'surveyor-tracker.html?preflight=1';
+    // Send surveyors to the battle-tested consumer tracker while we
+    // stabilize/trim the standalone surveyor-tracker.html. The
+    // ?surveyor=1 flag lets us layer surveyor-specific behaviour on
+    // top later (pre-flight, back-to-home, auto-tagging) without
+    // forking the tracker.
+    window.location.href = 'tracker.html?surveyor=1';
   });
 
   document.getElementById('svTutorialBtn')?.addEventListener('click', async () => {
