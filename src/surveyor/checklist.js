@@ -112,9 +112,17 @@ export function runChecklist({ tracker }) {
       </div>
     `;
 
-    const root = document.getElementById('svChecklistRoot') || document.body;
-    root.innerHTML = '';
-    root.appendChild(overlay);
+    // Attach to the dedicated container on the standalone surveyor
+    // tracker page; append to body on the consumer tracker page.
+    // NEVER wipe body — that would destroy the map and every other
+    // tracker element.
+    const dedicatedRoot = document.getElementById('svChecklistRoot');
+    if (dedicatedRoot) {
+      dedicatedRoot.innerHTML = '';
+      dedicatedRoot.appendChild(overlay);
+    } else {
+      document.body.appendChild(overlay);
+    }
 
     const nameInput = overlay.querySelector('#svRouteName');
     const submitBtn = overlay.querySelector('#svChecklistSubmit');
