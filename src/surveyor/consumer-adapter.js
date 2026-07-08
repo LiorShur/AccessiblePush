@@ -28,7 +28,26 @@ const HOME_URL = 'surveyor.html';
 if (!new URLSearchParams(location.search).has('surveyor')) {
   console.log('[SurveyorAdapter] Skipped — ?surveyor=1 flag not present');
 } else {
+  injectSurveyorStyles();
   boot().catch(err => console.error('[SurveyorAdapter] Boot failed:', err));
+}
+
+/**
+ * The pre-flight and checklist modals rely on surveyor.css +
+ * surveyor-tracker.css — those aren't loaded by tracker.html normally,
+ * so we pull them in on-demand. Uses <link rel="stylesheet"> so the
+ * browser caches them and RTL/base rules apply consistently.
+ */
+function injectSurveyorStyles() {
+  const sheets = ['src/css/surveyor.css', 'src/css/surveyor-tracker.css'];
+  sheets.forEach((href) => {
+    if (document.querySelector(`link[data-sv-css="${href}"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.dataset.svCss = href;
+    document.head.appendChild(link);
+  });
 }
 
 let surveyorProfile = null;
