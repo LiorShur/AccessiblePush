@@ -39,7 +39,11 @@ export function runPreflight({ tracker, allowSkipIfPassing = false } = {}) {
   }
 
   return new Promise((resolve) => {
-    const root = document.getElementById('svPreflightRoot') || document.body;
+    // On the standalone surveyor-tracker page we have a dedicated
+    // container (#svPreflightRoot). On the consumer tracker page we
+    // append to <body> — but we must NOT wipe body first (that would
+    // destroy the map and every other tracker element).
+    const dedicatedRoot = document.getElementById('svPreflightRoot');
 
     const checks = [
       { id: 'gps',     icon: '📡', label: tt('GPS accuracy',   'דיוק GPS'),          critical: true  },
@@ -81,8 +85,12 @@ export function runPreflight({ tracker, allowSkipIfPassing = false } = {}) {
         </div>
       </div>
     `;
-    root.innerHTML = '';
-    root.appendChild(overlay);
+    if (dedicatedRoot) {
+      dedicatedRoot.innerHTML = '';
+      dedicatedRoot.appendChild(overlay);
+    } else {
+      document.body.appendChild(overlay);
+    }
 
     const cancelBtn = overlay.querySelector('#svPreflightCancel');
     const startBtn = overlay.querySelector('#svPreflightStart');
