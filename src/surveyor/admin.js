@@ -150,14 +150,22 @@ async function renderReview() {
         .then(s => s.docs.map(d => d.data().email?.toLowerCase()).filter(Boolean))
     ]);
 
+    // NOTE: no orderBy here — combining where + orderBy on different
+    // fields needs a composite index. We already sort client-side below,
+    // and 20 routes per surveyor is small enough that the extra data
+    // over the wire is negligible. Log errors instead of silently
+    // swallowing so we can see real problems.
     const bySurveyor = surveyorEmails.length > 0
       ? await Promise.all(surveyorEmails.map(email =>
           getDocs(query(
             collection(db, 'routes'),
             where('userEmail', '==', email),
-            orderBy('uploadedAt', 'desc'),
             limit(20),
-          )).then(s => s.docs.map(d => ({ id: d.id, ...d.data() }))).catch(() => [])
+          )).then(s => s.docs.map(d => ({ id: d.id, ...d.data() })))
+            .catch(err => {
+              console.warn(`[SurveyorAdmin] Routes query for ${email} failed:`, err.message);
+              return [];
+            })
         )).then(arr => arr.flat())
       : [];
 
