@@ -363,6 +363,47 @@
 }
 
 /* ============================================
+   SUBMISSIONS (needs-fixes list on the surveyor home)
+   ============================================ */
+.sv-submission {
+  padding: 12px 14px;
+  border: 1px solid var(--sv-border);
+  border-radius: 10px;
+  background: var(--sv-surface-2);
+  margin-bottom: 10px;
+}
+
+.sv-submission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sv-submission-notes {
+  color: var(--sv-text-dim);
+  font-size: 0.88rem;
+  margin-bottom: 12px;
+  line-height: 1.4;
+  padding: 8px 10px;
+  background: rgba(245, 165, 36, 0.1);
+  border-left: 2px solid var(--sv-warn);
+  border-radius: 4px;
+}
+[dir="rtl"] .sv-submission-notes {
+  border-left: none;
+  border-right: 2px solid var(--sv-warn);
+}
+
+.sv-submission .sv-btn {
+  width: auto;
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 0.88rem;
+}
+
+/* ============================================
    OFFLINE MAP TILES MODAL
    ============================================ */
 .sv-offline-overlay {

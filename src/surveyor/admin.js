@@ -204,7 +204,14 @@ async function renderReview() {
   window.__svReviewCache = new Map();
   items.forEach(r => window.__svReviewCache.set(r.id, r));
 
-  body.innerHTML = items.map(r => `
+  body.innerHTML = items.map(r => {
+    const statusLabel = r.reviewStatus === 'needs-fixes'
+      ? tt('↩ Awaiting fixes', '↩ ממתין לתיקון')
+      : tt('⏳ Pending review', '⏳ ממתין לביקורת');
+    const statusClass = r.reviewStatus === 'needs-fixes' ? 'sv-status-warn' : 'sv-status-neutral';
+    const scoreDisplay = (r.completenessScore ?? null) !== null ? r.completenessScore : '—';
+
+    return `
     <article class="sv-admin-card" data-id="${esc(r.id)}">
       <header class="sv-admin-card-header">
         <div>
@@ -213,9 +220,12 @@ async function renderReview() {
             ${esc(r.surveyorName || r.userDisplayName || r.userEmail || r.surveyorEmail || '?')} ·
             ${new Date(r.submittedAt || r.uploadedAt || r.createdAt || Date.now()).toLocaleDateString()}
           </div>
+          <div style="margin-top:6px">
+            <span class="sv-status ${statusClass}">${statusLabel}</span>
+          </div>
         </div>
-        <div class="sv-admin-score">
-          <div class="sv-admin-score-num">${r.completenessScore ?? '—'}</div>
+        <div class="sv-admin-score" title="${tt('Completeness score (0–100). Higher = fuller documentation.', 'ציון שלמות (0–100). גבוה יותר = תיעוד מלא יותר.')}">
+          <div class="sv-admin-score-num">${scoreDisplay}</div>
           <div class="sv-admin-score-label">${tt('Score', 'ציון')}</div>
         </div>
       </header>
@@ -226,6 +236,7 @@ async function renderReview() {
         <span>🪧 ${(r.poiElements?.length || 0)} POIs</span>
       </div>
       ${r.accessibility?.location ? `<div class="sv-admin-card-loc">📍 ${esc(r.accessibility.location)}</div>` : ''}
+      ${r.reviewNotes ? `<div class="sv-admin-card-notes"><strong>${tt('Reviewer notes', 'הערות רכז')}:</strong> ${esc(r.reviewNotes)}</div>` : ''}
       <div class="sv-admin-card-actions">
         <button class="sv-btn sv-btn-ghost" data-act="reject" data-id="${esc(r.id)}">
           ${tt('Needs fixes', 'דורש תיקונים')}
@@ -238,17 +249,27 @@ async function renderReview() {
         </button>
       </div>
     </article>
-  `).join('');
+  `;
+  }).join('');
 
   body.querySelectorAll('[data-act]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      handleReviewAction(btn.dataset.act, btn.dataset.id);
+      const act = btn.dataset.act;
+      const id = btn.dataset.id;
+      if (act === 'view') {
+        openDetail(id);
+      } else {
+        handleReviewAction(act, id);
+      }
     });
   });
   // Make the whole card open the inspector (except when clicking a button).
   body.querySelectorAll('.sv-admin-card').forEach(card => {
-    card.addEventListener('click', () => openDetail(card.dataset.id));
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('[data-act]')) return; // buttons handle themselves
+      openDetail(card.dataset.id);
+    });
   });
 }
 
