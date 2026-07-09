@@ -139,8 +139,29 @@ export async function openOfflineTiles() {
   const close = () => overlay.remove();
   overlay.querySelector('.sv-offline-close').addEventListener('click', close);
 
-  const map = L.map(overlay.querySelector('#svOfflineMap'), { zoomControl: true }).setView([31.7, 35.2], 12);
-  L.tileLayer(TILE_URL, { subdomains: TILE_SUBDOMAINS }).addTo(map);
+  const map = L.map(overlay.querySelector('#svOfflineMap'), { zoomControl: true })
+    .setView([31.7, 35.2], 12);
+  L.tileLayer(TILE_URL, { subdomains: TILE_SUBDOMAINS, maxZoom: 19 }).addTo(map);
+
+  // Center on the volunteer's current position, if we can get it.
+  // Fall back silently to the initial view if permission denies.
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        map.setView([lat, lng], 14);
+        L.circleMarker([lat, lng], {
+          radius: 7,
+          color: '#4ea672',
+          fillColor: '#4ea672',
+          fillOpacity: 0.6,
+          weight: 2,
+        }).addTo(map).bindTooltip(tt('You are here', 'אתם כאן'));
+      },
+      () => {}, // silent
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  }
 
   let selectionRect = null;
   let selecting = false;

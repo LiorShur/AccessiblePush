@@ -86,6 +86,15 @@ export function renderHome(profile) {
         </ul>
       </div>
 
+      <div class="sv-card" id="svSubmissionsCard" hidden>
+        <div class="sv-card-title">${tt('Needs your attention', 'דורש טיפול')}</div>
+        <div class="sv-card-body" style="margin-bottom:10px">
+          ${tt('Surveys the coordinator sent back for fixes. Read the notes, address them, and resubmit.',
+               'סקרים שהרכז החזיר לתיקון. קראו את ההערות, תקנו והגישו שוב.')}
+        </div>
+        <div id="svSubmissionsList"></div>
+      </div>
+
       <div class="sv-btn-row" style="margin-top:auto">
         <button class="sv-btn sv-btn-ghost" id="svSignOutBtn">
           ${tt('Sign out', 'התנתק')}
@@ -125,9 +134,78 @@ export function renderHome(profile) {
     }, 400);
   }
 
-  // Load contribution stats + assignments in the background
+  // Load contribution stats + assignments + needs-fixes list in background
   loadContributions(profile).catch(err => console.warn('[Surveyor] Contrib load failed:', err));
   loadAssignments(profile).catch(err => console.warn('[Surveyor] Assignments load failed:', err));
+  loadNeedsFixesList(profile).catch(err => console.warn('[Surveyor] Needs-fixes load failed:', err));
+}
+
+/**
+ * Show the surveyor any of their routes the coordinator sent back for
+ * fixes, along with the reviewer's notes and a "Mark as fixed & resubmit"
+ * button. That button flips reviewStatus back to 'pending' — the actual
+ * "fix" happens in real life (the surveyor addresses the feedback: they
+ * might revisit the trail, correct metadata, add more photos, etc.).
+ * A future iteration can add in-app editing of trail name / accessibility
+ * survey / POIs; for the pilot, showing the notes and letting them
+ * resubmit is the workable minimum.
+ */
+async function loadNeedsFixesList(profile) {
+  const { db } = await import('../../firebase-setup.js');
+  const { collection, query, where, getDocs, updateDoc, doc, serverTimestamp } = await import(
+    'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js'
+  );
+
+  const q = query(
+    collection(db, 'routes'),
+    where('userEmail', '==', profile.email.toLowerCase()),
+    where('reviewStatus', '==', 'needs-fixes'),
+  );
+  const snap = await getDocs(q).catch(err => {
+    console.warn('[Surveyor] Needs-fixes query failed:', err.message);
+    return null;
+  });
+  if (!snap) return;
+
+  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (items.length === 0) return;
+
+  const card = document.getElementById('svSubmissionsCard');
+  const list = document.getElementById('svSubmissionsList');
+  if (!card || !list) return;
+
+  card.hidden = false;
+  list.innerHTML = items.map(r => `
+    <div class="sv-submission" data-id="${escapeHtml(r.id)}">
+      <div class="sv-submission-header">
+        <strong>${escapeHtml(r.routeName || '(untitled)')}</strong>
+        <span class="sv-status sv-status-warn">${tt('Needs fixes', 'דורש תיקון')}</span>
+      </div>
+      <div class="sv-submission-notes">${escapeHtml(r.reviewNotes || tt('No notes provided', 'לא סופקו הערות'))}</div>
+      <button class="sv-btn sv-btn-ghost" data-resubmit="${escapeHtml(r.id)}">
+        ${tt('Mark as fixed & resubmit', 'סמן כתוקן והגש שוב')}
+      </button>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-resubmit]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm(tt(
+        'Confirm you have addressed the coordinator\'s notes. This will send the survey back for review.',
+        'אשרו שטיפלתם בהערות הרכז. הסקר יישלח שוב לביקורת.'
+      ))) return;
+      try {
+        await updateDoc(doc(db, 'routes', btn.dataset.resubmit), {
+          reviewStatus: 'pending',
+          resubmittedAt: serverTimestamp(),
+        });
+        loadNeedsFixesList(profile);
+        loadContributions(profile);
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  });
 }
 
 /**
@@ -141,12 +219,19 @@ async function loadContributions(profile) {
   );
 
   const routesRef = collection(db, 'routes');
-  const base = [where('surveyorId', '==', profile.uid)];
+  // Consumer save flow writes userEmail as the surveyor's email — that's
+  // what we key on. Also matches the admin queue's query so counts stay
+  // consistent between what the surveyor sees and what the coordinator
+  // sees.
+  const emailLower = profile.email.toLowerCase();
+  const base = [where('userEmail', '==', emailLower)];
 
   const [total, pending, approved] = await Promise.all([
-    getCountFromServer(query(routesRef, ...base)),
-    getCountFromServer(query(routesRef, ...base, where('reviewStatus', '==', 'pending'))),
+    getCountFromServer(query(routesRef, ...base)).catch(() => ({ data: () => ({ count: 0 }) })),
+    getCountFromServer(query(routesRef, ...base, where('reviewStatus', '==', 'pending')))
+      .catch(() => ({ data: () => ({ count: 0 }) })),
     getCountFromServer(query(routesRef, ...base, where('reviewStatus', '==', 'approved')))
+      .catch(() => ({ data: () => ({ count: 0 }) })),
   ]);
 
   const setBadge = (id, count, cls) => {

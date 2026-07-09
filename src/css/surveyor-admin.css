@@ -140,6 +140,20 @@
   margin-bottom: 10px;
 }
 
+.sv-admin-card-notes {
+  padding: 10px 12px;
+  background: rgba(245, 165, 36, 0.12);
+  border-left: 3px solid var(--sv-warn);
+  border-radius: 6px;
+  font-size: 0.86rem;
+  color: var(--sv-text);
+  margin-bottom: 10px;
+}
+[dir="rtl"] .sv-admin-card-notes {
+  border-left: none;
+  border-right: 3px solid var(--sv-warn);
+}
+
 .sv-admin-card-actions {
   display: flex;
   gap: 10px;
