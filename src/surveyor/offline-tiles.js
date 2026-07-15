@@ -116,10 +116,10 @@ export async function openOfflineTiles() {
         <h2>${tt('Offline map area', 'איזור מפה לא-מקוונת')}</h2>
         <button class="sv-offline-close" aria-label="Close">×</button>
       </div>
-      <div class="sv-offline-hint">
+      <div class="sv-offline-hint" id="svOfflineHint">
         ${tt(
-          'Drag the map, then tap "Select area". Draw a box on the survey region. Smaller = faster download.',
-          'הזיזו את המפה ולחצו "בחר איזור". סמנו מלבן על איזור הסקר. איזור קטן יותר = הורדה מהירה יותר.'
+          'Pan and zoom to the survey area. Tap "Select area", then tap the map twice — once for each opposite corner of your rectangle. Smaller = faster download.',
+          'הזיזו והתקרבו לאיזור הסקר. לחצו "בחר איזור" ואז לחצו על המפה פעמיים — אחת בכל פינה מנוגדת של המלבן. איזור קטן יותר = הורדה מהירה יותר.'
         )}
       </div>
       <div class="sv-offline-map" id="svOfflineMap"></div>
@@ -139,71 +139,125 @@ export async function openOfflineTiles() {
   const close = () => overlay.remove();
   overlay.querySelector('.sv-offline-close').addEventListener('click', close);
 
-  const map = L.map(overlay.querySelector('#svOfflineMap'), { zoomControl: true })
-    .setView([31.7, 35.2], 12);
+  const mapEl = overlay.querySelector('#svOfflineMap');
+  const map = L.map(mapEl, { zoomControl: true }).setView([31.7, 35.2], 12);
   L.tileLayer(TILE_URL, { subdomains: TILE_SUBDOMAINS, maxZoom: 19 }).addTo(map);
 
-  // Center on the volunteer's current position, if we can get it.
-  // Fall back silently to the initial view if permission denies.
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        map.setView([lat, lng], 14);
-        L.circleMarker([lat, lng], {
-          radius: 7,
-          color: '#4ea672',
-          fillColor: '#4ea672',
-          fillOpacity: 0.6,
-          weight: 2,
-        }).addTo(map).bindTooltip(tt('You are here', 'אתם כאן'));
-      },
-      () => {}, // silent
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
-    );
-  }
+  // The modal is inserted synchronously but Leaflet needs one frame to
+  // measure its container. Without invalidateSize the map's internal
+  // size is 0, breaks all bounds math (CircleMarker._empty throws, etc).
+  requestAnimationFrame(() => {
+    map.invalidateSize();
 
-  let selectionRect = null;
+    // NOW we can safely set view + add markers
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude: lat, longitude: lng } = pos.coords;
+          map.setView([lat, lng], 14);
+          try {
+            L.circleMarker([lat, lng], {
+              radius: 7,
+              color: '#4ea672',
+              fillColor: '#4ea672',
+              fillOpacity: 0.6,
+              weight: 2,
+            }).addTo(map).bindTooltip(tt('You are here', 'אתם כאן'));
+          } catch (_) { /* map not ready yet */ }
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+      );
+    }
+  });
+
+  // ----------------------------------------------------------------
+  // Tap-tap corner selection. More robust than drag-to-draw across
+  // touch + mouse — no dragging, no browser gesture conflicts, no
+  // touchstart-vs-mousedown normalization issues. First tap sets one
+  // corner (marker appears); second tap sets the opposite corner and
+  // draws the rectangle.
+  // ----------------------------------------------------------------
   let selecting = false;
-  let dragStart = null;
+  let corners = [];      // 0, 1, or 2 latlngs
+  let cornerMarkers = [];
+  let selectionRect = null;
 
   const selectBtn = overlay.querySelector('#svOfflineSelect');
   const downloadBtn = overlay.querySelector('#svOfflineDownload');
   const summary = overlay.querySelector('#svOfflineSummary');
+  const hint = overlay.querySelector('#svOfflineHint');
+
+  function clearCorners() {
+    cornerMarkers.forEach(m => map.removeLayer(m));
+    cornerMarkers = [];
+    corners = [];
+    if (selectionRect) { map.removeLayer(selectionRect); selectionRect = null; }
+    downloadBtn.disabled = true;
+    summary.textContent = tt('No area selected', 'לא נבחר איזור');
+  }
+
+  function enterSelectMode() {
+    selecting = true;
+    clearCorners();
+    mapEl.style.cursor = 'crosshair';
+    selectBtn.textContent = tt('Cancel selection', 'בטל בחירה');
+    hint.textContent = tt(
+      'Tap the map to set the first corner.',
+      'לחצו על המפה כדי לסמן את הפינה הראשונה.');
+  }
+
+  function exitSelectMode() {
+    selecting = false;
+    mapEl.style.cursor = '';
+    selectBtn.textContent = selectionRect
+      ? tt('Re-select area', 'סמן איזור מחדש')
+      : tt('Select area', 'בחר איזור');
+  }
 
   selectBtn.addEventListener('click', () => {
-    selecting = true;
-    map.dragging.disable();
-    map.getContainer().style.cursor = 'crosshair';
-    selectBtn.textContent = tt('Draw box…', 'מסמנים…');
+    if (selecting) {
+      // Cancel mid-selection
+      exitSelectMode();
+      clearCorners();
+    } else {
+      enterSelectMode();
+    }
   });
 
-  map.on('mousedown touchstart', (e) => {
+  map.on('click', (e) => {
     if (!selecting) return;
-    const p = e.latlng || (e.touches?.[0] && map.mouseEventToLatLng(e.touches[0]));
-    if (!p) return;
-    dragStart = p;
-    if (selectionRect) map.removeLayer(selectionRect);
-    selectionRect = L.rectangle([dragStart, dragStart], { color: '#4ea672', weight: 2 }).addTo(map);
-  });
+    corners.push(e.latlng);
+    cornerMarkers.push(
+      L.circleMarker(e.latlng, {
+        radius: 6,
+        color: '#4ea672',
+        fillColor: '#4ea672',
+        fillOpacity: 0.9,
+        weight: 2,
+      }).addTo(map)
+    );
 
-  map.on('mousemove touchmove', (e) => {
-    if (!selecting || !dragStart) return;
-    const p = e.latlng || (e.touches?.[0] && map.mouseEventToLatLng(e.touches[0]));
-    if (!p || !selectionRect) return;
-    selectionRect.setBounds([dragStart, p]);
-    updateSummary();
-  });
+    if (corners.length === 1) {
+      hint.textContent = tt(
+        'Now tap the opposite corner.',
+        'עכשיו לחצו על הפינה הנגדית.');
+    }
 
-  map.on('mouseup touchend', () => {
-    if (!selecting) return;
-    selecting = false;
-    map.dragging.enable();
-    map.getContainer().style.cursor = '';
-    selectBtn.textContent = tt('Re-select area', 'סמן איזור מחדש');
-    dragStart = null;
-    updateSummary();
-    downloadBtn.disabled = !selectionRect;
+    if (corners.length === 2) {
+      // Draw the rectangle spanning both corners
+      selectionRect = L.rectangle(corners, {
+        color: '#4ea672',
+        weight: 2,
+        fillOpacity: 0.15,
+      }).addTo(map);
+      updateSummary();
+      downloadBtn.disabled = false;
+      exitSelectMode();
+      hint.textContent = tt(
+        'Selection ready. Tap Download to fetch tiles for offline use.',
+        'הבחירה מוכנה. לחצו הורד כדי לשמור אריחים לשימוש לא-מקוון.');
+    }
   });
 
   function updateSummary() {
