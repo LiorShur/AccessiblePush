@@ -95,7 +95,7 @@ export function renderHome(profile) {
         <div id="svSubmissionsList"></div>
       </div>
 
-      <div class="sv-btn-row" style="margin-top:auto">
+      <div class="sv-btn-row">
         <button class="sv-btn sv-btn-ghost" id="svSignOutBtn">
           ${tt('Sign out', 'התנתק')}
         </button>
@@ -106,11 +106,11 @@ export function renderHome(profile) {
   document.getElementById('svSignOutBtn')?.addEventListener('click', () => svSignOut());
 
   document.getElementById('svStartBtn')?.addEventListener('click', () => {
-    // Send surveyors to the battle-tested consumer tracker while we
-    // stabilize/trim the standalone surveyor-tracker.html. The
-    // ?surveyor=1 flag lets us layer surveyor-specific behaviour on
-    // top later (pre-flight, back-to-home, auto-tagging) without
-    // forking the tracker.
+    // Stash the surveyor-mode flag so the adapter can find it even
+    // when App Hosting rewrites tracker.html?surveyor=1 to /tracker
+    // and drops the query string. Query param is still set as a
+    // fallback + visible signal in the URL.
+    try { sessionStorage.setItem('sv_mode', '1'); } catch (_) {}
     window.location.href = 'tracker.html?surveyor=1';
   });
 

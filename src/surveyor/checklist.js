@@ -159,6 +159,9 @@ export function runChecklist({ tracker }) {
           const { clearAutosave } = await import('./autosave.js');
           clearAutosave();
         } catch (_) { /* non-critical */ }
+        // Clear surveyor-mode sessionStorage flag so future visits to
+        // /tracker don't spuriously reactivate surveyor mode.
+        try { sessionStorage.removeItem('sv_mode'); } catch (_) {}
         overlay.remove();
         alert(tt(
           'Thanks — your survey was submitted for review.',

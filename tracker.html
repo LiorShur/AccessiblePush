@@ -1894,9 +1894,16 @@ textarea:focus-visible,
   <script type="module" src="src/pwa/offlineMapsUI.js"></script>
   <script type="module" src="src/features/devTools.js"></script>
 
-  <!-- Surveyor mode adapter — only when ?surveyor=1 is present. -->
+  <!-- Surveyor mode adapter — only when ?surveyor=1 is present OR
+       sessionStorage carries the flag (App Hosting strips query
+       params during its /tracker.html → /tracker rewrite). -->
   <script type="module">
-    if (new URLSearchParams(location.search).has('surveyor')) {
+    var svQ = new URLSearchParams(location.search).has('surveyor');
+    var svS = false;
+    try { svS = sessionStorage.getItem('sv_mode') === '1'; } catch (_) {}
+    if (svQ || svS) {
+      // Re-affirm the sessionStorage flag so subsequent nav still counts as surveyor mode
+      try { sessionStorage.setItem('sv_mode', '1'); } catch (_) {}
       import('./src/surveyor/consumer-adapter.js');
     }
   </script>
