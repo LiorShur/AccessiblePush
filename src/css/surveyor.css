@@ -32,9 +32,12 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 16px;
   line-height: 1.4;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   -webkit-tap-highlight-color: transparent;
 }
+html { height: auto; overflow-y: auto; }
 
 /* ============================================
    BOOT SPLASH
@@ -101,13 +104,20 @@
 .sv-app {
   max-width: 560px;
   margin: 0 auto;
-  padding: 20px 20px 40px;
+  padding: 20px 20px 60px;
+  /* No min-height / flex — that combination trapped overflow when the
+     content grew past viewport height. Simple block layout scrolls
+     naturally. The centered variant below still uses flex for the
+     sign-in / access-denied pages where content IS short. */
+}
+
+.sv-app.centered {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
 }
-
-.sv-app.centered { justify-content: center; align-items: stretch; }
 
 .sv-header {
   display: flex;

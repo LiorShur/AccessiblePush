@@ -24,9 +24,18 @@ import { runChecklist } from './checklist.js';
 
 const HOME_URL = 'surveyor.html';
 
-// Guard — only run in surveyor mode
-if (!new URLSearchParams(location.search).has('surveyor')) {
-  console.log('[SurveyorAdapter] Skipped — ?surveyor=1 flag not present');
+// Guard — surveyor mode is signalled by ?surveyor=1 in the URL OR the
+// sv_mode sessionStorage flag (App Hosting strips query params during
+// its cleanUrls rewrite, so the sessionStorage fallback keeps the mode
+// alive after that redirect).
+function inSurveyorMode() {
+  if (new URLSearchParams(location.search).has('surveyor')) return true;
+  try { return sessionStorage.getItem('sv_mode') === '1'; }
+  catch (_) { return false; }
+}
+
+if (!inSurveyorMode()) {
+  console.log('[SurveyorAdapter] Skipped — surveyor mode flag not present');
 } else {
   injectSurveyorStyles();
   boot().catch(err => console.error('[SurveyorAdapter] Boot failed:', err));
@@ -101,9 +110,15 @@ function installBanner() {
   banner.id = 'svModeBanner';
   banner.innerHTML = `
     <span>✅ ${isHe ? 'מצב סוקר' : 'Surveyor mode'}</span>
-    <a href="${HOME_URL}">← ${isHe ? 'חזרה לבית' : 'Back to home'}</a>
+    <a href="${HOME_URL}" id="svBackHome">← ${isHe ? 'חזרה לבית' : 'Back to home'}</a>
   `;
   document.body.appendChild(banner);
+
+  // Clear the sessionStorage flag on Back to home so future non-surveyor
+  // visits to /tracker don't trip the adapter.
+  banner.querySelector('#svBackHome')?.addEventListener('click', () => {
+    try { sessionStorage.removeItem('sv_mode'); } catch (_) {}
+  });
 
   const style = document.createElement('style');
   style.textContent = `
