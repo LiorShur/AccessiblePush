@@ -205,6 +205,12 @@ export async function openOfflineTiles() {
     hint.textContent = tt(
       'Tap the map to set the first corner.',
       'לחצו על המפה כדי לסמן את הפינה הראשונה.');
+    // Disable dragging so a tap definitely registers as a click and
+    // isn't consumed by Leaflet's drag threshold. Also disable the
+    // iOS-only Tap handler, which sometimes swallows single taps
+    // when it thinks a scroll gesture might follow.
+    try { map.dragging.disable(); } catch (_) {}
+    try { map.tap && map.tap.disable(); } catch (_) {}
   }
 
   function exitSelectMode() {
@@ -213,6 +219,8 @@ export async function openOfflineTiles() {
     selectBtn.textContent = selectionRect
       ? tt('Re-select area', 'סמן איזור מחדש')
       : tt('Select area', 'בחר איזור');
+    try { map.dragging.enable(); } catch (_) {}
+    try { map.tap && map.tap.enable(); } catch (_) {}
   }
 
   selectBtn.addEventListener('click', () => {
@@ -225,11 +233,13 @@ export async function openOfflineTiles() {
     }
   });
 
-  map.on('click', (e) => {
+  // Shared corner-tap handler
+  const handleCornerTap = (latlng) => {
     if (!selecting) return;
-    corners.push(e.latlng);
+    if (!latlng || typeof latlng.lat !== 'number') return;
+    corners.push(latlng);
     cornerMarkers.push(
-      L.circleMarker(e.latlng, {
+      L.circleMarker(latlng, {
         radius: 6,
         color: '#4ea672',
         fillColor: '#4ea672',
@@ -245,7 +255,6 @@ export async function openOfflineTiles() {
     }
 
     if (corners.length === 2) {
-      // Draw the rectangle spanning both corners
       selectionRect = L.rectangle(corners, {
         color: '#4ea672',
         weight: 2,
@@ -258,7 +267,30 @@ export async function openOfflineTiles() {
         'Selection ready. Tap Download to fetch tiles for offline use.',
         'הבחירה מוכנה. לחצו הורד כדי לשמור אריחים לשימוש לא-מקוון.');
     }
+  };
+
+  // Primary: Leaflet's normalized click. e.latlng is set for both
+  // mouse click and tap.
+  map.on('click', (e) => handleCornerTap(e.latlng));
+
+  // Fallback: some browser/Leaflet combinations don't fire the map
+  // 'click' event on touch even with tap.disable(). A container-level
+  // click handler catches them. Guarded by a small dedupe timer so
+  // we don't double-record a single tap that fires both events.
+  let lastTapAt = 0;
+  mapEl.addEventListener('click', (e) => {
+    if (!selecting) return;
+    // Ignore clicks on the zoom control or any other Leaflet UI chrome
+    if (e.target.closest('.leaflet-control-container')) return;
+    if (Date.now() - lastTapAt < 400) return;
+    lastTapAt = Date.now();
+    const rect = mapEl.getBoundingClientRect();
+    const point = L.point(e.clientX - rect.left, e.clientY - rect.top);
+    const latlng = map.containerPointToLatLng(point);
+    handleCornerTap(latlng);
   });
+  // Update the dedupe timer whenever Leaflet's own click fires first
+  map.on('click', () => { lastTapAt = Date.now(); });
 
   function updateSummary() {
     if (!selectionRect) return;
