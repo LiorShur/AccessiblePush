@@ -30,6 +30,7 @@ const COPY_LIST = [
   'surveyor.html',
   'surveyor-tracker.html',
   'surveyor-admin.html',
+  'volunteer-brief.html',
 
   // JavaScript
   'sw.js',

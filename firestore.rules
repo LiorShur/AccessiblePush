@@ -1,161 +1,196 @@
 rules_version = '2';
+
+// ---------------------------------------------------------------
+// Access Nature — Firestore security rules
+//
+// IMPORTANT: This file must match what's actually deployed. Deploy
+// with: firebase deploy --only firestore:rules
+//
+// The rules keep two collections open to any signed-in user (routes
+// and trail_guides) because the pilot targets a small, trusted group.
+// Tighten before public launch: block owner-updates of isPublic and
+// reviewStatus so surveyors can't self-publish.
+// ---------------------------------------------------------------
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function: Check if user is authenticated
-    function isAuthenticated() {
+    // ==================== HELPERS ====================
+
+    function isSignedIn() {
       return request.auth != null;
     }
 
-    // Helper function: Check if user owns the document
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+    function isOwner() {
+      return isSignedIn() && request.auth.uid == resource.data.userId;
     }
 
-    // Helper function: Check if user is an admin
+    function isCreator() {
+      return isSignedIn() && request.auth.uid == request.resource.data.userId;
+    }
+
     function isAdmin() {
-      return isAuthenticated() &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    // ============================================
-    // USER DATA
-    // ============================================
+    // ==================== ROUTES ====================
+    // Owners read/update/delete their own; admins full access. Any
+    // signed-in user can create (route ownership set at write time).
 
-    // User profiles - users can only read/write their own profile
-    match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
-
-      // User's saved routes
-      match /routes/{routeId} {
-        allow read: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isOwner(userId);
-        allow delete: if isOwner(userId);
-      }
-
-      // User's trail guides
-      match /guides/{guideId} {
-        allow read: if isOwner(userId);
-        allow create: if isOwner(userId);
-        allow update: if isOwner(userId);
-        allow delete: if isOwner(userId);
-      }
-
-      // User's preferences/settings
-      match /settings/{settingId} {
-        allow read: if isOwner(userId);
-        allow write: if isOwner(userId);
-      }
+    match /routes/{routeId} {
+      allow read: if isOwner() || isAdmin();
+      allow create: if isCreator();
+      allow update: if isOwner() || isAdmin();
+      allow delete: if isOwner() || isAdmin();
     }
 
-    // ============================================
-    // TRAIL GUIDES (PUBLIC SHARED)
-    // ============================================
+    // ==================== TRAIL GUIDES ====================
+    // Public guides readable by anyone; owner + admin full access.
 
-    // Public trail guides - anyone can read, only owner can modify
     match /trail_guides/{guideId} {
-      // Anyone can read published guides
-      allow read: if resource.data.isPublic == true || isOwner(resource.data.userId);
-
-      // Only authenticated users can create
-      allow create: if isAuthenticated() &&
-        request.resource.data.userId == request.auth.uid;
-
-      // Only owner can update/delete
-      allow update: if isOwner(resource.data.userId);
-      allow delete: if isOwner(resource.data.userId);
+      allow read: if resource.data.isPublic == true || isOwner() || isAdmin();
+      allow create: if isCreator();
+      allow update: if isOwner() || isAdmin();
+      allow delete: if isOwner() || isAdmin();
     }
 
-    // ============================================
-    // BARRIER REPORTS
-    // ============================================
+    // ==================== TRAIL CONDITIONS ====================
 
-    // Barrier reports - public read, authenticated create, owner or admin modify
-    match /barrier_reports/{reportId} {
-      // Anyone can read reports
+    match /trail_conditions/{conditionId} {
       allow read: if true;
+      allow create: if isCreator();
+      allow update: if isOwner() || isAdmin();
+      allow delete: if isOwner() || isAdmin();
 
-      // Authenticated users can create reports
-      allow create: if isAuthenticated() &&
-        request.resource.data.userId == request.auth.uid;
+      // Any signed-in user can update engagement status fields
+      allow update: if isSignedIn() &&
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['fixedReports', 'fixedReportsCount',
+                                  'notFoundReports', 'notFoundReportsCount',
+                                  'lastStatusUpdate', 'expiresAt',
+                                  'autoExpiredReason']);
+    }
 
-      // Owner can update their own reports
-      allow update: if isOwner(resource.data.userId) || isAdmin();
+    // ==================== ACCESSIBILITY REPORTS ====================
 
-      // Only admin can delete
-      allow delete: if isAdmin();
+    match /accessibilityReports/{reportId} {
+      allow read: if resource.data.isPublic == true || isOwner() || isAdmin();
+      allow list: if isSignedIn() || isAdmin();
+      allow create: if isCreator();
+      allow update: if isOwner() || isAdmin();
+      allow delete: if isOwner() || isAdmin();
 
-      // Verifications on reports
-      match /verifications/{verificationId} {
+      // Any signed-in user can update engagement fields
+      allow update: if isSignedIn() &&
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['upvotes', 'upvotedBy', 'verificationCount',
+                                  'verifiedBy', 'lastVerifiedAt']);
+
+      match /comments/{commentId} {
         allow read: if true;
-        allow create: if isAuthenticated();
-        allow update, delete: if isAdmin();
+        allow write: if isSignedIn();
       }
     }
 
-    // ============================================
-    // BETA FEEDBACK
-    // ============================================
+    // ==================== USERS ====================
 
-    // Beta feedback - anyone can create, only admin can read
+    match /users/{userId} {
+      allow read: if isSignedIn() || isAdmin();
+      allow write: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
+    }
+
+    // ==================== NOTIFICATIONS ====================
+
+    match /reportNotifications/{notificationId} {
+      allow read: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow write: if isSignedIn() && request.resource.data.userId == request.auth.uid || isAdmin();
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid || isAdmin();
+    }
+
+    // ==================== STATS ====================
+
+    match /reportStats/{statId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /stats/{statId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // ==================== AUTHORITIES ====================
+
+    match /authorities/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // ==================== BETA FEEDBACK ====================
+    // Anyone can submit (even anonymous surveyors mid-session); only
+    // admins can read. Used by the surveyor "Report a problem" button
+    // and any general in-app feedback.
+
     match /beta_feedback/{feedbackId} {
-      // Anyone can submit feedback (even anonymous)
       allow create: if true;
-
-      // Only admins can read feedback
       allow read: if isAdmin();
-
-      // Only admins can update/delete
       allow update, delete: if isAdmin();
     }
 
-    // ============================================
-    // ANNOUNCEMENTS
-    // ============================================
+    // ==================== PUSH NOTIFICATIONS ====================
 
-    // Announcements - public read, admin write
-    match /announcements/{announcementId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // ============================================
-    // ADMIN COLLECTION
-    // ============================================
-
-    // Admin list - only existing admins can read/modify
-    match /admins/{adminId} {
+    match /app_config/{configId} {
       allow read: if isAdmin();
       allow write: if isAdmin();
     }
 
-    // ============================================
-    // COMMUNITY CHALLENGES (if implemented)
-    // ============================================
-
-    match /challenges/{challengeId} {
-      allow read: if true;
-      allow write: if isAdmin();
-
-      match /participants/{participantId} {
-        allow read: if true;
-        allow create: if isOwner(participantId);
-        allow update: if isOwner(participantId);
-        allow delete: if isOwner(participantId) || isAdmin();
-      }
+    match /push_subscriptions/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isAdmin();
     }
 
-    // ============================================
-    // CATCH-ALL: Deny everything else
-    // ============================================
+    match /notifications_queue/{notificationId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false; // Cloud Functions only
+    }
 
-    // Default deny for any unmatched paths
-    match /{document=**} {
-      allow read, write: if false;
+    match /notifications_sent/{notificationId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update: if false; // Cloud Functions only
+    }
+
+    // ==================== ANNOUNCEMENTS ====================
+
+    match /announcements/{announcementId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ==================== SURVEYOR PROGRAMME ====================
+
+    // Admin roster — a user can read their own admin doc (needed by the
+    // client-side coordinator check). Admins can grant admin to others.
+    match /admins/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if isAdmin();
+    }
+
+    // Surveyor whitelist. Doc id = lowercased email. A signed-in user
+    // can read their own doc for the whitelist check; admins manage.
+    match /surveyors/{email} {
+      allow read: if isSignedIn()
+                  && request.auth.token.email.lower() == email;
+      allow list, write: if isAdmin();
+    }
+
+    // Trail assignments — any signed-in user reads (surveyor sees their
+    // list); admins write.
+    match /trail_assignments/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
   }
 }

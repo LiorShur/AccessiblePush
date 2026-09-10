@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Nature — Surveyor Brief</title>
+  <style>
+    :root {
+      --ink: #0f172a;
+      --dim: #475569;
+      --line: #cbd5e1;
+      --accent: #2c5530;
+      --warn: #b45309;
+      --danger: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #f8fafc;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                   'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .brief {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 28px 32px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--accent);
+      margin-bottom: 18px;
+    }
+    header .title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0;
+    }
+    header .lang-toggle {
+      font-size: 0.85rem;
+      color: var(--dim);
+    }
+    header .lang-toggle a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px dashed var(--accent);
+    }
+    h2 {
+      margin: 20px 0 8px;
+      font-size: 1.05rem;
+      color: var(--accent);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 4px;
+    }
+    p, li { margin: 4px 0; }
+    ol, ul {
+      margin: 6px 0 10px 0;
+      padding-left: 22px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 8px;
+    }
+    .callout {
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-size: 0.92rem;
+    }
+    .callout--warn { background: #fef3c7; border-left: 4px solid var(--warn); }
+    .callout--danger { background: #fee2e2; border-left: 4px solid var(--danger); }
+    .callout--info { background: #e0f2fe; border-left: 4px solid #0369a1; }
+    code {
+      background: #f1f5f9;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 0.88em;
+    }
+    .contact {
+      margin-top: 22px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      color: var(--dim);
+      font-size: 0.85rem;
+    }
+    .print-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    @media print {
+      body { padding: 0; background: #fff; font-size: 11px; }
+      .brief { box-shadow: none; padding: 12mm; max-width: none; border-radius: 0; }
+      .print-btn { display: none; }
+      header { padding-bottom: 8px; margin-bottom: 12px; }
+      h2 { margin: 12px 0 4px; }
+      .grid { gap: 14px; }
+    }
+    [dir="rtl"] header .lang-toggle a,
+    [dir="rtl"] .callout--warn,
+    [dir="rtl"] .callout--danger,
+    [dir="rtl"] .callout--info { direction: rtl; }
+    [dir="rtl"] .callout--warn,
+    [dir="rtl"] .callout--danger,
+    [dir="rtl"] .callout--info { border-left: none; border-right: 4px solid; }
+    [dir="rtl"] .callout--warn { border-right-color: var(--warn); }
+    [dir="rtl"] .callout--danger { border-right-color: var(--danger); }
+    [dir="rtl"] .callout--info { border-right-color: #0369a1; }
+    [dir="rtl"] ol, [dir="rtl"] ul { padding-left: 0; padding-right: 22px; }
+  </style>
+</head>
+<body>
+  <button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+
+  <div class="brief" id="briefEn">
+    <header>
+      <h1 class="title">Access Nature — Surveyor Brief</h1>
+      <span class="lang-toggle">
+        <a href="#" onclick="toggle('he');return false">עברית ↺</a>
+      </span>
+    </header>
+
+    <p>Welcome — you're about to help make Israeli trails accessible for
+    people who need to know before they arrive. This one-pager covers
+    what to record, how, and what to do when things go sideways.</p>
+
+    <div class="grid">
+      <div>
+        <h2>1 · Before you leave home</h2>
+        <ul>
+          <li>Phone battery <strong>≥ 70%</strong> + power bank in pack</li>
+          <li>Tell someone your route and expected return time</li>
+          <li>Water, sun protection, weather-appropriate gear</li>
+          <li>If area has weak signal: pre-load the map by browsing it on Wi-Fi first</li>
+          <li>Sign into <code>surveyor.html</code> on your phone (bookmark it)</li>
+        </ul>
+
+        <h2>2 · At the trailhead</h2>
+        <ul>
+          <li>Stand at the <em>actual</em> start of the trail</li>
+          <li>Wait until GPS accuracy is <strong>≤ 10 m</strong></li>
+          <li>Photograph the trailhead sign and parking</li>
+          <li>Note: parking type, restrooms, water source</li>
+          <li>Tap <strong>▶ Start Survey</strong> → pre-flight modal appears</li>
+        </ul>
+
+        <h2>3 · Along the trail</h2>
+        <ul>
+          <li>Walk at normal pace on the main path</li>
+          <li>Every 200–300 m, ask: <em>anything to note here?</em></li>
+          <li>Blue camera button = quick POI capture</li>
+          <li>Big green + = detailed POI with survey fields</li>
+          <li>Note obstacles, steep sections, benches, viewpoints, hazards</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2>4 · What makes a good POI photo</h2>
+        <ul>
+          <li>Feature centered, in focus, well-lit</li>
+          <li>Show context (path + feature together)</li>
+          <li>If it's a hazard: shoot from the direction of approach</li>
+        </ul>
+
+        <h2>5 · The accessibility survey</h2>
+        <p>Fill this during (not after). Tap the 📋 <strong>Survey</strong>
+        button any time. Answer what you actually see — leave blanks empty rather than guess.</p>
+
+        <h2>6 · Finishing up</h2>
+        <ol>
+          <li>Tap <strong>■ Stop</strong> at the actual endpoint</li>
+          <li>Checklist modal appears with a 0–100 completeness score</li>
+          <li>Fill in trail name; tick the 5 confirmations</li>
+          <li>Tap <strong>Submit</strong> — coordinator reviews before publishing</li>
+        </ol>
+
+        <h2>7 · When things go wrong</h2>
+        <div class="callout callout--warn">
+          <strong>App misbehaves:</strong> tap Home → Report a problem →
+          describe it. Details attach automatically.
+        </div>
+        <div class="callout callout--danger">
+          <strong>Injury / danger:</strong> stop surveying, call emergency
+          services first. Update coordinator when safe.
+        </div>
+        <div class="callout callout--info">
+          <strong>Battery / signal dying:</strong> tap Stop, submit whatever you have.
+          A partial survey the coordinator can review is better than none.
+        </div>
+
+        <h2>8 · Do's &amp; don'ts</h2>
+        <ul>
+          <li>✅ Survey trails you know well</li>
+          <li>✅ Take multiple photos of key POIs</li>
+          <li>❌ Don't invent measurements (leave the field empty)</li>
+          <li>❌ Don't take photos of people without consent</li>
+          <li>❌ Don't survey in unsafe weather / lighting</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="contact">
+      <span>Coordinator: <strong id="coordName">Lior</strong>
+        · WhatsApp: <strong id="coordWa">[fill in]</strong></span>
+      <span>Version 1 · <span id="date"></span></span>
+    </div>
+  </div>
+
+  <div class="brief" id="briefHe" hidden dir="rtl">
+    <header>
+      <h1 class="title">Access Nature — תדריך למתנדב סוקר</h1>
+      <span class="lang-toggle">
+        <a href="#" onclick="toggle('en');return false">↻ English</a>
+      </span>
+    </header>
+
+    <p>ברוכים הבאים — אתם עומדים לעזור להנגיש שבילים בישראל לאנשים
+    שצריכים לדעת לפני שהם מגיעים. עמוד אחד: מה לתעד, איך, ומה לעשות
+    כשמשהו הולך לא כמצופה.</p>
+
+    <div class="grid">
+      <div>
+        <h2>1 · לפני שיוצאים מהבית</h2>
+        <ul>
+          <li>סוללה <strong>מעל 70%</strong> + סוללת גיבוי בתיק</li>
+          <li>ספרו למישהו על המסלול ומועד החזרה הצפוי</li>
+          <li>מים, הגנה מהשמש, ציוד מתאים למזג האוויר</li>
+          <li>אם יש קליטה חלשה: טענו את המפה מראש ב-Wi-Fi</li>
+          <li>התחברו ל-<code>surveyor.html</code> בטלפון (הוסיפו למועדפים)</li>
+        </ul>
+
+        <h2>2 · בכניסה לשביל</h2>
+        <ul>
+          <li>עמדו בכניסה <em>בפועל</em> לשביל</li>
+          <li>חכו לדיוק GPS של <strong>עד 10 מטר</strong></li>
+          <li>צלמו את השילוט בכניסה ואת החניה</li>
+          <li>סמנו: סוג חניה, שירותים, מקורות מים</li>
+          <li>לחצו <strong>▶ התחל סקר</strong> — בדיקת מוכנות תופיע</li>
+        </ul>
+
+        <h2>3 · לאורך השביל</h2>
+        <ul>
+          <li>הליכה בקצב רגיל בשביל הראשי</li>
+          <li>כל 200–300 מטר: <em>יש כאן משהו לתעד?</em></li>
+          <li>כפתור מצלמה כחול = הוספת נקודה מהירה</li>
+          <li>+ ירוק גדול = נקודה מפורטת עם שדות סקר</li>
+          <li>סמנו מכשולים, מדרונות, ספסלים, תצפיות, סכנות</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2>4 · תמונת נקודת עניין טובה</h2>
+        <ul>
+          <li>האלמנט במרכז, ממוקד, מואר</li>
+          <li>הראו הקשר (שביל + אלמנט יחד)</li>
+          <li>אם סכנה — צלמו מכיוון ההגעה</li>
+        </ul>
+
+        <h2>5 · סקר הנגישות</h2>
+        <p>מלאו במהלך (לא אחרי). לחצו על 📋 <strong>סקר</strong>
+        בכל שלב. ענו על מה שאתם באמת רואים — עדיף להשאיר ריק מאשר לנחש.</p>
+
+        <h2>6 · סיום</h2>
+        <ol>
+          <li>לחצו <strong>■ עצור</strong> בנקודת הסיום בפועל</li>
+          <li>תופיע רשימת בקרה עם ציון שלמות 0–100</li>
+          <li>מלאו שם שביל וסמנו 5 אישורים</li>
+          <li>לחצו <strong>הגש</strong> — הרכז יבדוק לפני פרסום</li>
+        </ol>
+
+        <h2>7 · כשמשהו לא עובד</h2>
+        <div class="callout callout--warn">
+          <strong>האפליקציה מתנהגת מוזר:</strong> בבית → דיווח על תקלה → תארו.
+          הפרטים יצורפו אוטומטית.
+        </div>
+        <div class="callout callout--danger">
+          <strong>פציעה או סכנה:</strong> הפסיקו את הסקר, התקשרו קודם למד"א/משטרה.
+          עדכנו את הרכז כשבטוח.
+        </div>
+        <div class="callout callout--info">
+          <strong>סוללה או קליטה נחלשות:</strong> לחצו עצור, הגישו מה שיש.
+          סקר חלקי שהרכז יכול לבדוק עדיף מכלום.
+        </div>
+
+        <h2>8 · מותר ואסור</h2>
+        <ul>
+          <li>✅ סקרו שבילים שאתם מכירים היטב</li>
+          <li>✅ צלמו מספר תמונות של נקודות מפתח</li>
+          <li>❌ אל תמציאו מדידות (השאירו ריק)</li>
+          <li>❌ אל תצלמו אנשים בלי הסכמה</li>
+          <li>❌ אל תסקרו בתנאי מזג אוויר או תאורה מסוכנים</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="contact">
+      <span>רכז: <strong>ליאור</strong> · WhatsApp: <strong>[למלא]</strong></span>
+      <span>גרסה 1 · <span id="dateHe"></span></span>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('date').textContent = new Date().toISOString().slice(0, 10);
+    document.getElementById('dateHe').textContent = new Date().toISOString().slice(0, 10);
+
+    function toggle(lang) {
+      document.getElementById('briefEn').hidden = (lang !== 'en');
+      document.getElementById('briefHe').hidden = (lang !== 'he');
+      document.documentElement.setAttribute('lang', lang);
+      document.documentElement.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
+    }
+
+    // Default to whatever the app's default language is
+    var appLang = localStorage.getItem('accessNature_language') || 'he';
+    if (appLang === 'he') toggle('he');
+  </script>
+</body>
+</html>
