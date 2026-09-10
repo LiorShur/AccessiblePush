@@ -51,3 +51,4 @@ release-signing.properties
 
 # Local Capacitor config overrides
 capacitor.config.local.ts
+!android/app/google-services.json
