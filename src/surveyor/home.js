@@ -55,9 +55,15 @@ export function renderHome(profile) {
             </button>
           </li>
           <li>
-            <span>${tt('Offline map area', 'איזור מפה לא מקוונת')}</span>
-            <button class="sv-btn sv-btn-ghost" style="width:auto;min-height:36px;padding:0 14px" id="svOfflineBtn">
-              ${tt('Setup', 'הגדר')}
+            <span>${tt('Volunteer brief (1 page)', 'תדריך למתנדב (עמוד אחד)')}</span>
+            <a class="sv-btn sv-btn-ghost" style="width:auto;min-height:36px;padding:0 14px;text-decoration:none" href="volunteer-brief.html" target="_blank" rel="noopener">
+              ${tt('Open', 'פתח')}
+            </a>
+          </li>
+          <li>
+            <span>${tt('Report a problem', 'דיווח על תקלה')}</span>
+            <button class="sv-btn sv-btn-ghost" style="width:auto;min-height:36px;padding:0 14px" id="svReportBtn">
+              ${tt('Report', 'דווח')}
             </button>
           </li>
         </ul>
@@ -105,11 +111,16 @@ export function renderHome(profile) {
 
   document.getElementById('svSignOutBtn')?.addEventListener('click', () => svSignOut());
 
-  document.getElementById('svStartBtn')?.addEventListener('click', () => {
+  document.getElementById('svStartBtn')?.addEventListener('click', async () => {
+    // First-survey welcome checklist — one-time, blocks the flow until
+    // the volunteer acknowledges the practical readiness items.
+    const { runWelcomeChecklist } = await import('./welcome.js');
+    const ready = await runWelcomeChecklist();
+    if (!ready) return;
+
     // Stash the surveyor-mode flag so the adapter can find it even
     // when App Hosting rewrites tracker.html?surveyor=1 to /tracker
-    // and drops the query string. Query param is still set as a
-    // fallback + visible signal in the URL.
+    // and drops the query string.
     try { sessionStorage.setItem('sv_mode', '1'); } catch (_) {}
     window.location.href = 'tracker.html?surveyor=1';
   });
@@ -120,9 +131,9 @@ export function renderHome(profile) {
     localStorage.setItem(TUTORIAL_KEY, '1');
   });
 
-  document.getElementById('svOfflineBtn')?.addEventListener('click', async () => {
-    const { openOfflineTiles } = await import('./offline-tiles.js');
-    await openOfflineTiles();
+  document.getElementById('svReportBtn')?.addEventListener('click', async () => {
+    const { openReportModal } = await import('./report.js');
+    await openReportModal({ profile });
   });
 
   // Auto-open tutorial on first launch

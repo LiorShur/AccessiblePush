@@ -12,12 +12,27 @@ const config: CapacitorConfig = {
     // cleartext: true,
     androidScheme: 'https',
     allowNavigation: [
-      'accessnaturebeta-821a2.firebaseapp.com',
+      // Firebase Auth handler (project: accessible-76181)
+      'accessible-76181.firebaseapp.com',
+      'accessible-76181.web.app',
+      // Firebase infra
       '*.firebaseio.com',
       '*.googleapis.com',
       '*.gstatic.com',
+      '*.firebaseapp.com',
+      // Google Sign-In popup
+      'accounts.google.com',
+      // App Hosting deploy target
+      'lstm2016--accessible-76181.us-central1.hosted.app',
+      // Cloud Functions (identifyPOI vision endpoint)
+      'us-central1-accessible-76181.cloudfunctions.net',
+      // Public web hosts
+      'liorshur.github.io',
+      // Map + geocoder providers
       'nominatim.openstreetmap.org',
       '*.tile.openstreetmap.org',
+      '*.basemaps.cartocdn.com',
+      // Error tracking
       '*.sentry.io'
     ]
   },
