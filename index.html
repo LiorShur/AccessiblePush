@@ -4,7 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Accessible - Making Paths Clear For Everyone</title>
-  
+
+  <!-- BETA-ONLY: Wrapped Android APK is distributed only to surveyors.
+       Redirect the app's default entry point to surveyor.html so it
+       lands in surveyor mode on launch. PWA / normal browser users are
+       untouched (they only hit this path if they typed the URL). Remove
+       this block after the beta closes to restore consumer landing. -->
+  <script>
+    (function () {
+      // Detect Capacitor wrapped app. window.Capacitor is injected by
+      // the native bridge synchronously before any user JS runs; UA
+      // check is a belt-and-suspenders fallback for older wrapper
+      // versions and for the "PWA installed to home screen" path
+      // where you also usually want surveyor mode.
+      var isWrapped = !!window.Capacitor
+        || / Capacitor\//.test(navigator.userAgent)
+        || / AccessNatureApp/.test(navigator.userAgent);
+      // Also treat "installed to home screen as standalone PWA" as
+      // wrapped-ish, so surveyors who chose the PWA path also land
+      // straight in surveyor mode.
+      var isStandalone = window.matchMedia
+        && window.matchMedia('(display-mode: standalone)').matches;
+      var alreadyOptedOut = new URLSearchParams(location.search).has('consumer');
+      if ((isWrapped || isStandalone) && !alreadyOptedOut) {
+        location.replace('surveyor.html');
+      }
+    })();
+  </script>
+
   <!-- Preconnect to external origins for faster loading -->
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
