@@ -11,7 +11,14 @@
  */
 
 import { auth, db } from '../../firebase-setup.js';
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js';
+import {
+  onAuthStateChanged,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  GoogleAuthProvider,
+  signOut,
+} from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js';
 
 import { renderHome } from './home.js';
@@ -80,14 +87,45 @@ function renderSignIn() {
     </div>
   `);
   document.getElementById('svSignInBtn')?.addEventListener('click', async () => {
+    const provider = new GoogleAuthProvider();
+    // In wrapped WebViews (Capacitor iOS/Android), signInWithPopup fails
+    // with auth/argument-error or auth/operation-not-supported. Detect
+    // that early and use redirect flow instead.
+    if (isWrappedWebView()) {
+      try {
+        await signInWithRedirect(auth, provider);
+      } catch (err) {
+        console.warn('[Surveyor] Redirect sign-in failed:', err);
+        alert(tt('Sign-in failed: ', 'ההתחברות נכשלה: ') + err.message);
+      }
+      return;
+    }
+    // Normal browser / PWA — popup works fine
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
-      // onAuthStateChanged listener will re-render
+      await signInWithPopup(auth, provider);
     } catch (err) {
-      console.warn('[Surveyor] Sign-in failed:', err);
-      alert(tt('Sign-in failed. Please try again.', 'ההתחברות נכשלה. נסה שוב.'));
+      console.warn('[Surveyor] Popup sign-in failed:', err);
+      // Fallback to redirect if popup somehow refuses in a non-wrapped env
+      if (err.code === 'auth/popup-blocked'
+          || err.code === 'auth/operation-not-supported-in-this-environment'
+          || err.code === 'auth/argument-error') {
+        try {
+          await signInWithRedirect(auth, provider);
+        } catch (err2) {
+          console.warn('[Surveyor] Redirect fallback also failed:', err2);
+          alert(tt('Sign-in failed: ', 'ההתחברות נכשלה: ') + err2.message);
+        }
+      } else {
+        alert(tt('Sign-in failed: ', 'ההתחברות נכשלה: ') + err.message);
+      }
     }
   });
+}
+
+function isWrappedWebView() {
+  return !!window.Capacitor
+    || / Capacitor\//.test(navigator.userAgent)
+    || location.protocol === 'capacitor:';
 }
 
 function renderAccessDenied(user, reason) {
@@ -112,6 +150,21 @@ function renderAccessDenied(user, reason) {
   `);
   document.getElementById('svSignOutBtn')?.addEventListener('click', () => signOut(auth));
 }
+
+// Complete any pending redirect-based sign-in. This resolves the
+// signInWithRedirect flow when the user comes back to the app. If no
+// redirect happened, getRedirectResult returns null and we proceed
+// with the normal auth flow. Errors here are non-fatal — auth listener
+// still fires.
+getRedirectResult(auth)
+  .then((result) => {
+    if (result?.user) {
+      console.log('[Surveyor] Completed redirect sign-in for', result.user.email);
+    }
+  })
+  .catch((err) => {
+    console.warn('[Surveyor] Redirect-result error (non-fatal):', err?.code, err?.message);
+  });
 
 /**
  * Boot sequence — listens to Firebase auth state and routes accordingly.
