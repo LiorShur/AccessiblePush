@@ -373,6 +373,174 @@ html { height: auto; overflow-y: auto; }
 }
 
 /* ============================================
+   AUTH GATE (multi-provider sign in / register)
+   ============================================ */
+.sv-auth-card {
+  background: var(--sv-surface);
+  border: 1px solid var(--sv-border);
+  border-radius: 16px;
+  padding: 24px 22px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.sv-auth-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.sv-auth-icon {
+  font-size: 2.4rem;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.sv-auth-header h2 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  color: var(--sv-text);
+}
+.sv-auth-header p {
+  margin: 0;
+  color: var(--sv-text-dim);
+  font-size: 0.88rem;
+}
+
+.sv-auth-note {
+  background: rgba(245,165,36,0.12);
+  border-left: 3px solid var(--sv-warn);
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--sv-text);
+  font-size: 0.82rem;
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+[dir="rtl"] .sv-auth-note {
+  border-left: none;
+  border-right: 3px solid var(--sv-warn);
+}
+
+.sv-auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--sv-surface-2);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+.sv-auth-tab {
+  background: transparent;
+  border: none;
+  color: var(--sv-text-dim);
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.sv-auth-tab.active {
+  background: var(--sv-surface);
+  color: var(--sv-text);
+}
+
+.sv-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sv-auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sv-auth-field[hidden] { display: none; }
+.sv-auth-field > span {
+  font-size: 0.78rem;
+  color: var(--sv-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.sv-auth-field input {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--sv-border);
+  background: var(--sv-surface-2);
+  color: var(--sv-text);
+  font-size: 1rem;
+  font-family: inherit;
+}
+.sv-auth-field input:focus {
+  outline: none;
+  border-color: var(--sv-accent);
+}
+
+.sv-auth-error {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(239,68,68,0.15);
+  color: #ffb3b3;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.sv-auth-error[hidden] { display: none; }
+
+.sv-auth-links {
+  text-align: center;
+  margin-top: 2px;
+}
+.sv-auth-links a {
+  color: var(--sv-accent);
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+.sv-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 12px;
+  color: var(--sv-text-dim);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.sv-auth-divider::before,
+.sv-auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--sv-border);
+}
+
+.sv-auth-oauth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--sv-border);
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: transform 0.1s ease;
+}
+.sv-auth-oauth:active { transform: scale(0.99); }
+
+.sv-auth-apple {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+/* ============================================
    SUBMISSIONS (needs-fixes list on the surveyor home)
    ============================================ */
 .sv-submission {
