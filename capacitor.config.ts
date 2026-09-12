@@ -11,6 +11,12 @@ const config: CapacitorConfig = {
     // url: 'http://YOUR_DEV_SERVER_IP:8080',
     // cleartext: true,
     androidScheme: 'https',
+    // iOS: use https scheme so Firebase Auth's origin check accepts
+    // the WebView. The default capacitor:// origin makes onAuthState-
+    // Changed hang because Firebase can't classify it as a valid
+    // origin for its persistence layer.
+    iosScheme: 'https',
+    hostname: 'localhost',
     allowNavigation: [
       // Firebase Auth handler (project: accessible-76181)
       'accessible-76181.firebaseapp.com',
