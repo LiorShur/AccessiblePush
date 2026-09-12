@@ -1,5 +1,12 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getAuth } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js';
+import {
+  getAuth,
+  initializeAuth,
+  indexedDBLocalPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  inMemoryPersistence,
+} from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, CACHE_SIZE_UNLIMITED, getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
@@ -54,8 +61,30 @@ try {
   }
 }
 
-export const auth = getAuth(app);
-export { db };
+// Initialize Auth with explicit persistence ordering. Firebase's default
+// getAuth() auto-detects persistence from the origin, which HANGS on
+// non-standard origins like capacitor://localhost (Capacitor iOS) —
+// onAuthStateChanged never fires. Passing an explicit persistence list
+// makes Firebase skip the detection dance. It tries each in order:
+// IndexedDB (best), then localStorage, then sessionStorage, then RAM.
+let auth;
+try {
+  auth = initializeAuth(app, {
+    persistence: [
+      indexedDBLocalPersistence,
+      browserLocalPersistence,
+      browserSessionPersistence,
+      inMemoryPersistence,
+    ],
+  });
+  console.log('🔥 Firebase Auth initialized with explicit persistence');
+} catch (e) {
+  // If Auth was already initialized (hot reload or duplicate import),
+  // fall back to getAuth which returns the existing instance.
+  auth = getAuth(app);
+  console.log('🔥 Using existing Firebase Auth instance');
+}
+export { auth, db };
 export const storage = getStorage(app);
 
 console.log('🔥 Firebase setup complete');
