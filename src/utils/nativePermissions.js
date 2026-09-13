@@ -13,8 +13,19 @@ export async function requestNativePermissions() {
   console.log('[Permissions] Running as native app, requesting permissions...');
 
   try {
-    // Import Capacitor Geolocation plugin
-    const { Geolocation } = await import('@capacitor/geolocation');
+    // Access the native plugin via Capacitor.registerPlugin instead of
+    // ES module import — this project isn't bundled, so bare npm names
+    // like '@capacitor/geolocation' can't resolve as module specifiers.
+    const Geolocation = window.Capacitor.Plugins?.Geolocation
+      || window.Capacitor.registerPlugin('Geolocation');
+    if (!Geolocation) {
+      throw new Error('Geolocation plugin not registered');
+    }
+
+    // Install a shim so any code using navigator.geolocation on native
+    // routes through the Capacitor plugin. WKWebView on iOS does NOT
+    // honour the web geolocation API by default, so this fixes tracking.
+    installGeolocationShim(Geolocation);
 
     // Check current permission status
     const status = await Geolocation.checkPermissions();
@@ -120,4 +131,76 @@ if (typeof window !== 'undefined') {
   } else {
     initializePermissions();
   }
+}
+
+// ------------------------------------------------------------------
+// WKWebView geolocation shim — routes navigator.geolocation calls
+// through the native Capacitor Geolocation plugin. Only installed on
+// native Capacitor. Idempotent.
+// ------------------------------------------------------------------
+function installGeolocationShim(Geolocation) {
+  if (!Geolocation || window.__svGeoShimInstalled) return;
+  window.__svGeoShimInstalled = true;
+  if (!navigator.geolocation) {
+    // WKWebView may not expose navigator.geolocation at all — create it
+    navigator.geolocation = /** @type {any} */ ({});
+  }
+
+  const wrapPos = (p) => ({
+    coords: {
+      latitude: p.coords?.latitude,
+      longitude: p.coords?.longitude,
+      accuracy: p.coords?.accuracy,
+      altitude: p.coords?.altitude,
+      altitudeAccuracy: p.coords?.altitudeAccuracy,
+      heading: p.coords?.heading,
+      speed: p.coords?.speed,
+    },
+    timestamp: p.timestamp || Date.now(),
+  });
+
+  navigator.geolocation.getCurrentPosition = function (success, error, options) {
+    Geolocation.getCurrentPosition({
+      enableHighAccuracy: options?.enableHighAccuracy ?? true,
+      timeout: options?.timeout ?? 15000,
+      maximumAge: options?.maximumAge ?? 0,
+    })
+      .then(pos => success && success(wrapPos(pos)))
+      .catch(err => error && error({ code: 2, message: err?.message || 'position unavailable' }));
+  };
+
+  // watchPosition returns a watch id (string on native). We track a
+  // mapping to satisfy the clearWatch API even though the plugin's
+  // watch id isn't numeric.
+  const watchIds = new Map();
+  let seq = 1;
+  navigator.geolocation.watchPosition = function (success, error, options) {
+    const id = seq++;
+    Geolocation.watchPosition({
+      enableHighAccuracy: options?.enableHighAccuracy ?? true,
+      timeout: options?.timeout ?? 30000,
+      maximumAge: options?.maximumAge ?? 5000,
+    }, (pos, err) => {
+      if (err) {
+        error && error({ code: 2, message: err?.message || 'position unavailable' });
+        return;
+      }
+      success && success(wrapPos(pos));
+    }).then(nativeId => {
+      watchIds.set(id, nativeId);
+    }).catch(err => {
+      error && error({ code: 2, message: err?.message || 'watch failed' });
+    });
+    return id;
+  };
+
+  navigator.geolocation.clearWatch = function (id) {
+    const nativeId = watchIds.get(id);
+    if (nativeId) {
+      Geolocation.clearWatch({ id: nativeId }).catch(() => {});
+      watchIds.delete(id);
+    }
+  };
+
+  console.log('[Permissions] Native geolocation shim installed');
 }
