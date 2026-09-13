@@ -202,18 +202,23 @@ export class MapController {
       return null;
     }
 
-    // Check permission status first (if Permissions API available)
-    if (navigator.permissions) {
+    // Check permission status first — but SKIP the web Permissions API
+    // on native Capacitor. WKWebView on iOS always reports "denied" for
+    // geolocation regardless of iOS system permission (WKWebView doesn't
+    // support HTML5 Geolocation natively — we route through the plugin
+    // via a shim). Trust the native plugin flow instead of the web API.
+    const isNativeCap = !!window.Capacitor?.isNativePlatform?.();
+    if (navigator.permissions && !isNativeCap) {
       try {
         const status = await navigator.permissions.query({ name: 'geolocation' });
         console.log('📍 Geolocation permission status:', status.state);
-        
+
         if (status.state === 'denied') {
           toast.errorKey('locationDenied');
           console.warn('📍 Location permission denied - user needs to enable in browser settings');
           return null;
         }
-        
+
         // Listen for permission changes
         status.onchange = () => {
           console.log('📍 Geolocation permission changed to:', status.state);
@@ -226,6 +231,8 @@ export class MapController {
         // Permissions API not fully supported, continue with regular request
         console.log('📍 Permissions API not available, requesting directly');
       }
+    } else if (isNativeCap) {
+      console.log('📍 Native Capacitor detected — skipping web Permissions API check');
     }
 
     return new Promise((resolve) => {
