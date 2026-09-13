@@ -106,6 +106,17 @@ const config: CapacitorConfig = {
       // Photo capture for trail documentation
     },
 
+    // Native Firebase Auth for wrapped apps (iOS + Android). Firebase's
+    // web SDK's OAuth flow fails on capacitor:// origins — this plugin
+    // uses the platform-native Google Sign-In / Sign in with Apple SDKs
+    // and just returns credentials. We then sign in via the JS SDK's
+    // signInWithCredential in authMethods.js, so JS onAuthStateChanged
+    // fires exactly like on the web.
+    FirebaseAuthentication: {
+      skipNativeAuth: true,
+      providers: ['google.com', 'apple.com'],
+    },
+
     Haptics: {
       // Vibration feedback for pocket mode, buttons, etc.
     }
