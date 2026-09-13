@@ -13,18 +13,19 @@
 import { auth, db } from '../../firebase-setup.js';
 import {
   onAuthStateChanged,
-  signInWithPopup,
-  signInWithRedirect,
   getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   updateProfile,
-  GoogleAuthProvider,
-  OAuthProvider,
   signOut,
 } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js';
+import {
+  signInWithGoogleUnified,
+  signInWithAppleUnified,
+  nativeSignOut,
+} from './authMethods.js';
 
 import { renderHome } from './home.js';
 
@@ -79,12 +80,9 @@ function showApp(html) {
  * whitelist is keyed by verified email.
  */
 function renderSignIn() {
-  const isIosWrapped = isWrappedIOS();
-
-  // On iOS wrapped app, popup + redirect OAuth flows fail because the
-  // origin is capacitor:// which Firebase's OAuth flow rejects. Hide
-  // Google/Apple there; email/password works everywhere.
-  const socialButtons = isIosWrapped ? '' : `
+  // All three providers now work on wrapped iOS via the native
+  // @capacitor-firebase/authentication plugin — no need to hide.
+  const socialButtons = `
     <div class="sv-auth-divider"><span>${tt('or', 'או')}</span></div>
     <button type="button" class="sv-auth-oauth sv-auth-google" id="svGoogleBtn">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -103,15 +101,6 @@ function renderSignIn() {
     </button>
   `;
 
-  const iosNote = isIosWrapped ? `
-    <div class="sv-auth-note">
-      ${tt(
-        'On this iPhone app, Google / Apple sign-in are not available. Please use email &amp; password, or sign in through Safari at surveyor.html.',
-        'באפליקציית iPhone זו, כניסה עם Google / Apple אינה זמינה. השתמשו באימייל וסיסמה, או היכנסו דרך Safari בכתובת surveyor.html.'
-      )}
-    </div>
-  ` : '';
-
   showApp(`
     <div class="sv-app centered">
       <div class="sv-auth-card">
@@ -120,8 +109,6 @@ function renderSignIn() {
           <h2 id="svAuthTitle">${tt('Surveyor sign in', 'התחברות סוקר')}</h2>
           <p id="svAuthSubtitle">${tt('Access Nature volunteer programme', 'תכנית מתנדבי Access Nature')}</p>
         </div>
-
-        ${iosNote}
 
         <div class="sv-auth-tabs">
           <button type="button" class="sv-auth-tab active" data-mode="signin">${tt('Sign in', 'כניסה')}</button>
@@ -275,36 +262,38 @@ function wireAuthGate() {
   const googleBtn = document.getElementById('svGoogleBtn');
   const appleBtn = document.getElementById('svAppleBtn');
 
-  googleBtn?.addEventListener('click', () => runOAuth(new GoogleAuthProvider(), showError));
-  appleBtn?.addEventListener('click', () => {
-    const provider = new OAuthProvider('apple.com');
-    provider.addScope('email');
-    provider.addScope('name');
-    runOAuth(provider, showError);
-  });
+  googleBtn?.addEventListener('click', () => runOAuth('google', showError));
+  appleBtn?.addEventListener('click', () => runOAuth('apple', showError));
 }
 
-async function runOAuth(provider, showError) {
+/**
+ * OAuth sign-in via the unified auth-methods layer. On wrapped native
+ * apps this delegates to the @capacitor-firebase/authentication plugin
+ * (native Google Sign-In on iOS/Android, native Sign in with Apple on
+ * iOS). On the web it uses Firebase JS SDK's popup flow.
+ */
+async function runOAuth(kind, showError) {
   try {
-    if (isWrappedWebView()) {
-      await signInWithRedirect(auth, provider);
-    } else {
-      await signInWithPopup(auth, provider);
+    if (kind === 'google') {
+      await signInWithGoogleUnified();
+    } else if (kind === 'apple') {
+      await signInWithAppleUnified();
     }
+    // onAuthStateChanged fires and routes to home / access-denied
   } catch (err) {
     console.warn('[Surveyor] OAuth sign-in failed:', err);
-    if (err.code === 'auth/popup-closed-by-user') {
+    // User-cancelled variants (native plugin uses different codes than JS SDK)
+    const cancelledCodes = new Set([
+      'auth/popup-closed-by-user',
+      'auth/cancelled-popup-request',
+      'auth/user-cancelled',
+    ]);
+    const msg = err?.message || '';
+    if (cancelledCodes.has(err?.code) || /cancel/i.test(msg) || /1001/.test(msg)) {
       showError(tt('Sign-in was cancelled.', 'ההתחברות בוטלה.'));
-    } else if (err.code === 'auth/popup-blocked') {
-      // Popup blocked → fall back to redirect
-      try {
-        await signInWithRedirect(auth, provider);
-      } catch (err2) {
-        showError(friendlyAuthError(err2));
-      }
-    } else {
-      showError(friendlyAuthError(err));
+      return;
     }
+    showError(friendlyAuthError(err));
   }
 }
 
@@ -329,17 +318,6 @@ function friendlyAuthError(err) {
   return tt(en, he);
 }
 
-function isWrappedWebView() {
-  return !!window.Capacitor
-    || / Capacitor\//.test(navigator.userAgent)
-    || location.protocol === 'capacitor:';
-}
-
-function isWrappedIOS() {
-  if (!isWrappedWebView()) return false;
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
 function renderAccessDenied(user, reason) {
   const reasonText = reason === 'deactivated'
     ? tt('Your surveyor account is currently inactive. Please contact your coordinator.', 'חשבון הסוקר שלך כרגע לא פעיל. אנא פנה לרכז שלך.')
@@ -360,7 +338,10 @@ function renderAccessDenied(user, reason) {
       </div>
     </div>
   `);
-  document.getElementById('svSignOutBtn')?.addEventListener('click', () => signOut(auth));
+  document.getElementById('svSignOutBtn')?.addEventListener('click', async () => {
+    await nativeSignOut();
+    await signOut(auth);
+  });
 }
 
 // Complete any pending redirect-based sign-in. This resolves the
@@ -402,6 +383,9 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // Expose sign-out for the home page
-export function svSignOut() { return signOut(auth); }
+export async function svSignOut() {
+  await nativeSignOut();
+  return signOut(auth);
+}
 
 console.log('[Surveyor] Entry loaded');
