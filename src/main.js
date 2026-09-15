@@ -473,8 +473,16 @@ showError(message) {
           console.log('🎯 Start button clicked');
           await this.controllers.tracking.start();
         } catch (error) {
-          console.error('Failed to start tracking:', error);
-          toast.errorKey('trackingFailed');
+          console.error('Failed to start tracking:', error, error?.stack);
+          // Show the actual error message so users can send meaningful
+          // reports. The old opaque "trackingFailed" toast was worse
+          // than useless — it hid the real reason.
+          const msg = error?.message || String(error);
+          if (window.toast?.error) {
+            toast.error('Failed to start tracking: ' + msg, { duration: 8000 });
+          } else {
+            toast.errorKey('trackingFailed');
+          }
         }
       });
     }

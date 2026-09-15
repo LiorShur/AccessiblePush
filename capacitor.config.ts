@@ -94,8 +94,18 @@ const config: CapacitorConfig = {
     },
 
     Geolocation: {
-      // Android: Request background location permission
-      // This is needed for tracking while app is in background
+      // BETA NOTE — full background GPS tracking (screen off / app
+      // switched) is NOT enabled. It requires:
+      //   iOS   → Info.plist UIBackgroundModes: ["location"]
+      //           + Signing & Capabilities → Background Modes → Location updates
+      //   Android → ACCESS_BACKGROUND_LOCATION permission
+      //             + a foreground service (or @capacitor-community/
+      //               background-geolocation) so Android doesn't kill
+      //               the process
+      // For the pilot we keep this OFF. Instruction to volunteers:
+      // "Keep the screen on and app in the foreground while surveying.
+      // Locking screen with app in foreground = OK. Switching to
+      // another app = tracking pauses."
     },
 
     KeepAwake: {

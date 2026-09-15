@@ -39,21 +39,42 @@ function isNativeCapacitor() {
 }
 
 /**
- * Lazily register / access the native Firebase Auth plugin. Returns
- * the plugin object or null if not available (which is fine — we
- * fall back to the web path).
+ * Lazily register / access the native Firebase Auth plugin. Throws a
+ * descriptive error if the plugin isn't installed, so the UI can show
+ * something more actionable than "plugin unavailable".
  */
 function getNativeAuthPlugin() {
   const cap = window.Capacitor;
-  if (!cap) return null;
-  // First try the already-registered Plugins map.
-  if (cap.Plugins?.FirebaseAuthentication) return cap.Plugins.FirebaseAuthentication;
-  // Otherwise register on demand.
-  if (typeof cap.registerPlugin === 'function') {
-    try { return cap.registerPlugin('FirebaseAuthentication'); }
-    catch (_) { return null; }
+  if (!cap) {
+    throw new Error('Capacitor bridge not found — running on plain web?');
   }
-  return null;
+  const platform = cap.getPlatform?.() || 'unknown';
+
+  let plugin = cap.Plugins?.FirebaseAuthentication;
+
+  if (!plugin && typeof cap.registerPlugin === 'function') {
+    try {
+      plugin = cap.registerPlugin('FirebaseAuthentication');
+    } catch (err) {
+      throw new Error(`registerPlugin failed on ${platform}: ${err?.message || err}`);
+    }
+  }
+
+  if (!plugin) {
+    throw new Error(`FirebaseAuthentication plugin not registered on ${platform}`);
+  }
+
+  // Verify a method exists — otherwise the plugin proxy is dead
+  // (native side didn't install the pod / gradle module).
+  if (typeof plugin.signInWithGoogle !== 'function') {
+    throw new Error(
+      `FirebaseAuthentication native module missing on ${platform}. ` +
+      `Fix: on macOS run "npx cap sync ios" (installs the pod); ` +
+      `on PC run "npx cap sync android" then rebuild the APK.`
+    );
+  }
+
+  return plugin;
 }
 
 // -------------------------------------------------------------
@@ -62,8 +83,7 @@ function getNativeAuthPlugin() {
 
 export async function signInWithGoogleUnified() {
   if (isNativeCapacitor()) {
-    const plugin = getNativeAuthPlugin();
-    if (!plugin) throw new Error('Native Firebase Auth plugin unavailable');
+    const plugin = getNativeAuthPlugin(); // throws with a helpful message if missing
     // skipNativeAuth:true — plugin returns the credential without
     // touching Firebase's native side; JS SDK signs in below so its
     // onAuthStateChanged fires normally.
@@ -84,8 +104,7 @@ export async function signInWithGoogleUnified() {
 
 export async function signInWithAppleUnified() {
   if (isNativeCapacitor()) {
-    const plugin = getNativeAuthPlugin();
-    if (!plugin) throw new Error('Native Firebase Auth plugin unavailable');
+    const plugin = getNativeAuthPlugin(); // throws with a helpful message if missing
     const result = await plugin.signInWithApple({
       skipNativeAuth: true,
       scopes: ['email', 'name'],
@@ -112,7 +131,10 @@ export async function signInWithAppleUnified() {
 
 export async function nativeSignOut() {
   if (!isNativeCapacitor()) return;
-  const plugin = getNativeAuthPlugin();
-  if (!plugin) return;
-  try { await plugin.signOut(); } catch (_) { /* non-fatal */ }
+  try {
+    const plugin = getNativeAuthPlugin();
+    await plugin.signOut();
+  } catch (_) {
+    // Non-fatal — the JS SDK signOut runs regardless
+  }
 }
