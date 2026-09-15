@@ -110,11 +110,29 @@ export function runPreflight({ tracker, allowSkipIfPassing = false } = {}) {
       el.className = `sv-check-status sv-check-status--${status}`;
       el.textContent = text;
       results[id] = status;
-      const criticalOk = checks
+      // Any non-cancelled state (ok/warn/bad) unlocks Start. Volunteers
+      // can consciously proceed with a bad-GPS check (some devices
+      // report bad accuracy indoors even though outdoors it's fine).
+      // Cancel button remains for aborting.
+      const anyCritical = checks
         .filter(c => c.critical)
-        .every(c => results[c.id] === 'ok' || results[c.id] === 'warn');
-      startBtn.disabled = !criticalOk;
+        .some(c => results[c.id]);
+      startBtn.disabled = !anyCritical;
+      // Change label when GPS is 'bad' so user knows what they're doing
+      if (results.gps === 'bad') {
+        startBtn.textContent = tt('Start anyway', 'התחל בכל זאת');
+      }
     };
+
+    // Safety net — after 20 s any pending checks are marked as 'warn'
+    // ("unknown") so the button unlocks regardless. Prevents the modal
+    // hanging forever if a check promise never resolves (WebView
+    // battery API missing, storage estimate hung, etc.).
+    setTimeout(() => {
+      checks.forEach(c => {
+        if (!results[c.id]) update(c.id, 'warn', tt('Timed out', 'זמן קצוב'));
+      });
+    }, 20000);
 
     startBtn.addEventListener('click', () => {
       sessionStorage.setItem('sv_preflight_ok_at', String(Date.now()));
