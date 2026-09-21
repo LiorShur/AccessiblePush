@@ -160,11 +160,13 @@ function installGeolocationShim(Geolocation) {
   });
 
   navigator.geolocation.getCurrentPosition = function (success, error, options) {
-    Geolocation.getCurrentPosition({
+    // Wrap in Promise.resolve so it works whether the plugin returns a
+    // real Promise (iOS) or a synchronous value (some Android builds).
+    Promise.resolve(Geolocation.getCurrentPosition({
       enableHighAccuracy: options?.enableHighAccuracy ?? true,
       timeout: options?.timeout ?? 15000,
       maximumAge: options?.maximumAge ?? 0,
-    })
+    }))
       .then(pos => success && success(wrapPos(pos)))
       .catch(err => error && error({ code: 2, message: err?.message || 'position unavailable' }));
   };
@@ -176,7 +178,11 @@ function installGeolocationShim(Geolocation) {
   let seq = 1;
   navigator.geolocation.watchPosition = function (success, error, options) {
     const id = seq++;
-    Geolocation.watchPosition({
+    // The plugin's watchPosition MAY return a Promise<string> (iOS +
+    // recent Android) OR fire the callback without returning a
+    // thenable (older Android builds and some webviews). Wrap the
+    // return value in Promise.resolve so we can always chain safely.
+    const watchReturn = Geolocation.watchPosition({
       enableHighAccuracy: options?.enableHighAccuracy ?? true,
       timeout: options?.timeout ?? 30000,
       maximumAge: options?.maximumAge ?? 5000,
@@ -186,11 +192,14 @@ function installGeolocationShim(Geolocation) {
         return;
       }
       success && success(wrapPos(pos));
-    }).then(nativeId => {
-      watchIds.set(id, nativeId);
-    }).catch(err => {
-      error && error({ code: 2, message: err?.message || 'watch failed' });
     });
+    Promise.resolve(watchReturn)
+      .then(nativeId => {
+        if (nativeId) watchIds.set(id, nativeId);
+      })
+      .catch(err => {
+        error && error({ code: 2, message: err?.message || 'watch failed' });
+      });
     return id;
   };
 
