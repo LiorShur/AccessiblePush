@@ -205,12 +205,15 @@ async function saveSurveyorRoute({ tracker, routeName, completenessScore }) {
     totalDistance: tracker.state.getTotalDistance(),
     elapsedTime: tracker.state.getElapsedTime(),
 
-    // Surveyor attribution + moderation flags
+    // Surveyor attribution + moderation flags. isPublic:false gates
+    // this route from any user-facing browse; coordinator's Approve
+    // flips it to true along with reviewStatus.
     officialSurvey: true,
     surveyorId: tracker.profile.uid,
     surveyorEmail: tracker.profile.email,
     surveyorName: tracker.profile.name || tracker.profile.displayName || tracker.profile.email,
     reviewStatus: 'pending',
+    isPublic: false,
     completenessScore,
     submittedAt: new Date().toISOString(),
   };
@@ -221,6 +224,38 @@ async function saveSurveyorRoute({ tracker, routeName, completenessScore }) {
     email: tracker.profile.email,
     displayName: pendingData.surveyorName,
   });
+
+  // Clear in-memory tracker state + any IndexedDB backup so the next
+  // app open doesn't prompt "unsaved route found". saveRoute() already
+  // persisted everything we need; the tracker's local copy is now
+  // redundant and, if left in place, misleads the user into thinking
+  // they still have unsaved work.
+  try {
+    tracker.state?.clearRouteData?.();
+  } catch (_) { /* non-critical */ }
+
+  try {
+    const { clearAutosave } = await import('./autosave.js');
+    clearAutosave();
+  } catch (_) { /* non-critical */ }
+
+  try {
+    const stateController = window.AccessNatureApp?.controllers?.state;
+    if (stateController?.clearRouteBackup) {
+      await stateController.clearRouteBackup();
+    }
+  } catch (_) { /* non-critical */ }
+
+  try {
+    const mapController = window.AccessNatureApp?.controllers?.map;
+    if (mapController?.clearRouteDisplay) {
+      mapController.clearRouteDisplay();
+    }
+    const poiElements = window.AccessNatureApp?.controllers?.poiElements;
+    if (poiElements?.clearElements) {
+      poiElements.clearElements();
+    }
+  } catch (_) { /* non-critical */ }
 }
 
 function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
