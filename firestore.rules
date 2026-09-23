@@ -35,13 +35,27 @@ service cloud.firestore {
     }
 
     // ==================== ROUTES ====================
-    // Owners read/update/delete their own; admins full access. Any
-    // signed-in user can create (route ownership set at write time).
+    // Public (isPublic:true) routes readable by anyone including
+    // signed-out visitors; owners see their own routes even when
+    // pending/private; admins have full access.
+    // Surveyor routes stay isPublic:false until coordinator Approve
+    // in surveyor-admin, which flips isPublic:true — that's the gate
+    // separating pending surveys from user-visible content.
 
     match /routes/{routeId} {
-      allow read: if isOwner() || isAdmin();
+      allow read: if resource.data.isPublic == true
+                    || isOwner()
+                    || isAdmin();
       allow create: if isCreator();
-      allow update: if isOwner() || isAdmin();
+      // Owners can't self-approve: they can't touch reviewStatus,
+      // isPublic, or the reviewer-set fields. Admins can change
+      // anything.
+      allow update: if isAdmin()
+                    || (isOwner()
+                        && !(request.resource.data.diff(resource.data).affectedKeys()
+                              .hasAny(['reviewStatus', 'isPublic',
+                                       'reviewedBy', 'reviewedAt',
+                                       'reviewNotes', 'approvedAt', 'approvedBy'])));
       allow delete: if isOwner() || isAdmin();
     }
 
@@ -50,8 +64,14 @@ service cloud.firestore {
 
     match /trail_guides/{guideId} {
       allow read: if resource.data.isPublic == true || isOwner() || isAdmin();
-      allow create: if isCreator();
-      allow update: if isOwner() || isAdmin();
+      allow create: if isCreator() || isAdmin();
+      // Owners can update their own guide but not the public flag.
+      // Admin approval workflow flips isPublic and stamps the
+      // approvedBy / approvedAt fields.
+      allow update: if isAdmin()
+                    || (isOwner()
+                        && !(request.resource.data.diff(resource.data).affectedKeys()
+                              .hasAny(['isPublic', 'approvedBy', 'approvedAt'])));
       allow delete: if isOwner() || isAdmin();
     }
 

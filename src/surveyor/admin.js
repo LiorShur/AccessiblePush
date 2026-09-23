@@ -15,7 +15,7 @@ import {
   onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut,
 } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js';
 import {
-  doc, getDoc, setDoc, updateDoc, deleteDoc,
+  doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc,
   collection, query, where, orderBy, limit, getDocs, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js';
 
@@ -433,17 +433,22 @@ async function handleReviewAction(action, id) {
   if (action === 'approve') {
     if (!confirm(tt('Approve and make this trail public?', 'לאשר ולפרסם את השביל?'))) return;
     try {
+      // 1. Fetch the full route doc so we can generate a matching guide
+      const routeSnap = await getDoc(doc(db, 'routes', id));
+      if (!routeSnap.exists()) throw new Error('Route not found');
+      const route = routeSnap.data();
+
+      // 2. Flip the route to approved + public
       await updateDoc(doc(db, 'routes', id), {
         reviewStatus: 'approved',
+        isPublic: true,
         reviewedBy: state.profile.email,
         reviewedAt: serverTimestamp(),
       });
-      // Also flip the linked trail_guide (if we can find it by routeId).
-      const gq = query(collection(db, 'trail_guides'), where('routeId', '==', id), limit(1));
-      const gs = await getDocs(gq);
-      for (const g of gs.docs) {
-        await updateDoc(doc(db, 'trail_guides', g.id), { isPublic: true });
-      }
+
+      // 3. Publish (or auto-create) the trail_guide.
+      await publishTrailGuideForRoute(id, route);
+
       renderReview();
     } catch (err) {
       alert(err.message);
@@ -456,6 +461,7 @@ async function handleReviewAction(action, id) {
     try {
       await updateDoc(doc(db, 'routes', id), {
         reviewStatus: 'needs-fixes',
+        isPublic: false,     // ensure sent-back routes are hidden from users
         reviewNotes: reason,
         reviewedBy: state.profile.email,
         reviewedAt: serverTimestamp(),
@@ -533,5 +539,79 @@ async function renderSurveyors() {
   } catch (err) {
     body.querySelector('#svSurveyorList').innerHTML =
       `<p class="sv-admin-status sv-admin-status--bad">${esc(err.message)}</p>`;
+  }
+}
+
+
+// ------------------------------------------------------------------
+// Trail-guide publishing
+// ------------------------------------------------------------------
+/**
+ * On approve, ensure a public trail_guide exists for the route. If one
+ * already exists (created by the surveyor's save flow or a previous
+ * approval), just flip isPublic:true. Otherwise render the HTML via
+ * trailGuideGeneratorV2 and create a fresh doc.
+ */
+async function publishTrailGuideForRoute(routeId, route) {
+  // First: any existing guide → flip to public
+  try {
+    const gq = query(collection(db, 'trail_guides'), where('routeId', '==', routeId), limit(1));
+    const gs = await getDocs(gq);
+    if (!gs.empty) {
+      await updateDoc(doc(db, 'trail_guides', gs.docs[0].id), {
+        isPublic: true,
+        approvedAt: serverTimestamp(),
+      });
+      return;
+    }
+  } catch (err) {
+    console.warn('[SurveyorAdmin] Trail guide lookup failed:', err.message);
+  }
+
+  // None exists — generate + insert
+  try {
+    const { trailGuideGeneratorV2 } = await import('../features/trailGuideGeneratorV2.js');
+    const routeData = route.routeData || [];
+    const routeInfo = {
+      name: route.routeName || route.name || '(untitled)',
+      totalDistance: route.totalDistance || 0,
+      elapsedTime: route.elapsedTime || 0,
+      date: route.submittedAt || route.uploadedAt || new Date().toISOString(),
+      makePublic: true,
+    };
+    const accessibilityData = route.accessibility || route.accessibilityData || null;
+    const poiElements = route.poiElements || [];
+    const lang = (route.language || document.documentElement.lang || 'en').startsWith('he') ? 'he' : 'en';
+
+    const htmlContent = trailGuideGeneratorV2.generateHTML(
+      routeData, routeInfo, accessibilityData, lang, poiElements
+    );
+
+    await addDoc(collection(db, 'trail_guides'), {
+      routeId,
+      userId: route.userId || route.surveyorId || null,
+      userEmail: route.userEmail || route.surveyorEmail || null,
+      userDisplayName: route.surveyorName || route.userDisplayName || null,
+      routeName: routeInfo.name,
+      htmlContent,
+      totalDistance: routeInfo.totalDistance,
+      elapsedTime: routeInfo.elapsedTime,
+      isPublic: true,
+      officialSurvey: true,
+      surveyorId: route.surveyorId || null,
+      surveyorEmail: route.surveyorEmail || null,
+      surveyorName: route.surveyorName || null,
+      accessibility: accessibilityData,
+      poiElements,
+      createdAt: serverTimestamp(),
+      approvedBy: state.profile.email,
+      approvedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.error('[SurveyorAdmin] Trail guide generation failed:', err);
+    alert(tt(
+      'Route approved, but trail guide could not be generated automatically. Details: ',
+      'המסלול אושר, אך לא ניתן היה לייצר את מדריך השביל אוטומטית. פרטים: '
+    ) + err.message);
   }
 }

@@ -2818,17 +2818,24 @@
     function renderAccessibilityTab() {
       const container = document.getElementById('tab-accessibility');
       const item = editingItem;
-      
-      // Get accessibility data from appropriate location
+
+      // Accept both possible field names — surveyor pipeline sometimes
+      // writes `accessibilityData`, sometimes `accessibility`, and linked
+      // route data may put it under yet another prefix.
       let accessData = {};
       if (currentSection === 'routes') {
-        accessData = item.accessibilityData || {};
+        accessData = item.accessibilityData || item.accessibility || {};
       } else if (currentSection === 'guides') {
-        accessData = item.accessibility || {};
+        accessData = item.accessibility || item.accessibilityData
+          || (linkedRouteData && (linkedRouteData.accessibility || linkedRouteData.accessibilityData))
+          || {};
       } else {
         container.innerHTML = '<div class="empty-state"><p>Accessibility survey not applicable for this item type</p></div>';
         return;
       }
+
+      const keyCount = Object.keys(accessData).length;
+      console.log('♿ Accessibility tab — section:', currentSection, '· fields:', keyCount);
       
       let html = '<p style="margin-bottom:20px;color:#6b7280;">Complete the accessibility survey for this trail. All fields are optional.</p>';
       
@@ -2929,19 +2936,40 @@
 
     function renderPhotosTab() {
       const container = document.getElementById('tab-photos');
-      
+
       // Get photos based on item type
       let photos = [];
       let notes = [];
+      let poiList = [];      // NEW — for surveyor POI markers
       let canAddPhotos = false;
       let canAddNotes = false;
       let fromLinkedRoute = false;
-      
+
+      // Helper — turn a POI element into a photo entry (if it has one)
+      // plus add it to the POI list regardless.
+      const collectPois = (pois) => {
+        (pois || []).forEach(p => {
+          poiList.push(p);
+          if (p.photoDataUrl) {
+            photos.push({
+              type: 'photo',
+              content: p.photoDataUrl,
+              url: p.photoDataUrl,
+              caption: (p.type ? '🪧 ' + p.type : '🪧 POI') + (p.notes ? ' — ' + p.notes : ''),
+              location: p.location || p.coords || null,
+              timestamp: p.timestamp || null,
+              source: 'poi',
+            });
+          }
+        });
+      };
+
       if (currentSection === 'routes') {
         if (editingItem.routeData) {
           photos = editingItem.routeData.filter(p => p.type === 'photo');
           notes = editingItem.routeData.filter(p => p.type === 'text');
         }
+        collectPois(editingItem.poiElements);
         canAddPhotos = true;
         canAddNotes = true;
       } else if (currentSection === 'guides') {
@@ -2954,6 +2982,8 @@
         } else if (editingItem.photos) {
           photos = Array.isArray(editingItem.photos) ? editingItem.photos : [editingItem.photos];
         }
+        // Guides may carry poiElements directly OR only via linked route.
+        collectPois(editingItem.poiElements || (linkedRouteData && linkedRouteData.poiElements));
         canAddPhotos = false; // Don't allow adding to linked route
         canAddNotes = false;
       } else if (currentSection === 'conditions') {
@@ -3108,7 +3138,37 @@
           <textarea id="photos_tab_notes" style="width:100%;min-height:100px;border:1px solid #e5e7eb;border-radius:6px;padding:12px;" placeholder="Add notes or description...">${esc(desc)}</textarea>
         `;
       }
-      
+
+      // Surveyor POI markers — separate from the photos above so a
+      // coordinator sees the semantic tags (bench, water, hazard...)
+      // and any notes the surveyor left with each POI, not just the
+      // photo pile.
+      if (poiList && poiList.length > 0) {
+        html += `
+          <h4 style="margin:24px 0 12px;">🪧 POI markers (${poiList.length})</h4>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            ${poiList.map(p => `
+              <div style="display:flex;gap:12px;padding:10px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa;align-items:flex-start">
+                <span style="background:#e0f2fe;color:#075985;padding:3px 10px;border-radius:999px;font-size:0.8em;font-weight:600;white-space:nowrap">
+                  ${esc(p.type || 'POI')}
+                </span>
+                <div style="flex:1;min-width:0">
+                  ${p.notes ? `<div style="font-size:0.92em">${esc(p.notes)}</div>` : '<div style="color:#9ca3af;font-size:0.85em">(no notes)</div>'}
+                  ${p.location || p.coords ? `<div style="color:#9ca3af;font-size:0.75em;margin-top:4px">
+                    📍 ${((p.location || p.coords).lat || 0).toFixed(5)}, ${((p.location || p.coords).lng || 0).toFixed(5)}
+                    ${p.timestamp ? ' · ' + new Date(p.timestamp).toLocaleTimeString() : ''}
+                  </div>` : ''}
+                </div>
+                ${p.photoDataUrl ? `
+                  <a href="${esc(p.photoDataUrl)}" target="_blank" rel="noopener" style="flex-shrink:0">
+                    <img src="${esc(p.photoDataUrl)}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb">
+                  </a>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
       container.innerHTML = html;
     }
 
