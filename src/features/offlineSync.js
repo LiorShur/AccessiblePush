@@ -51,6 +51,15 @@ class OfflineSync {
     this.uploadingGuides = new Set(); // Track guides currently being uploaded
   }
 
+  // Treat anything that isn't a data URL as already-uploaded.
+  // storageService also has isStorageURL but is instance-based and
+  // sometimes not initialized when we need this; the data:/http
+  // distinction is unambiguous for our purposes.
+  _looksLikeURL(s) {
+    if (typeof s !== 'string') return false;
+    return !s.startsWith('data:');
+  }
+
   /**
    * Get EmailJS configuration dynamically
    */
@@ -616,6 +625,37 @@ class OfflineSync {
           onProgress('photos-done', 'compressed');
         }
       }
+
+      // POI photos — upload any base64 photoDataUrl on POI elements to
+      // Storage too, otherwise large surveys blow past Firestore's
+      // 1 MB document limit (reported in beta: 4.7 MB doc rejection).
+      let processedPoiElements = Array.isArray(poiElements) ? poiElements : [];
+      if (processedPoiElements.length > 0) {
+        const poisWithPhotos = processedPoiElements.filter(p => p?.photoDataUrl && !this._looksLikeURL(p.photoDataUrl));
+        if (poisWithPhotos.length > 0) {
+          console.log(`🪧 Uploading ${poisWithPhotos.length} POI photos to Storage…`);
+          processedPoiElements = await Promise.all(processedPoiElements.map(async (poi, idx) => {
+            if (!poi?.photoDataUrl || this._looksLikeURL(poi.photoDataUrl)) return poi;
+            try {
+              const stamp = Date.now();
+              const safeType = String(poi.type || 'poi').replace(/[^a-z0-9_-]/gi, '_');
+              const storagePath = `users/${user.uid}/pois/${stamp}_${idx}_${safeType}.jpg`;
+              const { url } = await storageService.uploadPhoto(poi.photoDataUrl, storagePath, true);
+              return { ...poi, photoDataUrl: url, photoStoragePath: storagePath };
+            } catch (err) {
+              console.warn('[offlineSync] POI photo upload failed, dropping inline data:', err.message);
+              // Strip the oversized base64 rather than let the whole
+              // save fail. The POI is still saved with its metadata.
+              const { photoDataUrl, ...rest } = poi;
+              return { ...rest, photoUploadError: err.message };
+            }
+          }));
+          if (onProgress) onProgress('poi-photos-done', `${poisWithPhotos.length} uploaded`, 62);
+        }
+      }
+      // Alias so the rest of the function (which references poiElements)
+      // uses the processed list with URLs instead of base64.
+      poiElements = processedPoiElements;
       
       // Report route save stage
       if (onProgress) {
